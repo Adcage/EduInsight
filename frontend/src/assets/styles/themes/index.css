@@ -1,0 +1,120 @@
+/**
+ * 主题系统入口文件
+ */
+
+@import './light.css';
+@import './dark.css';
+
+/* 主题切换动画 */
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease !important;
+}
+
+/* 全局主题变量应用 */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* Ant Design Vue 组件主题覆盖 */
+.ant-layout {
+  background-color: var(--background-color) !important;
+}
+
+.ant-layout-header {
+  background-color: var(--header-bg) !important;
+  border-bottom: 1px solid var(--header-border) !important;
+}
+
+.ant-layout-sider {
+  background-color: var(--sider-bg) !important;
+}
+
+.ant-card {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color-base) !important;
+}
+
+.ant-card:hover {
+  background-color: var(--card-hover-bg) !important;
+}
+
+.ant-table {
+  background-color: var(--background-color-container) !important;
+}
+
+.ant-table-thead > tr > th {
+  background-color: var(--background-color-light) !important;
+  border-color: var(--border-color-base) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-color: var(--border-color-split) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: var(--background-color-light) !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-color) !important;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker {
+  background-color: var(--background-color-container) !important;
+  border-color: var(--border-color-base) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-input:hover,
+.ant-input-number:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: var(--primary-hover) !important;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px var(--primary-light) !important;
+}
+
+.ant-btn.ant-btn-default {
+  background-color: var(--background-color-container) !important;
+  border-color: var(--border-color-base) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-btn.ant-btn-default:hover {
+  border-color: var(--primary-hover) !important;
+  color: var(--primary-hover) !important;
+}
+
+.ant-menu {
+  background-color: transparent !important;
+}
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  color: var(--text-color-secondary) !important;
+}
+
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  color: var(--primary-color) !important;
+}
+
+.ant-menu-item.ant-menu-item-selected {
+  background-color: var(--primary-light) !important;
+  color: var(--primary-color) !important;
+}

@@ -1,0 +1,98 @@
+/**
+ * CSS 变量定义
+ * 使用 CSS 自定义属性替代 SCSS 变量
+ */
+
+:root {
+  /* ==================== 主题色 ==================== */
+  --primary-color: #1890ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+  --primary-light: #e6f7ff;
+
+  --success-color: #52c41a;
+  --success-hover: #73d13d;
+  --success-light: #f6ffed;
+
+  --warning-color: #faad14;
+  --warning-hover: #ffc53d;
+  --warning-light: #fffbe6;
+
+  --error-color: #f5222d;
+  --error-hover: #ff4d4f;
+  --error-light: #fff1f0;
+
+  --info-color: #1890ff;
+  --info-hover: #40a9ff;
+  --info-light: #e6f7ff;
+
+  /* ==================== 中性色 ==================== */
+  --text-color: rgba(0, 0, 0, 0.85);
+  --text-color-secondary: rgba(0, 0, 0, 0.65);
+  --text-color-tertiary: rgba(0, 0, 0, 0.45);
+  --text-color-disabled: rgba(0, 0, 0, 0.25);
+
+  --border-color-base: #d9d9d9;
+  --border-color-split: #f0f0f0;
+  --border-color-light: #e8e8e8;
+
+  --background-color: #f0f2f5;
+  --background-color-light: #fafafa;
+  --background-color-base: #ffffff;
+
+  --shadow-color: rgba(0, 0, 0, 0.15);
+
+  /* ==================== 字体 ==================== */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                 'Helvetica Neue', Arial, 'Noto Sans', 'PingFang SC', 
+                 'Microsoft YaHei', sans-serif;
+
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-sm: 12px;
+  --font-size-xs: 11px;
+
+  --heading-1-size: 38px;
+  --heading-2-size: 30px;
+  --heading-3-size: 24px;
+  --heading-4-size: 20px;
+  --heading-5-size: 16px;
+
+  --line-height-base: 1.5715;
+
+  /* ==================== 间距 ==================== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* ==================== 圆角 ==================== */
+  --border-radius-base: 4px;
+  --border-radius-sm: 2px;
+  --border-radius-lg: 8px;
+
+  /* ==================== 阴影 ==================== */
+  --box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --box-shadow-card: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 
+                     0 3px 6px 0 rgba(0, 0, 0, 0.12), 
+                     0 5px 12px 4px rgba(0, 0, 0, 0.09);
+
+  /* ==================== 布局 ==================== */
+  --header-height: 64px;
+  --footer-height: 64px;
+  --layout-padding: 24px;
+
+  /* ==================== 动画 ==================== */
+  --animation-duration-base: 0.3s;
+  --ease-base: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==================== 响应式断点 ==================== */
+  --screen-xs: 480px;
+  --screen-sm: 576px;
+  --screen-md: 768px;
+  --screen-lg: 992px;
+  --screen-xl: 1200px;
+  --screen-xxl: 1600px;
+}

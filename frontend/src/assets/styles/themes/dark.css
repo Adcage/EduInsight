@@ -1,0 +1,62 @@
+/**
+ * 暗色主题配置
+ */
+
+[data-theme='dark'] {
+  /* 主题色 */
+  --primary-color: #177ddc;
+  --primary-hover: #3c9be8;
+  --primary-active: #0958d9;
+  --primary-light: rgba(23, 125, 220, 0.15);
+
+  /* 状态色 */
+  --success-color: #49aa19;
+  --success-hover: #5cb85c;
+  --success-light: rgba(73, 170, 25, 0.15);
+
+  --warning-color: #d89614;
+  --warning-hover: #e6b339;
+  --warning-light: rgba(216, 150, 20, 0.15);
+
+  --error-color: #dc4446;
+  --error-hover: #e66a6c;
+  --error-light: rgba(220, 68, 70, 0.15);
+
+  --info-color: #177ddc;
+  --info-hover: #3c9be8;
+  --info-light: rgba(23, 125, 220, 0.15);
+
+  /* 文本色 */
+  --text-color: rgba(255, 255, 255, 0.85);
+  --text-color-secondary: rgba(255, 255, 255, 0.65);
+  --text-color-tertiary: rgba(255, 255, 255, 0.45);
+  --text-color-disabled: rgba(255, 255, 255, 0.25);
+  --text-color-inverse: rgba(0, 0, 0, 0.85);
+
+  /* 边框色 */
+  --border-color-base: #434343;
+  --border-color-split: #303030;
+  --border-color-light: #3a3a3a;
+
+  /* 背景色 */
+  --background-color: #141414;
+  --background-color-light: #1f1f1f;
+  --background-color-base: #1f1f1f;
+  --background-color-container: #262626;
+
+  /* 阴影色 */
+  --shadow-color: rgba(0, 0, 0, 0.45);
+  --shadow-color-light: rgba(0, 0, 0, 0.25);
+
+  /* 头部背景 */
+  --header-bg: #1f1f1f;
+  --header-border: #303030;
+
+  /* 侧边栏背景 */
+  --sider-bg: #001529;
+  --sider-light-bg: #1f1f1f;
+
+  /* 卡片背景 */
+  --card-bg: #1f1f1f;
+  --card-hover-bg: #262626;
+}
