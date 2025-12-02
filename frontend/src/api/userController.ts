@@ -22,29 +22,29 @@ export async function userApiPost(body: API.UserCreateModel, options?: { [key: s
   })
 }
 
-/** 获取指定用户 获取指定用户 - 公开接口 GET /api/v1/users/${param0} */
+/** 获取指定用户 获取指定用户 - 公开接口 GET /api/v1/users/${param1} */
 export async function userApiIntUserIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdGetParams,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/users/${param0}`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/users/${param1}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 更新用户信息 更新用户信息 - 需要JWT认证 PUT /api/v1/users/${param0} */
+/** 更新用户信息 更新用户信息 - 需要JWT认证 PUT /api/v1/users/${param1} */
 export async function userApiIntUserIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdPutParams,
   body: API.UserUpdateModel,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/users/${param0}`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/users/${param1}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -55,14 +55,14 @@ export async function userApiIntUserIdPut(
   })
 }
 
-/** 删除用户 删除用户 - 需要JWT认证 DELETE /api/v1/users/${param0} */
+/** 删除用户 删除用户 - 需要JWT认证 DELETE /api/v1/users/${param1} */
 export async function userApiIntUserIdDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdDeleteParams,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/users/${param0}`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/users/${param1}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),

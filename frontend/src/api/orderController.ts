@@ -13,8 +13,8 @@ export async function orderApiGet(
     params: {
       // page has a default value: 1
       page: '1',
-      // per_page has a default value: 10
-      per_page: '10',
+      // perPage has a default value: 10
+      perPage: '10',
       ...params,
     },
     ...(options || {}),
@@ -33,29 +33,29 @@ export async function orderApiPost(body: API.OrderCreateModel, options?: { [key:
   })
 }
 
-/** 获取指定订单 获取指定订单 - 需要JWT认证 GET /api/v1/orders/${param0} */
+/** 获取指定订单 获取指定订单 - 需要JWT认证 GET /api/v1/orders/${param1} */
 export async function orderApiIntOrderIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdGetParams,
   options?: { [key: string]: any }
 ) {
-  const { order_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/orders/${param0}`, {
+  const { orderId: param0, order_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/orders/${param1}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 更新订单信息 更新订单信息 - 需要JWT认证 PUT /api/v1/orders/${param0} */
+/** 更新订单信息 更新订单信息 - 需要JWT认证 PUT /api/v1/orders/${param1} */
 export async function orderApiIntOrderIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdPutParams,
   body: API.OrderUpdateModel,
   options?: { [key: string]: any }
 ) {
-  const { order_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/orders/${param0}`, {
+  const { orderId: param0, order_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/orders/${param1}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -66,14 +66,14 @@ export async function orderApiIntOrderIdPut(
   })
 }
 
-/** 取消订单 取消订单 - 需要JWT认证 DELETE /api/v1/orders/${param0}/cancel */
+/** 取消订单 取消订单 - 需要JWT认证 DELETE /api/v1/orders/${param1}/cancel */
 export async function orderApiIntOrderIdCancelDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdCancelDeleteParams,
   options?: { [key: string]: any }
 ) {
-  const { order_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/orders/${param0}/cancel`, {
+  const { orderId: param0, order_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/orders/${param1}/cancel`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),

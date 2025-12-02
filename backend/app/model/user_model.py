@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional, List
 from datetime import datetime
+from app.model.base_model import CamelCaseModel
 
-class UserCreateModel(BaseModel):
+class UserCreateModel(CamelCaseModel):
     """用户创建模型"""
     name: str = Field(..., min_length=1, max_length=100, description="用户姓名")
     email: EmailStr = Field(..., description="用户邮箱")
@@ -16,7 +17,7 @@ class UserCreateModel(BaseModel):
             raise ValueError('手机号码只能包含数字')
         return v
 
-class UserUpdateModel(BaseModel):
+class UserUpdateModel(CamelCaseModel):
     """用户更新模型"""
     name: Optional[str] = Field(None, min_length=1, max_length=100, description="用户姓名")
     email: Optional[EmailStr] = Field(None, description="用户邮箱")
@@ -29,7 +30,7 @@ class UserUpdateModel(BaseModel):
             raise ValueError('手机号码只能包含数字')
         return v
 
-class UserResponseModel(BaseModel):
+class UserResponseModel(CamelCaseModel):
     """用户响应模型"""
     id: int
     name: str
@@ -39,15 +40,12 @@ class UserResponseModel(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True
 
-class UserListResponseModel(BaseModel):
+class UserListResponseModel(CamelCaseModel):
     """用户列表响应模型"""
     users: List[UserResponseModel]
     total: int
 
-class UserPathModel(BaseModel):
+class UserPathModel(CamelCaseModel):
     """用户路径参数模型"""
     user_id: int = Field(..., description="用户ID")

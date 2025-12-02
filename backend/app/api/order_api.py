@@ -1,5 +1,4 @@
 from flask_openapi3 import APIBlueprint, Tag
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.model.order_model import (
     OrderCreateModel, OrderUpdateModel, OrderResponseModel,
     OrderListResponseModel, OrderPathModel, OrderQueryModel
@@ -16,17 +15,11 @@ class OrderAPI:
     @order_api_bp.get(
         '/', 
         summary="获取订单列表", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
     def list_orders(query: OrderQueryModel):
-        """获取订单列表 - 需要JWT认证"""
+        """获取订单列表"""
         try:
-            current_user_id = get_jwt_identity()
-            # 普通用户只能查看自己的订单
-            query.user_id = current_user_id
-            
             orders, total = OrderService.search_orders(query)
             return {
                 'orders': [OrderResponseModel.from_orm(o).dict() for o in orders],
@@ -41,15 +34,13 @@ class OrderAPI:
     @order_api_bp.post(
         '/', 
         summary="创建新订单", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
     def create_order(body: OrderCreateModel):
-        """创建新订单 - 需要JWT认证"""
+        """创建新订单"""
         try:
-            current_user_id = get_jwt_identity()
-            order = OrderService.create_order(current_user_id, body)
+            # 需要在body中提供user_id
+            order = OrderService.create_order(body.user_id, body)
             return {
                 'message': 'Order created successfully',
                 'order': OrderResponseModel.from_orm(order).dict()
@@ -63,21 +54,14 @@ class OrderAPI:
     @order_api_bp.get(
         '/<int:order_id>', 
         summary="获取指定订单", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
     def get_order(path: OrderPathModel):
-        """获取指定订单 - 需要JWT认证"""
-        current_user_id = get_jwt_identity()
+        """获取指定订单"""
         order = OrderService.get_order_by_id(path.order_id)
         
         if not order:
             return {'message': 'Order not found'}, 404
-        
-        # 只能查看自己的订单
-        if order.user_id != current_user_id:
-            return {'message': 'Permission denied'}, 403
         
         return OrderResponseModel.from_orm(order).dict()
     
@@ -85,22 +69,15 @@ class OrderAPI:
     @order_api_bp.put(
         '/<int:order_id>', 
         summary="更新订单信息", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
     def update_order(path: OrderPathModel, body: OrderUpdateModel):
-        """更新订单信息 - 需要JWT认证"""
+        """更新订单信息"""
         try:
-            current_user_id = get_jwt_identity()
             order = OrderService.get_order_by_id(path.order_id)
             
             if not order:
                 return {'message': 'Order not found'}, 404
-            
-            # 只能修改自己的订单
-            if order.user_id != current_user_id:
-                return {'message': 'Permission denied'}, 403
             
             updated_order = OrderService.update_order(path.order_id, body)
             return {
@@ -116,22 +93,15 @@ class OrderAPI:
     @order_api_bp.delete(
         '/<int:order_id>/cancel', 
         summary="取消订单", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
     def cancel_order(path: OrderPathModel):
-        """取消订单 - 需要JWT认证"""
+        """取消订单"""
         try:
-            current_user_id = get_jwt_identity()
             order = OrderService.get_order_by_id(path.order_id)
             
             if not order:
                 return {'message': 'Order not found'}, 404
-            
-            # 只能取消自己的订单
-            if order.user_id != current_user_id:
-                return {'message': 'Permission denied'}, 403
             
             if OrderService.cancel_order(path.order_id):
                 return {'message': 'Order cancelled successfully'}
@@ -144,17 +114,14 @@ class OrderAPI:
     
     @staticmethod
     @order_api_bp.get(
-        '/statistics', 
+        '/statistics/<int:user_id>', 
         summary="获取订单统计", 
-        tags=[order_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[order_tag]
     )
-    @jwt_required()
-    def get_order_statistics():
-        """获取当前用户的订单统计 - 需要JWT认证"""
+    def get_order_statistics(user_id: int):
+        """获取用户的订单统计"""
         try:
-            current_user_id = get_jwt_identity()
-            stats = OrderService.get_order_statistics(current_user_id)
+            stats = OrderService.get_order_statistics(user_id)
             return stats
         except Exception as e:
             return {'message': str(e)}, 500

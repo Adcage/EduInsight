@@ -2,8 +2,9 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
+from app.model.base_model import CamelCaseModel
 
-class ProductCreateModel(BaseModel):
+class ProductCreateModel(CamelCaseModel):
     """产品创建模型"""
     name: str = Field(..., min_length=1, max_length=200, description="产品名称")
     description: Optional[str] = Field(None, description="产品描述")
@@ -11,7 +12,7 @@ class ProductCreateModel(BaseModel):
     stock: int = Field(default=0, ge=0, description="库存数量")
     category: Optional[str] = Field(None, max_length=100, description="产品分类")
 
-class ProductUpdateModel(BaseModel):
+class ProductUpdateModel(CamelCaseModel):
     """产品更新模型"""
     name: Optional[str] = Field(None, min_length=1, max_length=200, description="产品名称")
     description: Optional[str] = Field(None, description="产品描述")
@@ -20,7 +21,7 @@ class ProductUpdateModel(BaseModel):
     category: Optional[str] = Field(None, max_length=100, description="产品分类")
     is_active: Optional[bool] = Field(None, description="是否激活")
 
-class ProductResponseModel(BaseModel):
+class ProductResponseModel(CamelCaseModel):
     """产品响应模型"""
     id: int
     name: str
@@ -32,20 +33,17 @@ class ProductResponseModel(BaseModel):
     is_in_stock: bool
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True
 
-class ProductListResponseModel(BaseModel):
+class ProductListResponseModel(CamelCaseModel):
     """产品列表响应模型"""
     products: List[ProductResponseModel]
     total: int
 
-class ProductPathModel(BaseModel):
+class ProductPathModel(CamelCaseModel):
     """产品路径参数模型"""
     product_id: int = Field(..., description="产品ID")
 
-class ProductQueryModel(BaseModel):
+class ProductQueryModel(CamelCaseModel):
     """产品查询模型"""
     category: Optional[str] = Field(None, description="产品分类")
     min_price: Optional[Decimal] = Field(None, ge=0, description="最低价格")

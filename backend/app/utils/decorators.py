@@ -2,7 +2,6 @@ import functools
 import time
 from typing import Callable, Any
 from flask import request, jsonify
-from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 def rate_limit(max_requests: int = 100, window_seconds: int = 3600):
     """简单的速率限制装饰器"""
@@ -32,21 +31,6 @@ def rate_limit(max_requests: int = 100, window_seconds: int = 3600):
             return func(*args, **kwargs)
         return wrapper
     return decorator
-
-def admin_required(func: Callable) -> Callable:
-    """管理员权限装饰器"""
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        verify_jwt_in_request()
-        current_user_id = get_jwt_identity()
-        
-        # 这里应该检查用户是否为管理员
-        # 简化实现，实际项目中需要查询数据库
-        if current_user_id != 1:  # 假设用户ID为1的是管理员
-            return jsonify({'message': 'Admin access required'}), 403
-        
-        return func(*args, **kwargs)
-    return wrapper
 
 def log_api_call(func: Callable) -> Callable:
     """API调用日志装饰器"""

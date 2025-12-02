@@ -13,8 +13,8 @@ export async function productApiGet(
     params: {
       // page has a default value: 1
       page: '1',
-      // per_page has a default value: 10
-      per_page: '10',
+      // perPage has a default value: 10
+      perPage: '10',
       ...params,
     },
     ...(options || {}),
@@ -33,29 +33,29 @@ export async function productApiPost(body: API.ProductCreateModel, options?: { [
   })
 }
 
-/** 获取指定产品 获取指定产品 - 公开接口 GET /api/v1/products/${param0} */
+/** 获取指定产品 获取指定产品 - 公开接口 GET /api/v1/products/${param1} */
 export async function productApiIntProductIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.productApiIntProductIdGetParams,
   options?: { [key: string]: any }
 ) {
-  const { product_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/products/${param0}`, {
+  const { productId: param0, product_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/products/${param1}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 更新产品信息 更新产品信息 - 需要JWT认证 PUT /api/v1/products/${param0} */
+/** 更新产品信息 更新产品信息 - 需要JWT认证 PUT /api/v1/products/${param1} */
 export async function productApiIntProductIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.productApiIntProductIdPutParams,
   body: API.ProductUpdateModel,
   options?: { [key: string]: any }
 ) {
-  const { product_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/products/${param0}`, {
+  const { productId: param0, product_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/products/${param1}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -66,14 +66,14 @@ export async function productApiIntProductIdPut(
   })
 }
 
-/** 删除产品 删除产品 - 需要JWT认证 DELETE /api/v1/products/${param0} */
+/** 删除产品 删除产品 - 需要JWT认证 DELETE /api/v1/products/${param1} */
 export async function productApiIntProductIdDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.productApiIntProductIdDeleteParams,
   options?: { [key: string]: any }
 ) {
-  const { product_id: param0, ...queryParams } = params
-  return request<any>(`/api/v1/products/${param0}`, {
+  const { productId: param0, product_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/products/${param1}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),

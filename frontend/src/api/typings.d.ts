@@ -10,30 +10,30 @@ declare namespace API {
     /** 订单状态 */
     status?: OrderStatusEnum | null
     /** 用户ID */
-    user_id?: number | null
+    userId?: number | null
     /** 开始日期 */
-    start_date?: string | null
+    startDate?: string | null
     /** 结束日期 */
-    end_date?: string | null
+    endDate?: string | null
     /** 页码 */
     page?: number
     /** 每页数量 */
-    per_page?: number
+    perPage?: number
   }
 
   type orderApiIntOrderIdCancelDeleteParams = {
     /** 订单ID */
-    order_id: number
+    orderId: number
   }
 
   type orderApiIntOrderIdGetParams = {
     /** 订单ID */
-    order_id: number
+    orderId: number
   }
 
   type orderApiIntOrderIdPutParams = {
     /** 订单ID */
-    order_id: number
+    orderId: number
   }
 
   type OrderCreateModel = {
@@ -41,13 +41,13 @@ declare namespace API {
     items: OrderItemCreateModel[]
     /** Notes 订单备注 */
     notes?: string | null
-    /** Shipping Address 收货地址 */
-    shipping_address?: string | null
+    /** Shippingaddress 收货地址 */
+    shippingAddress?: string | null
   }
 
   type OrderItemCreateModel = {
-    /** Product Id 产品ID */
-    product_id: number
+    /** Productid 产品ID */
+    productId: number
     /** Quantity 数量 */
     quantity: number
   }
@@ -57,8 +57,8 @@ declare namespace API {
   type OrderUpdateModel = {
     /** Notes 订单备注 */
     notes?: string | null
-    /** Shipping Address 收货地址 */
-    shipping_address?: string | null
+    /** Shippingaddress 收货地址 */
+    shippingAddress?: string | null
     /** 订单状态 */
     status?: OrderStatusEnum | null
   }
@@ -67,30 +67,30 @@ declare namespace API {
     /** 产品分类 */
     category?: string | null
     /** 最低价格 */
-    min_price?: number | string | null
+    minPrice?: number | string | null
     /** 最高价格 */
-    max_price?: number | string | null
+    maxPrice?: number | string | null
     /** 仅显示有库存商品 */
-    in_stock_only?: boolean | null
+    inStockOnly?: boolean | null
     /** 页码 */
     page?: number
     /** 每页数量 */
-    per_page?: number
+    perPage?: number
   }
 
   type productApiIntProductIdDeleteParams = {
     /** 产品ID */
-    product_id: number
+    productId: number
   }
 
   type productApiIntProductIdGetParams = {
     /** 产品ID */
-    product_id: number
+    productId: number
   }
 
   type productApiIntProductIdPutParams = {
     /** 产品ID */
-    product_id: number
+    productId: number
   }
 
   type ProductCreateModel = {
@@ -111,8 +111,8 @@ declare namespace API {
     category?: string | null
     /** Description 产品描述 */
     description?: string | null
-    /** Is Active 是否激活 */
-    is_active?: boolean | null
+    /** Isactive 是否激活 */
+    isActive?: boolean | null
     /** Name 产品名称 */
     name?: string | null
     /** Price 产品价格 */
@@ -134,17 +134,17 @@ declare namespace API {
 
   type userApiIntUserIdDeleteParams = {
     /** 用户ID */
-    user_id: number
+    userId: number
   }
 
   type userApiIntUserIdGetParams = {
     /** 用户ID */
-    user_id: number
+    userId: number
   }
 
   type userApiIntUserIdPutParams = {
     /** 用户ID */
-    user_id: number
+    userId: number
   }
 
   type UserCreateModel = {

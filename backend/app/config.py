@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -18,11 +17,6 @@ class Config:
         'pool_pre_ping': True,
         'max_overflow': 20
     }
-    
-    # JWT配置
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-string'
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     
     # CORS配置
     CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']

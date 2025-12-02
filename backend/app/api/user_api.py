@@ -1,5 +1,4 @@
 from flask_openapi3 import APIBlueprint, Tag
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.model.user_model import (
     UserCreateModel, UserUpdateModel, UserResponseModel, 
     UserListResponseModel, UserPathModel
@@ -26,19 +25,15 @@ class UserAPI:
     @user_api_bp.post(
         '/', 
         summary="创建新用户", 
-        tags=[user_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[user_tag]
     )
-    @jwt_required()
     def create_user(body: UserCreateModel):
-        """创建新用户 - 需要JWT认证"""
+        """创建新用户"""
         try:
-            current_user_id = get_jwt_identity()
             user = UserService.create_user(body)
             return {
                 'message': 'User created successfully',
-                'user': UserResponseModel.from_orm(user).dict(),
-                'created_by': current_user_id
+                'user': UserResponseModel.from_orm(user).dict()
             }, 201
         except ValueError as e:
             return {'message': str(e)}, 400
@@ -58,18 +53,10 @@ class UserAPI:
     @user_api_bp.put(
         '/<int:user_id>', 
         summary="更新用户信息", 
-        tags=[user_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[user_tag]
     )
-    @jwt_required()
     def update_user(path: UserPathModel, body: UserUpdateModel):
-        """更新用户信息 - 需要JWT认证"""
-        current_user_id = get_jwt_identity()
-        
-        # 只能修改自己的信息
-        if current_user_id != path.user_id:
-            return {'message': 'Permission denied'}, 403
-        
+        """更新用户信息"""
         user = UserService.update_user(path.user_id, body)
         if not user:
             return {'message': 'User not found'}, 404
@@ -82,18 +69,10 @@ class UserAPI:
     @user_api_bp.delete(
         '/<int:user_id>', 
         summary="删除用户", 
-        tags=[user_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
+        tags=[user_tag]
     )
-    @jwt_required()
     def delete_user(path: UserPathModel):
-        """删除用户 - 需要JWT认证"""
-        current_user_id = get_jwt_identity()
-        
-        # 只能删除自己的账户
-        if current_user_id != path.user_id:
-            return {'message': 'Permission denied'}, 403
-        
+        """删除用户"""
         if not UserService.delete_user(path.user_id):
             return {'message': 'User not found'}, 404
         return {'message': 'User deleted successfully'}, 204
