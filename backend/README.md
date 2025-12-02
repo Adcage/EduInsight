@@ -1,15 +1,15 @@
-# Flask-OpenAPI3 后端项目
+# EduInsight 后端项目
 
-基于 Flask-OpenAPI3 的现代化 RESTful API 项目，采用分层架构设计，支持自动API文档生成、数据验证和JWT认证。
+基于 Flask-OpenAPI3 的现代化 RESTful API 项目，采用分层架构设计，支持自动API文档生成和数据验证。
 
 ## 🚀 功能特性
 
 - **现代化架构**: 采用分层架构设计，代码结构清晰
 - **自动文档生成**: 基于 OpenAPI 3.0 规范，自动生成 Swagger UI 和 ReDoc 文档
 - **数据验证**: 使用 Pydantic 进行请求/响应数据验证
-- **JWT认证**: 完整的用户认证和授权系统
 - **CORS支持**: 跨域资源共享配置
 - **异常处理**: 统一的异常处理机制
+- **数据库ORM**: 使用 Flask-SQLAlchemy 进行数据库操作
 - **代码规范**: 遵循 PEP 8 代码规范
 
 ## 📁 项目结构
@@ -82,20 +82,30 @@ pip install -r requirements-dev.txt
 # 复制环境变量文件
 copy .env.example .env
 
-# 编辑 .env 文件，设置必要的配置项
+# 编辑 .env 文件，配置以下项：
+# - SECRET_KEY: Flask应用密钥
+# - DATABASE_URL: 数据库连接URL
+# - CORS_ORIGINS: 允许的跨域来源
 ```
 
 ### 3. 数据库初始化
 
-```python
-# 在Python控制台中执行
-from app import create_app
-from app.extensions import db
+**推荐方式: 使用初始化脚本**
 
-app = create_app()
-with app.app_context():
-    db.create_all()
+项目已包含 `init_db.py` 脚本,直接运行即可:
+
+```bash
+# 确保虚拟环境已激活,然后运行:
+python init_db.py
 ```
+
+运行后会显示:
+- ✅ 数据库表创建成功的提示
+- 📁 数据库文件位置
+- 📊 已创建的数据表列表
+
+---
+
 
 ### 4. 启动项目
 
@@ -115,19 +125,35 @@ flask run
 - **ReDoc**: http://localhost:5000/openapi/redoc
 - **OpenAPI JSON**: http://localhost:5000/openapi/openapi.json
 
-## 🔐 认证说明
+## 🔌 API接口说明
 
-项目使用JWT进行用户认证：
+### 认证接口
+- **注册**: `POST /api/v1/auth/register`
+- **登录**: `POST /api/v1/auth/login`
+- **获取用户信息**: `GET /api/v1/auth/profile/<user_id>`
 
-1. **注册**: `POST /api/v1/auth/register`
-2. **登录**: `POST /api/v1/auth/login`
-3. **获取用户信息**: `GET /api/v1/auth/profile` (需要认证)
-4. **刷新令牌**: `POST /api/v1/auth/refresh` (需要认证)
+### 用户管理
+- **获取用户列表**: `GET /api/v1/users/`
+- **创建用户**: `POST /api/v1/users/`
+- **获取指定用户**: `GET /api/v1/users/<user_id>`
+- **更新用户**: `PUT /api/v1/users/<user_id>`
+- **删除用户**: `DELETE /api/v1/users/<user_id>`
 
-需要认证的接口在请求头中添加：
-```
-Authorization: Bearer <access_token>
-```
+### 产品管理
+- **获取产品列表**: `GET /api/v1/products/`
+- **创建产品**: `POST /api/v1/products/`
+- **获取指定产品**: `GET /api/v1/products/<product_id>`
+- **更新产品**: `PUT /api/v1/products/<product_id>`
+- **删除产品**: `DELETE /api/v1/products/<product_id>`
+- **按分类获取**: `GET /api/v1/products/categories/<category>`
+
+### 订单管理
+- **获取订单列表**: `GET /api/v1/orders/`
+- **创建订单**: `POST /api/v1/orders/`
+- **获取指定订单**: `GET /api/v1/orders/<order_id>`
+- **更新订单**: `PUT /api/v1/orders/<order_id>`
+- **取消订单**: `DELETE /api/v1/orders/<order_id>/cancel`
+- **订单统计**: `GET /api/v1/orders/statistics/<user_id>`
 
 ## 🧪 测试
 
@@ -165,8 +191,50 @@ docker run -p 5000:5000 flask-backend
 
 ```bash
 # 使用Gunicorn
-gunicorn --bind 0.0.0.0:5000 run:app
+gunicorn --bind 0.0.0.0:5000 --workers 4 run:app
 ```
+
+## ⚙️ 环境变量说明
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| FLASK_ENV | Flask运行环境 | development |
+| SECRET_KEY | Flask应用密钥 | your-secret-key-here |
+| DATABASE_URL | 生产数据库URL | sqlite:///app.db |
+| DEV_DATABASE_URL | 开发数据库URL | sqlite:///app-dev.db |
+| PORT | 服务器端口 | 5000 |
+| DEBUG | 调试模式 | True |
+| CORS_ORIGINS | 允许的跨域来源 | http://localhost:3000,http://localhost:5173 |
+
+## 🗄️ 数据库模型
+
+### User (用户)
+- id: 主键
+- username: 用户名
+- email: 邮箱
+- password_hash: 密码哈希
+- created_at: 创建时间
+- updated_at: 更新时间
+
+### Product (产品)
+- id: 主键
+- name: 产品名称
+- description: 产品描述
+- price: 价格
+- category: 分类
+- stock: 库存
+- created_at: 创建时间
+- updated_at: 更新时间
+
+### Order (订单)
+- id: 主键
+- user_id: 用户ID (外键)
+- product_id: 产品ID (外键)
+- quantity: 数量
+- total_price: 总价
+- status: 订单状态
+- created_at: 创建时间
+- updated_at: 更新时间
 
 ## 📄 许可证
 
