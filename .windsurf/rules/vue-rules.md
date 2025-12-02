@@ -1,6 +1,5 @@
 ---
-trigger: 编写前端Vue代码的时候
-glob: false
+trigger: model_decision
 description: 前端开发代码规范
 ---
 
@@ -1103,4 +1102,3 @@ onUnmounted(() => {
 - [ ] 所有 `border-color` 使用了 CSS 变量
 - [ ] 悬停、激活等状态使用了对应的变量（如 `--primary-hover`）
 - [ ] 没有硬编码的颜色值（如 `#ffffff`、`#000000` 等）
-

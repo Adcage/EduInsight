@@ -21,7 +21,7 @@ export async function productApiGet(
   })
 }
 
-/** 创建新产品 创建新产品 - 需要JWT认证 POST /api/v1/products/ */
+/** 创建新产品 创建新产品 POST /api/v1/products/ */
 export async function productApiPost(body: API.ProductCreateModel, options?: { [key: string]: any }) {
   return request<any>('/api/v1/products/', {
     method: 'POST',
@@ -47,7 +47,7 @@ export async function productApiIntProductIdGet(
   })
 }
 
-/** 更新产品信息 更新产品信息 - 需要JWT认证 PUT /api/v1/products/${param1} */
+/** 更新产品信息 更新产品信息 PUT /api/v1/products/${param1} */
 export async function productApiIntProductIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.productApiIntProductIdPutParams,
@@ -66,7 +66,7 @@ export async function productApiIntProductIdPut(
   })
 }
 
-/** 删除产品 删除产品 - 需要JWT认证 DELETE /api/v1/products/${param1} */
+/** 删除产品 删除产品 DELETE /api/v1/products/${param1} */
 export async function productApiIntProductIdDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.productApiIntProductIdDeleteParams,

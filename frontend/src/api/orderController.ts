@@ -2,7 +2,7 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 获取订单列表 获取订单列表 - 需要JWT认证 GET /api/v1/orders/ */
+/** 获取订单列表 获取订单列表 GET /api/v1/orders/ */
 export async function orderApiGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiGetParams,
@@ -21,7 +21,7 @@ export async function orderApiGet(
   })
 }
 
-/** 创建新订单 创建新订单 - 需要JWT认证 POST /api/v1/orders/ */
+/** 创建新订单 创建新订单 POST /api/v1/orders/ */
 export async function orderApiPost(body: API.OrderCreateModel, options?: { [key: string]: any }) {
   return request<any>('/api/v1/orders/', {
     method: 'POST',
@@ -33,7 +33,7 @@ export async function orderApiPost(body: API.OrderCreateModel, options?: { [key:
   })
 }
 
-/** 获取指定订单 获取指定订单 - 需要JWT认证 GET /api/v1/orders/${param1} */
+/** 获取指定订单 获取指定订单 GET /api/v1/orders/${param1} */
 export async function orderApiIntOrderIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdGetParams,
@@ -47,7 +47,7 @@ export async function orderApiIntOrderIdGet(
   })
 }
 
-/** 更新订单信息 更新订单信息 - 需要JWT认证 PUT /api/v1/orders/${param1} */
+/** 更新订单信息 更新订单信息 PUT /api/v1/orders/${param1} */
 export async function orderApiIntOrderIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdPutParams,
@@ -66,7 +66,7 @@ export async function orderApiIntOrderIdPut(
   })
 }
 
-/** 取消订单 取消订单 - 需要JWT认证 DELETE /api/v1/orders/${param1}/cancel */
+/** 取消订单 取消订单 DELETE /api/v1/orders/${param1}/cancel */
 export async function orderApiIntOrderIdCancelDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.orderApiIntOrderIdCancelDeleteParams,
@@ -80,10 +80,16 @@ export async function orderApiIntOrderIdCancelDelete(
   })
 }
 
-/** 获取订单统计 获取当前用户的订单统计 - 需要JWT认证 GET /api/v1/orders/statistics */
-export async function orderApiStatisticsGet(options?: { [key: string]: any }) {
-  return request<any>('/api/v1/orders/statistics', {
+/** 获取订单统计 获取用户的订单统计 GET /api/v1/orders/statistics/${param0} */
+export async function orderApiStatisticsIntUserIdGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.orderApiStatisticsIntUserIdGetParams,
+  options?: { [key: string]: any }
+) {
+  const { user_id: param0, ...queryParams } = params
+  return request<any>(`/api/v1/orders/statistics/${param0}`, {
     method: 'GET',
+    params: { ...queryParams },
     ...(options || {}),
   })
 }

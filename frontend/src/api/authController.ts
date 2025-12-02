@@ -2,7 +2,7 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 用户登录 用户登录获取JWT令牌 POST /api/v1/auth/login */
+/** 用户登录 用户登录 POST /api/v1/auth/login */
 export async function authApiLoginPost(body: API.LoginModel, options?: { [key: string]: any }) {
   return request<any>('/api/v1/auth/login', {
     method: 'POST',
@@ -14,18 +14,16 @@ export async function authApiLoginPost(body: API.LoginModel, options?: { [key: s
   })
 }
 
-/** 获取当前用户信息 获取当前用户信息 - 需要JWT认证 GET /api/v1/auth/profile */
-export async function authApiProfileGet(options?: { [key: string]: any }) {
-  return request<any>('/api/v1/auth/profile', {
+/** 获取用户信息 获取用户信息 GET /api/v1/auth/profile/${param0} */
+export async function authApiProfileIntUserIdGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.authApiProfileIntUserIdGetParams,
+  options?: { [key: string]: any }
+) {
+  const { user_id: param0, ...queryParams } = params
+  return request<any>(`/api/v1/auth/profile/${param0}`, {
     method: 'GET',
-    ...(options || {}),
-  })
-}
-
-/** 刷新访问令牌 刷新访问令牌 POST /api/v1/auth/refresh */
-export async function authApiRefreshPost(options?: { [key: string]: any }) {
-  return request<any>('/api/v1/auth/refresh', {
-    method: 'POST',
+    params: { ...queryParams },
     ...(options || {}),
   })
 }

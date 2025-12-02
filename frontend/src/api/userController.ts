@@ -10,7 +10,7 @@ export async function userApiGet(options?: { [key: string]: any }) {
   })
 }
 
-/** 创建新用户 创建新用户 - 需要JWT认证 POST /api/v1/users/ */
+/** 创建新用户 创建新用户 POST /api/v1/users/ */
 export async function userApiPost(body: API.UserCreateModel, options?: { [key: string]: any }) {
   return request<any>('/api/v1/users/', {
     method: 'POST',
@@ -36,7 +36,7 @@ export async function userApiIntUserIdGet(
   })
 }
 
-/** 更新用户信息 更新用户信息 - 需要JWT认证 PUT /api/v1/users/${param1} */
+/** 更新用户信息 更新用户信息 PUT /api/v1/users/${param1} */
 export async function userApiIntUserIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdPutParams,
@@ -55,7 +55,7 @@ export async function userApiIntUserIdPut(
   })
 }
 
-/** 删除用户 删除用户 - 需要JWT认证 DELETE /api/v1/users/${param1} */
+/** 删除用户 删除用户 DELETE /api/v1/users/${param1} */
 export async function userApiIntUserIdDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdDeleteParams,
@@ -65,6 +65,14 @@ export async function userApiIntUserIdDelete(
   return request<any>(`/api/v1/users/${param1}`, {
     method: 'DELETE',
     params: { ...queryParams },
+    ...(options || {}),
+  })
+}
+
+/** 删除用户 GET /api/v1/users/health */
+export async function userApiHealthGet(options?: { [key: string]: any }) {
+  return request<any>('/api/v1/users/health', {
+    method: 'GET',
     ...(options || {}),
   })
 }

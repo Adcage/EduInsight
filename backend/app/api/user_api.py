@@ -76,3 +76,12 @@ class UserAPI:
         if not UserService.delete_user(path.user_id):
             return {'message': 'User not found'}, 404
         return {'message': 'User deleted successfully'}, 204
+
+    @staticmethod
+    @user_api_bp.get(
+        '/health', 
+        summary="删除用户", 
+        tags=[user_tag]
+    )
+    def health():
+        return {'message': 'health'}, 204
