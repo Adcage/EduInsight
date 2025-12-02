@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import ThemeToggle from './ThemeToggle.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const route = useRoute()
 const selectedKeys = ref<string[]>(['home'])
@@ -57,13 +57,13 @@ watch(
   z-index: 1000;
   background-color: var(--header-bg);
   border-bottom: 1px solid var(--header-border);
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-xl);
   height: 64px;
   line-height: 64px;
 }
 
 .header-content {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
