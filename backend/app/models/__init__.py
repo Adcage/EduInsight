@@ -1,6 +1,5 @@
 from .base import BaseModel
+from .class_model import Class
 from .user import User
-from .product import Product
-from .order import Order
 
-__all__ = ['BaseModel', 'User', 'Product', 'Order']
+__all__ = ['BaseModel', 'Class', 'User']

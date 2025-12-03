@@ -1,6 +1,6 @@
 from typing import List, Optional
 from app.models.user import User
-from app.model.user_model import UserCreateModel, UserUpdateModel
+# from app.schemas.user_schemas import UserRegisterModel, UserUpdateModel
 from app.extensions import db
 
 class UserService:

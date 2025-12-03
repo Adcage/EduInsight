@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 前端开发代码规范
+description: 开发前端Vue页面时的代码规范
 ---
 
 # 前端开发代码规范
@@ -11,13 +11,16 @@ description: 前端开发代码规范
 - [3. 命名规范](#3-命名规范)
 - [4. Vue组件开发规范](#4-vue组件开发规范)
 - [5. TypeScript开发规范](#5-typescript开发规范)
-- [6. 样式开发规范](#6-样式开发规范)
-- [7. API接口规范](#7-api接口规范)
-- [8. 状态管理规范](#8-状态管理规范)
-- [9. 错误处理规范](#9-错误处理规范)
-- [10. Git提交规范](#10-git提交规范)
-- [11. 代码审查规范](#11-代码审查规范)
-- [12. 性能规范](#12-性能规范)
+- [6. Ant Design Vue组件规范](#6-ant-design-vue组件规范)
+- [7. 样式开发规范](#7-样式开发规范)
+- [8. API接口规范](#8-api接口规范)
+- [9. 状态管理规范](#9-状态管理规范)
+- [10. 错误处理规范](#10-错误处理规范)
+- [11. Git提交规范](#11-git提交规范)
+- [12. 代码审查规范](#12-代码审查规范)
+- [13. 性能规范](#13-性能规范)
+- [14. Ant Design Vue快速参考](#14-ant-design-vue快速参考)
+- [15. 主题样式编写规范](#15-主题样式编写规范)
 
 ---
 
@@ -376,37 +379,420 @@ type CreateUser = Optional<User, 'id' | 'createdAt'>
 
 ---
 
-## 6. 样式开发规范
+## 6. Ant Design Vue组件规范
 
-### 6.1 SCSS组织结构
-```scss
-// 1. 导入顺序
-@import './variables.scss';    // 变量
-@import './mixins.scss';       // 混合器
-@import './functions.scss';    // 函数
+### 6.1 组件导入规范
 
-// 2. 变量定义
-$primary-color: #1890ff;
-$primary-hover: #40a9ff;
-$primary-active: #096dd9;
+```typescript
+// ✅ 推荐：按需导入组件
+import { Button, Form, Input, Table, Modal, Message, Notification } from 'ant-design-vue'
+import type { FormInstance } from 'ant-design-vue'
 
-// 3. 混合器定义
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+// ❌ 避免：全局导入所有组件
+import AntDesignVue from 'ant-design-vue'
+```
+
+### 6.2 常用组件使用规范
+
+#### 6.2.1 Button按钮组件
+```vue
+<template>
+  <!-- 主要按钮 -->
+  <a-button type="primary" @click="handleSubmit">提交</a-button>
+  
+  <!-- 次要按钮 -->
+  <a-button>默认</a-button>
+  
+  <!-- 危险按钮 -->
+  <a-button danger @click="handleDelete">删除</a-button>
+  
+  <!-- 禁用状态 -->
+  <a-button :disabled="!isValid">保存</a-button>
+  
+  <!-- 加载状态 -->
+  <a-button :loading="loading">加载中</a-button>
+  
+  <!-- 按钮组 -->
+  <a-button-group>
+    <a-button>左</a-button>
+    <a-button>中</a-button>
+    <a-button>右</a-button>
+  </a-button-group>
+</template>
+```
+
+#### 6.2.2 Form表单组件
+```vue
+<template>
+  <a-form
+    :model="formData"
+    :rules="rules"
+    layout="vertical"
+    @finish="onFinish"
+    @finishFailed="onFinishFailed"
+  >
+    <!-- 文本输入 -->
+    <a-form-item label="用户名" name="username">
+      <a-input 
+        v-model:value="formData.username"
+        placeholder="请输入用户名"
+        allow-clear
+      />
+    </a-form-item>
+
+    <!-- 密码输入 -->
+    <a-form-item label="密码" name="password">
+      <a-input-password 
+        v-model:value="formData.password"
+        placeholder="请输入密码"
+      />
+    </a-form-item>
+
+    <!-- 选择框 -->
+    <a-form-item label="角色" name="role">
+      <a-select 
+        v-model:value="formData.role"
+        placeholder="请选择角色"
+      >
+        <a-select-option value="admin">管理员</a-select-option>
+        <a-select-option value="user">普通用户</a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <!-- 日期选择 -->
+    <a-form-item label="出生日期" name="birthDate">
+      <a-date-picker 
+        v-model:value="formData.birthDate"
+        style="width: 100%"
+      />
+    </a-form-item>
+
+    <!-- 复选框 -->
+    <a-form-item name="agree" value-prop-name="checked">
+      <a-checkbox v-model:checked="formData.agree">
+        我同意服务条款
+      </a-checkbox>
+    </a-form-item>
+
+    <!-- 提交按钮 -->
+    <a-form-item>
+      <a-button type="primary" html-type="submit" :loading="loading">
+        提交
+      </a-button>
+      <a-button style="margin-left: 8px" @click="resetForm">
+        重置
+      </a-button>
+    </a-form-item>
+  </a-form>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import type { FormInstance } from 'ant-design-vue'
+
+interface FormData {
+  username: string
+  password: string
+  role: string
+  birthDate: any
+  agree: boolean
 }
 
-@mixin respond-to($breakpoint) {
-  @if $breakpoint == mobile {
-    @media (max-width: 768px) {
-      @content;
+const formRef = ref<FormInstance>()
+const loading = ref(false)
+const formData = reactive<FormData>({
+  username: '',
+  password: '',
+  role: '',
+  birthDate: null,
+  agree: false
+})
+
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度3-20个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6个字符', trigger: 'blur' }
+  ],
+  role: [
+    { required: true, message: '请选择角色', trigger: 'change' }
+  ]
+}
+
+const onFinish = async (values: any) => {
+  loading.value = true
+  try {
+    // 提交表单
+    console.log('表单数据:', values)
+  } finally {
+    loading.value = false
+  }
+}
+
+const onFinishFailed = (errorInfo: any) => {
+  console.log('Failed:', errorInfo)
+}
+
+const resetForm = () => {
+  formRef.value?.resetFields()
+}
+</script>
+```
+
+#### 6.2.3 Table表格组件
+```vue
+<template>
+  <a-table
+    :columns="columns"
+    :data-source="tableData"
+    :loading="loading"
+    :pagination="pagination"
+    :row-selection="rowSelection"
+    @change="handleTableChange"
+  >
+    <!-- 自定义列 -->
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'action'">
+        <a-space>
+          <a-button type="link" size="small" @click="handleEdit(record)">
+            编辑
+          </a-button>
+          <a-popconfirm
+            title="确定删除?"
+            ok-text="确定"
+            cancel-text="取消"
+            @confirm="handleDelete(record.id)"
+          >
+            <a-button type="link" danger size="small">
+              删除
+            </a-button>
+          </a-popconfirm>
+        </a-space>
+      </template>
+    </template>
+  </a-table>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+}
+
+const columns = [
+  { title: '姓名', dataIndex: 'name', key: 'name', width: 150 },
+  { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },
+  { title: '角色', dataIndex: 'role', key: 'role', width: 100 },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+  { title: '操作', key: 'action', width: 150 }
+]
+
+const loading = ref(false)
+const tableData = ref<User[]>([])
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showQuickJumper: true,
+  pageSizeOptions: ['10', '20', '50', '100']
+})
+
+const rowSelection = reactive({
+  selectedRowKeys: [] as string[],
+  onChange: (selectedKeys: string[]) => {
+    rowSelection.selectedRowKeys = selectedKeys
+  }
+})
+
+const handleTableChange = (pag: any, filters: any, sorter: any) => {
+  pagination.current = pag.current
+  pagination.pageSize = pag.pageSize
+  // 重新加载数据
+}
+
+const handleEdit = (record: User) => {
+  console.log('编辑:', record)
+}
+
+const handleDelete = (id: string) => {
+  console.log('删除:', id)
+}
+</script>
+```
+
+#### 6.2.4 Modal对话框组件
+```vue
+<template>
+  <!-- 基础对话框 -->
+  <a-modal
+    v-model:visible="visible"
+    title="用户信息"
+    ok-text="确定"
+    cancel-text="取消"
+    @ok="handleOk"
+    @cancel="handleCancel"
+  >
+    <p>这是一个对话框</p>
+  </a-modal>
+
+  <!-- 确认对话框 -->
+  <a-button @click="showConfirm">显示确认</a-button>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { Modal } from 'ant-design-vue'
+
+const visible = ref(false)
+
+const handleOk = () => {
+  console.log('确定')
+  visible.value = false
+}
+
+const handleCancel = () => {
+  console.log('取消')
+  visible.value = false
+}
+
+const showConfirm = () => {
+  Modal.confirm({
+    title: '确认删除?',
+    content: '删除后无法恢复，请谨慎操作',
+    okText: '确定',
+    cancelText: '取消',
+    onOk() {
+      console.log('确定删除')
+    },
+    onCancel() {
+      console.log('取消删除')
     }
+  })
+}
+</script>
+```
+
+#### 6.2.5 Message消息提示
+```typescript
+import { message } from 'ant-design-vue'
+
+// 成功消息
+message.success('操作成功')
+
+// 错误消息
+message.error('操作失败')
+
+// 警告消息
+message.warning('请注意')
+
+// 信息消息
+message.info('这是一条信息')
+
+// 加载消息
+const hide = message.loading('加载中...')
+setTimeout(() => {
+  hide()
+  message.success('加载完成')
+}, 2000)
+```
+
+#### 6.2.6 Notification通知
+```typescript
+import { notification } from 'ant-design-vue'
+
+// 成功通知
+notification.success({
+  message: '成功',
+  description: '操作成功完成',
+  duration: 4.5
+})
+
+// 错误通知
+notification.error({
+  message: '错误',
+  description: '操作失败，请重试',
+  duration: 4.5
+})
+
+// 自定义通知
+notification.open({
+  message: '自定义通知',
+  description: '这是一条自定义通知',
+  duration: 0 // 不自动关闭
+})
+```
+
+### 6.3 组件最佳实践
+
+#### 6.3.1 表单验证
+```typescript
+// ✅ 推荐：完整的验证规则
+const rules = {
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ]
+}
+```
+
+#### 6.3.2 表格数据加载
+```typescript
+// ✅ 推荐：异步加载表格数据
+const fetchTableData = async () => {
+  loading.value = true
+  try {
+    const response = await getUserList({
+      page: pagination.current,
+      pageSize: pagination.pageSize
+    })
+    tableData.value = response.data.list
+    pagination.total = response.data.total
+  } catch (error) {
+    message.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
 }
 ```
 
-### 6.2 CSS类名规范
+#### 6.3.3 响应式布局
+```vue
+<template>
+  <a-row :gutter="[16, 16]">
+    <a-col :xs="24" :sm="12" :md="8" :lg="6">
+      <a-card>卡片1</a-card>
+    </a-col>
+    <a-col :xs="24" :sm="12" :md="8" :lg="6">
+      <a-card>卡片2</a-card>
+    </a-col>
+  </a-row>
+</template>
+```
+
+### 6.4 禁止事项
+
+- ❌ 不要使用过时的组件API
+- ❌ 不要在组件上硬编码颜色值
+- ❌ 不要忽视组件的无障碍属性
+
+---
+
+## 7. 样式开发规范
+
+### 7.1 CSS类名规范
 ```scss
 // BEM命名规范
 .user-table {
@@ -434,29 +820,17 @@ $primary-active: #096dd9;
 }
 ```
 
-### 6.3 主题变量使用
-```scss
+### 7.2 主题变量使用
+```css
 // ✅ 推荐：使用CSS变量（支持主题切换）
 .custom-component {
   background-color: var(--background-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
-
-// ✅ 推荐：使用SCSS变量（编译时确定）
-.static-component {
-  font-size: $font-size-base;
-  line-height: $line-height-base;
-}
-
-// ❌ 避免：硬编码颜色
-.bad-component {
-  background-color: #ffffff;
-  color: #000000;
-}
 ```
 
-### 6.4 响应式设计
+### 7.3 响应式设计
 ```scss
 // 移动端优先
 .component {
@@ -477,9 +851,9 @@ $primary-active: #096dd9;
 
 ---
 
-## 7. API接口规范
+## 8. API接口规范
 
-### 7.1 接口文件组织
+### 8.1 接口文件组织
 ```typescript
 // src/api/userController.ts
 import { request } from '@/utils/request'
@@ -517,7 +891,7 @@ export const createUser = (
 }
 ```
 
-### 7.2 接口命名规范
+### 8.2 接口命名规范
 ```typescript
 // 查询操作：get + 资源名 + [条件]
 getUserList()
@@ -542,7 +916,7 @@ reviewApplication()
 assignTask()
 ```
 
-### 7.3 错误处理
+### 8.3 错误处理
 ```typescript
 // 统一错误处理
 export const getUserList = async (params: PaginationParams) => {
@@ -558,9 +932,9 @@ export const getUserList = async (params: PaginationParams) => {
 
 ---
 
-## 8. 状态管理规范
+## 9. 状态管理规范
 
-### 8.1 Pinia Store结构
+### 9.1 Pinia Store结构
 ```typescript
 // src/stores/user.ts
 import { ref, computed } from 'vue'
@@ -630,7 +1004,7 @@ export const useUserStore = defineStore('user', () => {
 })
 ```
 
-### 8.2 Store使用规范
+### 9.2 Store使用规范
 ```typescript
 // 在组件中使用
 export default defineComponent({
@@ -659,9 +1033,9 @@ export default defineComponent({
 
 ---
 
-## 9. 错误处理规范
+## 10. 错误处理规范
 
-### 9.1 统一错误处理
+### 10.1 统一错误处理
 ```typescript
 // src/utils/errorHandler.ts
 import { message } from 'ant-design-vue'
@@ -691,7 +1065,7 @@ export const handleError = (error: unknown) => {
 }
 ```
 
-### 9.2 组件中的错误处理
+### 10.2 组件中的错误处理
 ```typescript
 // 异步操作错误处理
 const handleSubmit = async () => {
@@ -715,9 +1089,9 @@ app.config.errorHandler = (err, vm, info) => {
 
 ---
 
-## 10. Git提交规范
+## 11. Git提交规范
 
-### 10.1 提交信息格式
+### 11.1 提交信息格式
 ```
 <type>(<scope>): <subject>
 
@@ -726,7 +1100,7 @@ app.config.errorHandler = (err, vm, info) => {
 <footer>
 ```
 
-### 10.2 提交类型
+### 11.2 提交类型
 - `feat`: 新功能
 - `fix`: 修复bug
 - `docs`: 文档更新
@@ -739,7 +1113,7 @@ app.config.errorHandler = (err, vm, info) => {
 - `chore`: 其他不修改src或test文件的变更
 - `revert`: 回滚之前的提交
 
-### 10.3 提交示例
+### 11.3 提交示例
 ```bash
 # 新功能
 feat(auth): 添加用户登录功能
@@ -759,9 +1133,9 @@ perf(table): 优化大数据量表格渲染性能
 
 ---
 
-## 11. 代码审查规范
+## 12. 代码审查规范
 
-### 11.1 审查清单
+### 12.1 审查清单
 - [ ] 代码符合命名规范
 - [ ] TypeScript类型定义完整
 - [ ] 组件结构清晰合理
@@ -772,7 +1146,7 @@ perf(table): 优化大数据量表格渲染性能
 - [ ] 文档注释清晰
 - [ ] 安全性检查通过
 
-### 11.2 审查重点
+### 12.2 审查重点
 1. **功能正确性**：代码是否实现了预期功能
 2. **代码质量**：是否遵循最佳实践
 3. **性能影响**：是否存在性能问题
@@ -781,15 +1155,15 @@ perf(table): 优化大数据量表格渲染性能
 
 ---
 
-## 12. 性能规范
+## 13. 性能规范
 
-### 12.1 性能指标
+### 13.1 性能指标
 - 组件渲染时间 < 100ms
 - 页面首屏加载时间 < 2s
 - 路由切换时间 < 500ms
 - 内存使用合理，无明显泄漏
 
-### 12.2 性能优化策略
+### 13.2 性能优化策略
 ```typescript
 // 1. 组件懒加载
 const UserManagePage = defineAsyncComponent(() => 
@@ -815,7 +1189,7 @@ import { VirtualList } from '@tanstack/vue-virtual'
 <img v-lazy="imageUrl" alt="description" />
 ```
 
-### 12.3 内存管理
+### 13.3 内存管理
 ```typescript
 // 清理定时器
 onUnmounted(() => {
@@ -834,7 +1208,91 @@ onUnmounted(() => {
   observer?.disconnect()
 })
 ```
-## 13.主题样式编写规范
+
+---
+
+## 14. Ant Design Vue快速参考
+
+### 14.1 常用组件速查表
+
+| 组件 | 用途 | 常用属性 |
+|------|------|---------|
+| Button | 按钮 | type, danger, loading, disabled |
+| Form | 表单 | model, rules, layout |
+| Input | 输入框 | v-model:value, placeholder, allow-clear |
+| Select | 选择框 | v-model:value, placeholder, options |
+| Table | 表格 | columns, dataSource, pagination, loading |
+| Modal | 对话框 | v-model:visible, title, okText, cancelText |
+| Message | 消息提示 | success, error, warning, info, loading |
+| Notification | 通知 | success, error, warning, info |
+| Card | 卡片 | title, bordered, hoverable |
+| Drawer | 抽屉 | v-model:open, title, placement |
+| Tabs | 标签页 | v-model:activeKey, type |
+| Tree | 树形 | data, defaultExpandAll, checkable |
+| DatePicker | 日期选择 | v-model:value, format, range |
+| TimePicker | 时间选择 | v-model:value, format |
+| Upload | 文件上传 | action, multiple, beforeUpload |
+| Pagination | 分页 | v-model:current, total, pageSize |
+| Spin | 加载中 | spinning, size, tip |
+| Empty | 空状态 | description, image |
+| Result | 结果页 | status, title, subTitle |
+| Statistic | 统计数值 | title, value, prefix, suffix |
+
+### 14.2 常用属性速查
+
+```typescript
+// 尺寸
+size: 'large' | 'middle' | 'small'
+
+// 类型
+type: 'primary' | 'dashed' | 'text' | 'link'
+
+// 状态
+loading: boolean
+disabled: boolean
+danger: boolean
+
+// 布局
+layout: 'horizontal' | 'vertical' | 'inline'
+
+// 位置
+placement: 'top' | 'right' | 'bottom' | 'left'
+
+// 对齐
+align: 'start' | 'center' | 'end'
+justify: 'start' | 'center' | 'end' | 'space-between' | 'space-around'
+```
+
+### 14.3 常见问题解决
+
+**Q: 如何禁用表单项?**
+```typescript
+const rules = {
+  field: [{ required: true, message: '必填' }]
+}
+// 在模板中使用 :disabled="isDisabled"
+```
+
+**Q: 如何自定义表格列?**
+```vue
+<template #bodyCell="{ column, record }">
+  <template v-if="column.key === 'custom'">
+    <!-- 自定义内容 -->
+  </template>
+</template>
+```
+
+**Q: 如何处理表单提交?**
+```typescript
+const onFinish = async (values: any) => {
+  // values 包含所有表单数据
+  // 已自动验证通过
+}
+```
+
+---
+
+## 15. 主题样式编写规范
 
 ### 1. 在样式中使用 CSS 变量（必须遵守）
 
