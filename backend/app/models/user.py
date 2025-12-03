@@ -26,8 +26,8 @@ class User(BaseModel):
     # 角色和权限
     role = db.Column(db.Enum(UserRole), default=UserRole.STUDENT, nullable=False, index=True)
     
-    # 班级关联（学生角色时使用）
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True, index=True)
+    # 班级关联（学生角色时使用）[FK→classes.id]
+    class_id = db.Column(db.Integer, nullable=True, index=True)
     
     # 状态和时间
     status = db.Column(db.Boolean, default=True, nullable=False)  # 1:正常, 0:禁用
