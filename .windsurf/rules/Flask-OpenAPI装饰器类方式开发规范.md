@@ -769,60 +769,303 @@ def get_user_orders(path: UserPathModel):
 
 ## 📊 响应格式规范
 
-### 1. 成功响应
+### 1. 统一响应结构
+
+所有API响应必须遵循统一的响应格式，使用 `BaseResponseModel`：
 
 ```python
-# 列表响应
-{
-    "users": [...],
-    "total": 100,
-    "page": 1,
-    "per_page": 20,
-    "pages": 5
-}
+# app/schemas/common_schemas.py
+class BaseResponseModel(CamelCaseModel):
+    """基础响应模型"""
+    message: str = Field(..., description="响应消息")
+    success: bool = Field(..., description="是否成功")
+    data: Optional[Any] = Field(None, description="响应数据")
+    error_code: Optional[str] = Field(None, description="错误代码")
+    details: Optional[Any] = Field(None, description="错误详情")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="时间戳")
 
-# 单个资源响应
+class PaginationModel(CamelCaseModel):
+    """分页模型"""
+    page: int = Field(1, description="当前页码", ge=1)
+    per_page: int = Field(10, description="每页数量", ge=1, le=100)
+    total: int = Field(..., description="总记录数", ge=0)
+    pages: int = Field(..., description="总页数", ge=0)
+    has_prev: bool = Field(..., description="是否有上一页")
+    has_next: bool = Field(..., description="是否有下一页")
+```
+
+### 2. 响应处理工具
+
+#### ResponseHandler 工具类
+
+```python
+# app/utils/response_handler.py
+from app.schemas.common_schemas import BaseResponseModel, PaginationModel
+
+class ResponseHandler:
+    """API 响应处理类"""
+    
+    @staticmethod
+    def success(data: Any = None, message: str = "操作成功") -> Dict[str, Any]:
+        """返回成功响应"""
+        response = BaseResponseModel(
+            message=message,
+            success=True,
+            data=data
+        )
+        return response.model_dump(by_alias=True)
+    
+    @staticmethod
+    def error(message: str, error_code: Optional[str] = None, details: Any = None) -> Dict[str, Any]:
+        """返回错误响应"""
+        response = BaseResponseModel(
+            message=message,
+            success=False,
+            error_code=error_code,
+            details=details
+        )
+        return response.model_dump(by_alias=True)
+    
+    @staticmethod
+    def paginated(items: list, total: int, page: int, per_page: int, message: str = "获取成功") -> Dict[str, Any]:
+        """返回分页数据响应"""
+        pages = (total + per_page - 1) // per_page if per_page > 0 else 0
+        
+        pagination = PaginationModel(
+            page=page,
+            per_page=per_page,
+            total=total,
+            pages=pages,
+            has_prev=page > 1,
+            has_next=page < pages
+        )
+        
+        response = BaseResponseModel(
+            message=message,
+            success=True,
+            data={
+                'items': items,
+                'pagination': pagination.model_dump(by_alias=True)
+            }
+        )
+        return response.model_dump(by_alias=True)
+```
+
+### 3. 自动响应装饰器
+
+#### @auto_response 装饰器
+
+```python
+# app/utils/auto_response.py
+from functools import wraps
+from flask import jsonify
+from app.utils.response_handler import ResponseHandler
+
+def auto_response(success_message: str = "操作成功"):
+    """
+    自动响应处理装饰器
+    
+    使用方法:
+        @auto_response("获取用户成功")
+        def get_user():
+            return user_data  # 直接返回数据，装饰器自动包装
+            
+        @auto_response("获取用户列表成功")  
+        def list_users():
+            return users, total, page, per_page  # 返回分页元组
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                result = func(*args, **kwargs)
+                
+                # 如果函数已经返回了完整的响应，直接返回
+                if isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], int):
+                    return result
+                
+                # 分页数据处理 (items, total, page, per_page)
+                if isinstance(result, tuple) and len(result) == 4:
+                    items, total, page, per_page = result
+                    response_data = ResponseHandler.paginated(
+                        items=items, total=total, page=page, per_page=per_page,
+                        message=success_message
+                    )
+                    return jsonify(response_data), 200
+                
+                # 普通数据响应
+                response_data = ResponseHandler.success(data=result, message=success_message)
+                return jsonify(response_data), 200
+                
+            except ValueError as e:
+                response_data = ResponseHandler.error(message=str(e), error_code="BUSINESS_ERROR")
+                return jsonify(response_data), 400
+            except Exception as e:
+                response_data = ResponseHandler.error(
+                    message="系统内部错误", error_code="INTERNAL_ERROR", details=str(e)
+                )
+                return jsonify(response_data), 500
+        return wrapper
+    return decorator
+
+@auto_error_response
+def auto_error_response(func):
+    """自动错误响应装饰器（只处理异常，不包装成功响应）"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ValueError as e:
+            response_data = ResponseHandler.error(message=str(e), error_code="BUSINESS_ERROR")
+            return jsonify(response_data), 400
+        except Exception as e:
+            response_data = ResponseHandler.error(
+                message="系统内部错误", error_code="INTERNAL_ERROR", details=str(e)
+            )
+            return jsonify(response_data), 500
+    return wrapper
+```
+
+### 4. 标准响应格式
+
+#### 成功响应示例
+
+```json
 {
+  "message": "获取用户成功",
+  "success": true,
+  "data": {
     "id": 1,
-    "name": "张三",
-    "email": "zhangsan@example.com",
-    "created_at": "2024-01-01T10:00:00Z"
-}
-
-# 操作成功响应
-{
-    "message": "User created successfully",
-    "data": {
-        "id": 1,
-        "name": "张三"
-    }
+    "username": "张三",
+    "email": "zhangsan@example.com"
+  },
+  "errorCode": null,
+  "details": null,
+  "timestamp": "2025-12-03T12:37:00Z"
 }
 ```
 
-### 2. 错误响应
+#### 分页响应示例
+
+```json
+{
+  "message": "获取用户列表成功",
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "username": "张三",
+        "email": "zhangsan@example.com"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "perPage": 20,
+      "total": 100,
+      "pages": 5,
+      "hasPrev": false,
+      "hasNext": true
+    }
+  },
+  "errorCode": null,
+  "details": null,
+  "timestamp": "2025-12-03T12:37:00Z"
+}
+```
+
+#### 错误响应示例
+
+```json
+{
+  "message": "用户不存在",
+  "success": false,
+  "data": null,
+  "errorCode": "USER_NOT_FOUND",
+  "details": "用户ID: 999 不存在",
+  "timestamp": "2025-12-03T12:37:00Z"
+}
+```
+
+### 5. API 实现规范
+
+#### 方式1：使用 @auto_response 装饰器（推荐）
 
 ```python
-# 400 Bad Request
-{
-    "message": "Validation error",
-    "errors": {
-        "name": ["This field is required"],
-        "email": ["Invalid email format"]
-    }
-}
+from app.utils.auto_response import auto_response
 
-# 404 Not Found
-{
-    "message": "User not found",
-    "error_code": "USER_NOT_FOUND"
-}
-
-# 500 Internal Server Error
-{
-    "message": "Internal server error",
-    "error_code": "INTERNAL_ERROR"
-}
+class UserAPI:
+    @staticmethod
+    @user_api_bp.get('/<int:user_id>', summary="获取指定用户", tags=[user_tag])
+    @auto_response("获取用户成功")
+    def get_user(path: UserPathModel):
+        """获取指定用户 - 自动响应处理"""
+        user = User.query.get(path.user_id)
+        if not user:
+            raise ValueError("用户不存在")  # 自动转换为错误响应
+        return user.to_dict()  # 直接返回数据
+    
+    @staticmethod
+    @user_api_bp.get('/', summary="获取用户列表", tags=[user_tag])
+    @auto_response("获取用户列表成功")
+    def list_users(query: UserQueryModel):
+        """获取用户列表 - 自动分页处理"""
+        pagination = User.query.paginate(page=query.page, per_page=query.per_page)
+        users = [user.to_dict() for user in pagination.items]
+        return users, pagination.total, query.page, query.per_page  # 返回分页元组
 ```
+
+#### 方式2：手动使用 ResponseHandler
+
+```python
+from app.utils.response_handler import ResponseHandler
+
+class UserAPI:
+    @staticmethod
+    @user_api_bp.post('/', summary="创建新用户", tags=[user_tag])
+    def create_user(body: UserRegisterModel):
+        """创建新用户 - 手动响应处理"""
+        try:
+            # 业务逻辑
+            user = UserService.create_user(body)
+            
+            # 返回成功响应
+            return ResponseHandler.success(
+                data=user.to_dict(),
+                message="用户创建成功"
+            ), 201
+            
+        except ValueError as e:
+            # 返回业务错误
+            return ResponseHandler.error(
+                message=str(e),
+                error_code="VALIDATION_ERROR"
+            ), 400
+        except Exception as e:
+            # 返回系统错误
+            return ResponseHandler.error(
+                message="系统内部错误",
+                error_code="INTERNAL_ERROR",
+                details=str(e)
+            ), 500
+```
+
+### 6. 响应格式最佳实践
+
+#### 必须遵循的规范
+
+1. **统一性**: 所有API必须使用 `BaseResponseModel` 格式
+2. **驼峰命名**: 所有字段名使用驼峰命名（通过 `CamelCaseModel` 自动转换）
+3. **时间戳**: 所有响应必须包含 `timestamp` 字段
+4. **成功标识**: 使用 `success` 字段明确标识操作是否成功
+5. **错误代码**: 错误响应必须包含 `errorCode` 便于前端处理
+
+#### 推荐的实现方式
+
+1. **优先使用 `@auto_response` 装饰器** - 减少重复代码，自动处理异常
+2. **业务异常使用 `ValueError`** - 自动转换为 400 错误
+3. **分页使用元组返回** - `(items, total, page, per_page)` 自动处理
+4. **复杂逻辑手动处理** - 使用 `ResponseHandler` 精确控制响应
 
 ## 🔒 安全和验证规范
 
