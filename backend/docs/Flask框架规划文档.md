@@ -886,13 +886,3 @@ A: 在请求头中添加 `Authorization: Bearer <token>`
 **Q: 如何处理跨域问题?**  
 A: 已配置 Flask-CORS,在 `config.py` 中设置 `CORS_ORIGINS`
 
----
-
-## 📝 更新日志
-
-- **v1.0** (2024-12): 初始版本,包含完整的框架规划和开发规范
-
----
-
-**文档维护**: 开发团队  
-**联系方式**: dev@example.com
