@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import Field, EmailStr, validator
 from typing import Optional, List
 from enum import Enum
+from app.schemas.base_schemas import CamelCaseModel
 
 class UserRoleEnum(str, Enum):
     """用户角色枚举"""
@@ -8,7 +9,7 @@ class UserRoleEnum(str, Enum):
     TEACHER = 'teacher'
     STUDENT = 'student'
 
-class UserRegisterModel(BaseModel):
+class UserRegisterModel(CamelCaseModel):
     """用户注册请求模型"""
     username: str = Field(..., description="用户名", min_length=3, max_length=50)
     user_code: str = Field(..., description="工号/学号", min_length=1, max_length=50)
@@ -54,12 +55,12 @@ class UserRegisterModel(BaseModel):
             return None
         return v
 
-class UserLoginModel(BaseModel):
+class UserLoginModel(CamelCaseModel):
     """用户登录请求模型"""
     login_identifier: str = Field(..., description="登录标识符（邮箱/用户名/工号）", min_length=1)
     password: str = Field(..., description="密码", min_length=1)
 
-class UserUpdateModel(BaseModel):
+class UserUpdateModel(CamelCaseModel):
     """用户信息更新模型"""
     username: Optional[str] = Field(None, description="用户名", min_length=3, max_length=50)
     email: Optional[EmailStr] = Field(None, description="邮箱地址")
@@ -83,7 +84,7 @@ class UserUpdateModel(BaseModel):
                 raise ValueError('请输入有效的手机号码')
         return v
 
-class PasswordChangeModel(BaseModel):
+class PasswordChangeModel(CamelCaseModel):
     """密码修改模型"""
     old_password: str = Field(..., description="原密码", min_length=1)
     new_password: str = Field(..., description="新密码", min_length=6, max_length=128)
@@ -96,7 +97,7 @@ class PasswordChangeModel(BaseModel):
             raise ValueError('两次输入的密码不一致')
         return v
 
-class UserResponseModel(BaseModel):
+class UserResponseModel(CamelCaseModel):
     """用户响应模型"""
     id: int = Field(..., description="用户ID")
     username: str = Field(..., description="用户名")
@@ -112,7 +113,7 @@ class UserResponseModel(BaseModel):
     created_at: str = Field(..., description="创建时间")
     updated_at: str = Field(..., description="更新时间")
 
-class UserListResponseModel(BaseModel):
+class UserListResponseModel(CamelCaseModel):
     """用户列表响应模型"""
     users: List[UserResponseModel] = Field(..., description="用户列表")
     total: int = Field(..., description="用户总数")
@@ -120,11 +121,11 @@ class UserListResponseModel(BaseModel):
     per_page: int = Field(20, description="每页数量")
     pages: int = Field(..., description="总页数")
 
-class UserPathModel(BaseModel):
+class UserPathModel(CamelCaseModel):
     """用户路径参数模型"""
     user_id: int = Field(..., description="用户ID", ge=1)
 
-class UserQueryModel(BaseModel):
+class UserQueryModel(CamelCaseModel):
     """用户查询参数模型"""
     page: int = Field(1, description="页码", ge=1)
     per_page: int = Field(20, description="每页数量", ge=1, le=100)
@@ -132,17 +133,17 @@ class UserQueryModel(BaseModel):
     status: Optional[bool] = Field(None, description="状态筛选")
     search: Optional[str] = Field(None, description="搜索关键词（用户名、真实姓名、邮箱）", max_length=100)
 
-class LoginResponseModel(BaseModel):
+class LoginResponseModel(CamelCaseModel):
     """登录响应模型"""
     user: UserResponseModel = Field(..., description="用户信息")
     message: str = Field(..., description="登录结果消息")
 
-class MessageResponseModel(BaseModel):
+class MessageResponseModel(CamelCaseModel):
     """通用消息响应模型"""
     message: str = Field(..., description="响应消息")
     error_code: Optional[str] = Field(None, description="错误代码")
 
-class UserStatsModel(BaseModel):
+class UserStatsModel(CamelCaseModel):
     """用户统计模型"""
     total_users: int = Field(..., description="用户总数")
     admin_count: int = Field(..., description="管理员数量")
@@ -151,7 +152,7 @@ class UserStatsModel(BaseModel):
     active_users: int = Field(..., description="活跃用户数")
     inactive_users: int = Field(..., description="非活跃用户数")
 
-class UserProfileModel(BaseModel):
+class UserProfileModel(CamelCaseModel):
     """用户个人资料模型"""
     username: str = Field(..., description="用户名")
     user_code: str = Field(..., description="工号/学号")
