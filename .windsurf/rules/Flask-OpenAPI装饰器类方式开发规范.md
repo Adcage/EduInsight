@@ -851,82 +851,7 @@ class ResponseHandler:
         return response.model_dump(by_alias=True)
 ```
 
-### 3. 自动响应装饰器
-
-#### @auto_response 装饰器
-
-```python
-# app/utils/auto_response.py
-from functools import wraps
-from flask import jsonify
-from app.utils.response_handler import ResponseHandler
-
-def auto_response(success_message: str = "操作成功"):
-    """
-    自动响应处理装饰器
-    
-    使用方法:
-        @auto_response("获取用户成功")
-        def get_user():
-            return user_data  # 直接返回数据，装饰器自动包装
-            
-        @auto_response("获取用户列表成功")  
-        def list_users():
-            return users, total, page, per_page  # 返回分页元组
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                result = func(*args, **kwargs)
-                
-                # 如果函数已经返回了完整的响应，直接返回
-                if isinstance(result, tuple) and len(result) == 2 and isinstance(result[1], int):
-                    return result
-                
-                # 分页数据处理 (items, total, page, per_page)
-                if isinstance(result, tuple) and len(result) == 4:
-                    items, total, page, per_page = result
-                    response_data = ResponseHandler.paginated(
-                        items=items, total=total, page=page, per_page=per_page,
-                        message=success_message
-                    )
-                    return jsonify(response_data), 200
-                
-                # 普通数据响应
-                response_data = ResponseHandler.success(data=result, message=success_message)
-                return jsonify(response_data), 200
-                
-            except ValueError as e:
-                response_data = ResponseHandler.error(message=str(e), error_code="BUSINESS_ERROR")
-                return jsonify(response_data), 400
-            except Exception as e:
-                response_data = ResponseHandler.error(
-                    message="系统内部错误", error_code="INTERNAL_ERROR", details=str(e)
-                )
-                return jsonify(response_data), 500
-        return wrapper
-    return decorator
-
-@auto_error_response
-def auto_error_response(func):
-    """自动错误响应装饰器（只处理异常，不包装成功响应）"""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except ValueError as e:
-            response_data = ResponseHandler.error(message=str(e), error_code="BUSINESS_ERROR")
-            return jsonify(response_data), 400
-        except Exception as e:
-            response_data = ResponseHandler.error(
-                message="系统内部错误", error_code="INTERNAL_ERROR", details=str(e)
-            )
-            return jsonify(response_data), 500
-    return wrapper
-```
-
-### 4. 标准响应格式
+### 3. 标准响应格式
 
 #### 成功响应示例
 
@@ -987,35 +912,9 @@ def auto_error_response(func):
 }
 ```
 
-### 5. API 实现规范
+### 4. API 实现规范
 
-#### 方式1：使用 @auto_response 装饰器（推荐）
-
-```python
-from app.utils.auto_response import auto_response
-
-class UserAPI:
-    @staticmethod
-    @user_api_bp.get('/<int:user_id>', summary="获取指定用户", tags=[user_tag])
-    @auto_response("获取用户成功")
-    def get_user(path: UserPathModel):
-        """获取指定用户 - 自动响应处理"""
-        user = User.query.get(path.user_id)
-        if not user:
-            raise ValueError("用户不存在")  # 自动转换为错误响应
-        return user.to_dict()  # 直接返回数据
-    
-    @staticmethod
-    @user_api_bp.get('/', summary="获取用户列表", tags=[user_tag])
-    @auto_response("获取用户列表成功")
-    def list_users(query: UserQueryModel):
-        """获取用户列表 - 自动分页处理"""
-        pagination = User.query.paginate(page=query.page, per_page=query.per_page)
-        users = [user.to_dict() for user in pagination.items]
-        return users, pagination.total, query.page, query.per_page  # 返回分页元组
-```
-
-#### 方式2：手动使用 ResponseHandler
+#### 手动使用 ResponseHandler
 
 ```python
 from app.utils.response_handler import ResponseHandler
