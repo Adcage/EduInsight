@@ -42,9 +42,9 @@ export async function authApiLogoutPost(options?: { [key: string]: any }) {
   })
 }
 
-/** 获取当前用户信息 获取当前登录用户的个人信息 GET /api/v1/auth/profile */
-export async function authApiProfileGet(options?: { [key: string]: any }) {
-  return request<API.UserProfileModel>('/api/v1/auth/profile', {
+/** 获取当前登录用户信息 获取当前登录用户的个人信息 GET /api/v1/auth/get_loginuser */
+export async function authApiGetLoginuserGet(options?: { [key: string]: any }) {
+  return request<API.UserProfileModel>('/api/v1/auth/get_loginuser', {
     method: 'GET',
     ...(options || {}),
   })
