@@ -274,11 +274,40 @@ email = db.Column(db.String(100), unique=True, nullable=False)
 user_code = db.Column(db.String(50), index=True, nullable=False)
 ```
 
-**外键注释规范**:
+**外键定义规范** ⚠️ 重要:
 ```python
-# 始终在外键字段后添加注释，说明关联的表
+# ❌ 错误做法：不要使用 ForeignKey 约束
+course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+
+# ✅ 正确做法：只使用注释标记外键关系
 course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
 student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+```
+
+**外键规范说明**:
+1. **不要使用 `db.ForeignKey()`**: 避免创建表时的依赖问题和循环引用
+2. **使用注释标记**: 在字段后添加 `# FK→table.id` 注释说明外键关系
+3. **添加索引**: 外键字段应该添加 `index=True` 以提高查询性能
+4. **保持一致性**: 所有外键字段都遵循此规范
+
+**关联表外键规范**:
+```python
+# ❌ 错误做法
+material_tag_relation = db.Table(
+    'material_tag_relation',
+    db.Column('material_id', db.Integer, db.ForeignKey('materials.id')),
+    db.Column('tag_id', db.Integer, db.ForeignKey('material_tags.id'))
+)
+
+# ✅ 正确做法
+material_tag_relation = db.Table(
+    'material_tag_relation',
+    db.Column('id', db.Integer, primary_key=True, autoincrement=True),
+    db.Column('material_id', db.Integer, nullable=False, index=True),  # FK→materials.id
+    db.Column('tag_id', db.Integer, nullable=False, index=True),  # FK→material_tags.id
+    db.Column('created_at', db.DateTime, default=db.func.current_timestamp()),
+    db.UniqueConstraint('material_id', 'tag_id', name='uk_material_tag')
+)
 ```
 
 #### 2.3.3 关系定义规范
@@ -855,19 +884,22 @@ class UserRole(Enum):
 
 role = db.Column(db.Enum(UserRole), nullable=False)
 
-# 2. 为外键添加索引
+# 2. ⚠️ 外键字段：不使用ForeignKey，只用注释标记
+course_id = db.Column(db.Integer, index=True, nullable=False)  # FK→courses.id
+
+# 3. 为外键添加索引
 course_id = db.Column(db.Integer, index=True, nullable=False)
 
-# 3. 使用级联删除
+# 4. 使用级联删除
 materials = db.relationship('Material', cascade='all, delete-orphan')
 
-# 4. 重写to_dict方法排除敏感信息
+# 5. 重写to_dict方法排除敏感信息
 def to_dict(self):
     data = super().to_dict()
     data.pop('password_hash', None)
     return data
 
-# 5. 添加有意义的__repr__
+# 6. 添加有意义的__repr__
 def __repr__(self):
     return f'<User {self.username}>'
 ```
@@ -875,18 +907,21 @@ def __repr__(self):
 #### ❌ 避免做法
 
 ```python
-# 1. 不要使用魔法数字
+# 1. ⚠️ 不要使用 db.ForeignKey() 约束
+course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))  # ❌ 错误！
+
+# 2. 不要使用魔法数字
 status = db.Column(db.Integer)  # 0, 1, 2 代表什么？
 
-# 2. 不要忘记添加索引
+# 3. 不要忘记添加索引
 email = db.Column(db.String(100), unique=True)  # 缺少index=True
 
-# 3. 不要在模型中写复杂业务逻辑
+# 4. 不要在模型中写复杂业务逻辑
 def calculate_final_grade(self):
     # 复杂计算应该放在Service层
     pass
 
-# 4. 不要直接暴露敏感信息
+# 5. 不要直接暴露敏感信息
 def to_dict(self):
     return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     # 会暴露password_hash!
@@ -1152,7 +1187,8 @@ class MaterialQueryModel(CamelCaseModel):
 - [ ] 继承自 `BaseModel`
 - [ ] 定义 `__tablename__`
 - [ ] 字段按类型分组并添加注释
-- [ ] 外键字段添加索引和FK注释
+- [ ] ⚠️ **外键字段不使用 `db.ForeignKey()`，只用注释标记 `# FK→table.id`**
+- [ ] 外键字段添加索引 `index=True`
 - [ ] 枚举字段使用Enum类
 - [ ] 重写 `to_dict()` 方法排除敏感信息
 - [ ] 添加必要的类方法和实例方法
