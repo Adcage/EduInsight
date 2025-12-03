@@ -14,6 +14,14 @@ export async function authApiChangePasswordPost(body: API.PasswordChangeModel, o
   })
 }
 
+/** 获取当前登录用户信息 获取当前登录用户的个人信息 GET /api/v1/auth/get_loginuser */
+export async function authApiGetLoginuserGet(options?: { [key: string]: any }) {
+  return request<API.UserProfileModel>('/api/v1/auth/get_loginuser', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
 /** 认证API健康检查 认证API健康检查 GET /api/v1/auth/health */
 export async function authApiHealthGet(options?: { [key: string]: any }) {
   return request<any>('/api/v1/auth/health', {
@@ -38,14 +46,6 @@ export async function authApiLoginPost(body: API.UserLoginModel, options?: { [ke
 export async function authApiLogoutPost(options?: { [key: string]: any }) {
   return request<API.MessageResponseModel>('/api/v1/auth/logout', {
     method: 'POST',
-    ...(options || {}),
-  })
-}
-
-/** 获取当前登录用户信息 获取当前登录用户的个人信息 GET /api/v1/auth/get_loginuser */
-export async function authApiGetLoginuserGet(options?: { [key: string]: any }) {
-  return request<API.UserProfileModel>('/api/v1/auth/get_loginuser', {
-    method: 'GET',
     ...(options || {}),
   })
 }
