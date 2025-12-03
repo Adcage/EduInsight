@@ -58,30 +58,33 @@
         <!-- 用户注册测试 -->
         <a-col :xs="24" :sm="12" :md="8">
           <a-card title="📝 用户注册" :bordered="false">
-            <a-form layout="vertical" @finish="testRegister">
-              <a-form-item label="用户名">
+            <a-form layout="vertical" :model="registerForm" @finish="testRegister">
+              <a-form-item label="用户名" name="username">
                 <a-input v-model:value="registerForm.username" placeholder="请输入用户名" />
               </a-form-item>
-              <a-form-item label="工号/学号">
+              <a-form-item label="工号/学号" name="user_code">
                 <a-input v-model:value="registerForm.user_code" placeholder="请输入工号或学号" />
               </a-form-item>
-              <a-form-item label="密码">
+              <a-form-item label="密码" name="password">
                 <a-input-password v-model:value="registerForm.password" placeholder="请输入密码" />
               </a-form-item>
-              <a-form-item label="邮箱">
+              <a-form-item label="邮箱" name="email">
                 <a-input v-model:value="registerForm.email" type="email" placeholder="请输入邮箱" />
               </a-form-item>
-              <a-form-item label="真实姓名">
+              <a-form-item label="真实姓名" name="real_name">
                 <a-input v-model:value="registerForm.real_name" placeholder="请输入真实姓名" />
               </a-form-item>
-              <a-form-item label="角色">
+              <a-form-item label="角色" name="role">
                 <a-select v-model:value="registerForm.role" placeholder="请选择角色">
                   <a-select-option value="student">学生</a-select-option>
                   <a-select-option value="teacher">教师</a-select-option>
                   <a-select-option value="admin">管理员</a-select-option>
                 </a-select>
               </a-form-item>
-              <a-form-item label="手机号(可选)">
+              <a-form-item v-if="registerForm.role === 'student'" label="班级ID" name="class_id">
+                <a-input-number v-model:value="registerForm.class_id" placeholder="请输入班级ID" :min="1" style="width: 100%" />
+              </a-form-item>
+              <a-form-item label="手机号(可选)" name="phone">
                 <a-input v-model:value="registerForm.phone" placeholder="请输入手机号" />
               </a-form-item>
               <a-form-item>
@@ -96,11 +99,11 @@
         <!-- 用户登录测试 -->
         <a-col :xs="24" :sm="12" :md="8">
           <a-card title="🔑 用户登录" :bordered="false">
-            <a-form layout="vertical" @finish="testLogin">
-              <a-form-item label="邮箱/用户名/工号">
+            <a-form layout="vertical" :model="loginForm" @finish="testLogin">
+              <a-form-item label="邮箱/用户名/工号" name="login_identifier">
                 <a-input v-model:value="loginForm.login_identifier" placeholder="请输入邮箱、用户名或工号" />
               </a-form-item>
-              <a-form-item label="密码">
+              <a-form-item label="密码" name="password">
                 <a-input-password v-model:value="loginForm.password" placeholder="请输入密码" />
               </a-form-item>
               <a-form-item>
@@ -124,14 +127,14 @@
         <!-- 密码修改测试 -->
         <a-col :xs="24" :sm="12" :md="8">
           <a-card title="🔒 密码修改" :bordered="false">
-            <a-form layout="vertical" @finish="testChangePassword">
-              <a-form-item label="原密码">
+            <a-form layout="vertical" :model="passwordForm" @finish="testChangePassword">
+              <a-form-item label="原密码" name="old_password">
                 <a-input-password v-model:value="passwordForm.old_password" placeholder="请输入原密码" />
               </a-form-item>
-              <a-form-item label="新密码">
+              <a-form-item label="新密码" name="new_password">
                 <a-input-password v-model:value="passwordForm.new_password" placeholder="请输入新密码" />
               </a-form-item>
-              <a-form-item label="确认新密码">
+              <a-form-item label="确认新密码" name="confirm_password">
                 <a-input-password v-model:value="passwordForm.confirm_password" placeholder="请再次输入新密码" />
               </a-form-item>
               <a-form-item>
@@ -231,7 +234,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   authApiRegisterPost,
@@ -255,13 +258,14 @@ const testUserId = ref('')
 
 // 表单数据
 const registerForm = reactive({
-  username: 'testuser',
-  user_code: 'TEST001',
+  username: 'testuser' + Date.now(),  // 使用时间戳生成唯一用户名
+  user_code: 'TEST' + Math.floor(Math.random() * 10000),  // 生成随机学号
   password: 'password123',
-  email: 'test@example.com',
+  email: 'test' + Date.now() + '@example.com',  // 生成唯一邮箱
   real_name: '测试用户',
-  role: 'student',
-  phone: '13800138000'
+  role: 'admin',  // 改为管理员角色，便于测试所有接口
+  phone: '13800138000',
+  class_id: null  // 管理员不需要班级ID
 })
 
 const loginForm = reactive({
@@ -367,8 +371,16 @@ const testRegister = async () => {
     addLog('success', '注册成功', response)
     message.success('注册成功')
   } catch (error) {
-    addLog('error', '注册失败', { message: error.message })
-    message.error('注册失败: ' + error.message)
+    // 获取详细的错误信息
+    let errorMsg = error.message
+    if (error.response?.data) {
+      errorMsg = error.response.data.message || error.response.data.detail || errorMsg
+      if (error.response.data.errors) {
+        errorMsg = JSON.stringify(error.response.data.errors)
+      }
+    }
+    addLog('error', '注册失败', { message: errorMsg, status: error.response?.status })
+    message.error('注册失败: ' + errorMsg)
   } finally {
     loading.register = false
   }
@@ -542,6 +554,15 @@ const testUserHealth = async () => {
 const clearLogs = () => {
   testLogs.value = []
 }
+
+// 监听角色变更，自动设置或清除班级ID
+watch(() => registerForm.role, (newRole) => {
+  if (newRole === 'student') {
+    registerForm.class_id = 1  // 默认班级ID
+  } else {
+    registerForm.class_id = null  // 非学生角色清除班级ID
+  }
+})
 
 // 页面加载时检查登录状态
 onMounted(() => {
