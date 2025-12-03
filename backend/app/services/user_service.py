@@ -1,6 +1,6 @@
 from typing import List, Optional
 from app.models.user import User
-# from app.schemas.user_schemas import UserRegisterModel, UserUpdateModel
+from app.schemas.user_schemas import UserRegisterModel, UserUpdateModel
 from app.extensions import db
 
 class UserService:
@@ -22,7 +22,7 @@ class UserService:
         return User.query.filter_by(email=email, is_active=True).first()
     
     @staticmethod
-    def create_user(user_data: UserCreateModel) -> User:
+    def create_user(user_data: UserRegisterModel) -> User:
         """创建新用户"""
         # 检查邮箱是否已存在
         existing_user = User.get_by_email(user_data.email)
@@ -31,10 +31,13 @@ class UserService:
         
         # 创建新用户
         user = User(
-            name=user_data.name,
+            username=user_data.username,
+            user_code=user_data.user_code,
             email=user_data.email,
+            real_name=user_data.real_name,
             phone=user_data.phone,
-            age=user_data.age
+            role=user_data.role,
+            class_id=user_data.class_id
         )
         user.set_password(user_data.password)
         
