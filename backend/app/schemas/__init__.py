@@ -8,6 +8,7 @@ from .base_schemas import CamelCaseModel
 # 通用模型
 from .common_schemas import (
     BaseResponseModel,
+    MessageResponseModel,
     PaginationModel,
 )
 
@@ -44,6 +45,7 @@ from .material_schemas import (
     MaterialQueryModel,
     MaterialPathModel,
     MaterialTagPathModel,
+    TagPathModel,
     MaterialCategoryPathModel,
     MaterialTagAddModel,
     MaterialStatsModel,
@@ -180,6 +182,7 @@ __all__ = [
     
     # 通用
     'BaseResponseModel',
+    'MessageResponseModel',
     'PaginationModel',
     
     # 用户
@@ -212,6 +215,7 @@ __all__ = [
     'MaterialQueryModel',
     'MaterialPathModel',
     'MaterialTagPathModel',
+    'TagPathModel',
     'MaterialCategoryPathModel',
     'MaterialTagAddModel',
     'MaterialStatsModel',

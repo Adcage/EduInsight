@@ -168,6 +168,11 @@ class MaterialTagPathModel(CamelCaseModel):
     tag_id: int = Field(..., description="标签ID", ge=1)
 
 
+class TagPathModel(CamelCaseModel):
+    """标签路径参数模型（仅tag_id）"""
+    tag_id: int = Field(..., description="标签ID", ge=1)
+
+
 class MaterialCategoryPathModel(CamelCaseModel):
     """资料分类路径参数模型"""
     category_id: int = Field(..., description="分类ID", ge=1)
