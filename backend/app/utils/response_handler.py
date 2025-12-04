@@ -96,3 +96,42 @@ class ResponseHandler:
             }
         )
         return response.model_dump(by_alias=True)
+
+
+# 便捷函数别名
+def success_response(data: Any = None, message: str = "操作成功", status_code: int = 200):
+    """
+    返回成功响应（便捷函数）
+    
+    Args:
+        data: 响应数据
+        message: 响应消息
+        status_code: HTTP状态码
+        
+    Returns:
+        (响应字典, 状态码) 元组
+    """
+    return {
+        'code': status_code,
+        'message': message,
+        'data': data
+    }, status_code
+
+
+def error_response(message: str, status_code: int = 400, error_code: Optional[str] = None):
+    """
+    返回错误响应（便捷函数）
+    
+    Args:
+        message: 错误消息
+        status_code: HTTP状态码
+        error_code: 错误代码
+        
+    Returns:
+        (响应字典, 状态码) 元组
+    """
+    return {
+        'code': status_code,
+        'message': message,
+        'error_code': error_code
+    }, status_code
