@@ -16,7 +16,7 @@ class DocumentKeyword(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    material_id = db.Column(db.Integer, nullable=False, index=True)  # FK→materials.id
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False, index=True)
     
     # 关键词信息
     keyword = db.Column(db.String(100), nullable=False, index=True)
@@ -72,9 +72,9 @@ class ClassificationLog(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    material_id = db.Column(db.Integer, nullable=False, index=True)  # FK→materials.id
-    original_category_id = db.Column(db.Integer, nullable=True, index=True)  # FK→material_categories.id
-    suggested_category_id = db.Column(db.Integer, nullable=False, index=True)  # FK→material_categories.id
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False, index=True)
+    original_category_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=True, index=True)
+    suggested_category_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=False, index=True)
     
     # 分类信息
     confidence = db.Column(db.Numeric(5, 4), nullable=True)  # 置信度(0-1)

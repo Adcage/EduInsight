@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="container mx-auto px-4 max-w-6xl">
+  <div class="attendance-publish">
+    <div class="max-w-full mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Left Column - Attendance Range & Time -->
         <div class="lg:col-span-2 space-y-8">
@@ -9,24 +9,6 @@
             <h2 class="text-lg font-medium text-gray-900 mb-6">考勤范围</h2>
             
             <div class="step-indicator space-y-8">
-              <!-- Step 1: Course Selection -->
-              <div class="active pb-6 border-b border-gray-100">
-                <div class="flex items-center mb-4">
-                  <span class="text-base font-medium text-gray-700">选择课程</span>
-                </div>
-                <div class="relative">
-                  <a-select 
-                    v-model:value="selectedCourse" 
-                    class="w-full"
-                    :options="courseOptions"
-                    placeholder="请选择课程"
-                  >
-                    <template #suffixIcon>
-                      <CaretDownOutlined />
-                    </template>
-                  </a-select>
-                </div>
-              </div>
               
               <!-- Step 2: Class Selection -->
               <div class="active pb-6 border-b border-gray-100">
@@ -400,27 +382,45 @@ import {
 } from '@ant-design/icons-vue';
 
 // Mock Data Imports
-import { MOCK_COURSES, MOCK_CLASSES } from '../mock';
+import { MOCK_CLASSES } from '../mock';
 
 // Configure AMap Security Key
 (window as any)._AMapSecurityConfig = {
   securityJsCode: 'aacf0ee3cacbae04e8c60a4169eb6f9c',
 };
 
+const props = defineProps<{
+  courseId?: number;
+  courseName?: string;
+  availableClasses?: any[]; // 可用的班级列表
+}>();
+
 const emits = defineEmits(['success', 'cancel']);
 
 // --- 1. 考勤范围 Logic ---
 
-// Course Selection
-const selectedCourse = ref<string | undefined>(undefined);
-const courseOptions = MOCK_COURSES.map(c => ({ value: c.id, label: c.name }));
-
 // Class Selection
-const classList = ref(MOCK_CLASSES.map(c => ({
-  ...c,
-  studentCount: Math.floor(Math.random() * 10) + 30,
-  selected: false
-})));
+const classList = ref<any[]>([]);
+
+// 监听props变化，更新班级列表
+watch(() => props.availableClasses, (newClasses) => {
+  if (newClasses && newClasses.length > 0) {
+    classList.value = newClasses.map(c => ({
+      id: c.classId,
+      name: c.className,
+      code: c.classCode,
+      studentCount: c.studentCount,
+      selected: false
+    }));
+  } else {
+    // 如果没有传入班级数据，使用mock数据
+    classList.value = MOCK_CLASSES.map(c => ({
+      ...c,
+      studentCount: Math.floor(Math.random() * 10) + 30,
+      selected: false
+    }));
+  }
+}, { immediate: true });
 
 const toggleClassSelection = (item: any) => {
   item.selected = !item.selected;
@@ -829,10 +829,7 @@ const selectedMethodName = computed(() => {
 
 // --- Preview & Publish ---
 
-const selectedCourseLabel = computed(() => {
-  const c = courseOptions.find(opt => opt.value === selectedCourse.value);
-  return c ? c.label : '未选择';
-});
+const selectedCourseLabel = computed(() => props.courseName || '未选择');
 
 const selectedClassNames = computed(() => {
   if (selectedClasses.value.length === 0) return '未选择';
@@ -843,10 +840,6 @@ const selectedClassNames = computed(() => {
 const publishing = ref(false);
 
 const handlePublish = () => {
-  if (!selectedCourse.value) {
-    message.warning('请选择课程');
-    return;
-  }
   if (selectedClasses.value.length === 0) {
     message.warning('请选择班级');
     return;
@@ -857,8 +850,8 @@ const handlePublish = () => {
   setTimeout(() => {
     publishing.value = false;
     const payload = {
-      courseId: selectedCourse.value,
-      courseName: selectedCourseLabel.value,
+      courseId: props.courseId,
+      courseName: props.courseName,
       classes: selectedClasses.value,
       students: filteredStudents.value.filter(s => s.selected),
       date: selectedDate.value,

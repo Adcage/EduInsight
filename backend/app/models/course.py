@@ -11,8 +11,8 @@ from .base import BaseModel
 course_classes = db.Table(
     'course_classes',
     db.Column('id', db.Integer, primary_key=True, autoincrement=True),
-    db.Column('course_id', db.Integer, nullable=False, index=True),  # FK→courses.id
-    db.Column('class_id', db.Integer, nullable=False, index=True),  # FK→classes.id
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True),
+    db.Column('class_id', db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True),
     db.Column('start_date', db.Date, nullable=True),
     db.Column('end_date', db.Date, nullable=True),
     db.Column('status', db.Boolean, default=True, nullable=False),
@@ -60,19 +60,19 @@ class Course(BaseModel):
     materials = db.relationship('Material', backref='course', lazy='dynamic', foreign_keys='Material.course_id')
     
     # 一对多：课程的考勤
-    attendances = db.relationship('Attendance', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    attendances = db.relationship('Attendance', backref='course', lazy='dynamic', foreign_keys='Attendance.course_id', cascade='all, delete-orphan')
     
-    # 一对多：课程的成绩
-    grades = db.relationship('Grade', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    # 一对多：课程的成绩（暂时注释，需要添加外键）
+    # grades = db.relationship('Grade', backref='course', lazy='dynamic', foreign_keys='Grade.course_id', cascade='all, delete-orphan')
     
-    # 一对多：课程的投票
-    polls = db.relationship('Poll', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    # 一对多：课程的投票（暂时注释，需要添加外键）
+    # polls = db.relationship('Poll', backref='course', lazy='dynamic', foreign_keys='Poll.course_id', cascade='all, delete-orphan')
     
-    # 一对多：课程的提问
-    questions = db.relationship('Question', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    # 一对多：课程的提问（暂时注释，需要添加外键）
+    # questions = db.relationship('Question', backref='course', lazy='dynamic', foreign_keys='Question.course_id', cascade='all, delete-orphan')
     
-    # 一对多：课程的弹幕
-    barrages = db.relationship('Barrage', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    # 一对多：课程的弹幕（暂时注释，需要添加外键）
+    # barrages = db.relationship('Barrage', backref='course', lazy='dynamic', foreign_keys='Barrage.course_id', cascade='all, delete-orphan')
     
     # ==================== 实例方法 ====================
     def is_active(self):

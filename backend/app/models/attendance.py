@@ -43,7 +43,7 @@ class Attendance(BaseModel):
     location = db.Column(db.String(100), nullable=True)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
     class_id = db.Column(db.Integer, nullable=True, index=True)  # FK→classes.id
     teacher_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
     
@@ -139,7 +139,7 @@ class AttendanceRecord(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    attendance_id = db.Column(db.Integer, nullable=False, index=True)  # FK→attendances.id
+    attendance_id = db.Column(db.Integer, db.ForeignKey('attendances.id'), nullable=False, index=True)
     student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
     
     # 签到信息

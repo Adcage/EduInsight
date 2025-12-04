@@ -67,6 +67,8 @@ class CourseResponseModel(CamelCaseModel):
     total_hours: Optional[int] = Field(None, description="总学时")
     teacher_id: int = Field(..., description="教师ID")
     status: bool = Field(..., description="课程状态")
+    class_count: Optional[int] = Field(None, description="班级数")
+    student_count: Optional[int] = Field(None, description="学生数")
     created_at: str = Field(..., description="创建时间")
     updated_at: str = Field(..., description="更新时间")
 
@@ -74,8 +76,7 @@ class CourseResponseModel(CamelCaseModel):
 class CourseDetailResponseModel(CourseResponseModel):
     """课程详情响应模型（包含关联信息）"""
     teacher_name: Optional[str] = Field(None, description="教师姓名")
-    student_count: int = Field(0, description="选课学生数")
-    class_count: int = Field(0, description="班级数")
+    teacher_email: Optional[str] = Field(None, description="教师邮箱")
 
 
 class CourseListResponseModel(CamelCaseModel):
@@ -94,6 +95,7 @@ class CourseQueryModel(CamelCaseModel):
     teacher_id: Optional[int] = Field(None, description="教师ID筛选", ge=1)
     semester: Optional[str] = Field(None, description="学期筛选", max_length=20)
     status: Optional[bool] = Field(None, description="状态筛选")
+    include_stats: bool = Field(True, description="是否包含统计信息")
     search: Optional[str] = Field(None, description="搜索关键词（课程名、代码）", max_length=100)
 
 
@@ -125,3 +127,23 @@ class CourseStatsModel(CamelCaseModel):
     total_materials: int = Field(..., description="总资料数")
     by_semester: dict = Field(..., description="按学期统计")
     by_teacher: dict = Field(..., description="按教师统计")
+
+
+class CourseClassInfoModel(CamelCaseModel):
+    """课程班级信息模型"""
+    class_id: int = Field(..., description="班级ID")
+    class_name: str = Field(..., description="班级名称")
+    class_code: str = Field(..., description="班级代码")
+    grade: Optional[str] = Field(None, description="年级")
+    major: Optional[str] = Field(None, description="专业")
+    student_count: int = Field(0, description="班级学生数")
+    start_date: Optional[str] = Field(None, description="课程开始日期")
+    end_date: Optional[str] = Field(None, description="课程结束日期")
+    status: bool = Field(True, description="关联状态")
+
+
+class CourseClassListResponseModel(CamelCaseModel):
+    """课程班级列表响应模型"""
+    classes: List[CourseClassInfoModel] = Field(..., description="班级列表")
+    total: int = Field(..., description="班级总数")
+    total_students: int = Field(0, description="总学生数")

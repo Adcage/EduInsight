@@ -40,7 +40,8 @@ class AttendanceCreateModel(CamelCaseModel):
     """考勤任务创建模型"""
     title: str = Field(..., description="考勤标题", min_length=1, max_length=100)
     course_id: int = Field(..., description="课程ID", ge=1)
-    class_id: Optional[int] = Field(None, description="班级ID", ge=1)
+    class_ids: List[int] = Field(..., description="班级ID列表（支持多选）", min_length=1)
+    student_ids: Optional[List[int]] = Field(None, description="指定学生ID列表（可选，为空则选择所有班级学生）")
     attendance_type: AttendanceTypeEnum = Field(..., description="考勤方式")
     location: Optional[str] = Field(None, description="考勤地点", max_length=100)
     require_location: bool = Field(False, description="是否需要位置验证")
