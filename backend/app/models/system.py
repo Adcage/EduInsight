@@ -32,7 +32,7 @@ class SystemLog(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    user_id = db.Column(db.Integer, nullable=True, index=True)  # FK→users.id
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     
     # 操作信息
     action = db.Column(db.String(50), nullable=False, index=True)  # login/upload/delete等
@@ -143,7 +143,7 @@ class Notification(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    user_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 通知信息
     type = db.Column(db.Enum(NotificationType), nullable=False, index=True)

@@ -43,9 +43,9 @@ class Attendance(BaseModel):
     location = db.Column(db.String(100), nullable=True)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    class_id = db.Column(db.Integer, nullable=True, index=True)  # FK→classes.id
-    teacher_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 考勤设置
     attendance_type = db.Column(db.Enum(AttendanceType), nullable=False)
@@ -139,8 +139,8 @@ class AttendanceRecord(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    attendance_id = db.Column(db.Integer, nullable=False, index=True)  # FK→attendances.id
-    student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    attendance_id = db.Column(db.Integer, db.ForeignKey('attendances.id'), nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 签到信息
     status = db.Column(db.Enum(CheckInStatus), nullable=False)
@@ -198,8 +198,8 @@ class AttendanceStatistics(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 统计数据
     total_count = db.Column(db.Integer, default=0, nullable=False)

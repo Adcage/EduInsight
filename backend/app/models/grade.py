@@ -32,8 +32,8 @@ class Grade(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 考试信息
     exam_type = db.Column(db.Enum(ExamType), nullable=False, index=True)
@@ -107,7 +107,7 @@ class GradeStatistics(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
     
     # 考试信息
     exam_type = db.Column(db.Enum(ExamType), nullable=False)
@@ -196,8 +196,8 @@ class GradePrediction(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
     
     # 预测结果
     predicted_score = db.Column(db.Numeric(5, 2), nullable=False)

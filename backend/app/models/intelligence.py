@@ -8,15 +8,15 @@ from .base import BaseModel
 
 
 class DocumentKeyword(BaseModel):
-    """文档关键词模型（智能归类）
+    """文档关键词模型
     
-    NLP提取的文档关键词，用于自动分类。
+    存储从文档中提取的关键词及其权重。
     """
     __tablename__ = 'document_keywords'
     
     # ==================== 字段定义 ====================
     # 外键关联
-    material_id = db.Column(db.Integer, nullable=False, index=True)  # FK→materials.id
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False, index=True)
     
     # 关键词信息
     keyword = db.Column(db.String(100), nullable=False, index=True)
@@ -66,15 +66,15 @@ class DocumentKeyword(BaseModel):
 class ClassificationLog(BaseModel):
     """分类日志模型
     
-    记录自动分类的过程和结果。
+    记录智能分类的建议和用户的接受/拒绝情况。
     """
     __tablename__ = 'classification_logs'
     
     # ==================== 字段定义 ====================
     # 外键关联
-    material_id = db.Column(db.Integer, nullable=False, index=True)  # FK→materials.id
-    original_category_id = db.Column(db.Integer, nullable=True, index=True)  # FK→material_categories.id
-    suggested_category_id = db.Column(db.Integer, nullable=False, index=True)  # FK→material_categories.id
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False, index=True)
+    original_category_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=True, index=True)
+    suggested_category_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=False, index=True)
     
     # 分类信息
     confidence = db.Column(db.Numeric(5, 4), nullable=True)  # 置信度(0-1)

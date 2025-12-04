@@ -4,6 +4,7 @@
 包含课程、课程班级关联等相关模型定义。
 """
 from app.extensions import db
+from sqlalchemy.orm import foreign
 from .base import BaseModel
 
 
@@ -11,8 +12,8 @@ from .base import BaseModel
 course_classes = db.Table(
     'course_classes',
     db.Column('id', db.Integer, primary_key=True, autoincrement=True),
-    db.Column('course_id', db.Integer, nullable=False, index=True),  # FK→courses.id
-    db.Column('class_id', db.Integer, nullable=False, index=True),  # FK→classes.id
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True),
+    db.Column('class_id', db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True),
     db.Column('start_date', db.Date, nullable=True),
     db.Column('end_date', db.Date, nullable=True),
     db.Column('status', db.Boolean, default=True, nullable=False),
@@ -42,7 +43,7 @@ class Course(BaseModel):
     total_hours = db.Column(db.Integer, nullable=True)
     
     # 外键关联
-    teacher_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 状态
     status = db.Column(db.Boolean, default=True, nullable=False)  # 1:进行中, 0:已结束
@@ -57,7 +58,7 @@ class Course(BaseModel):
     )
     
     # 一对多：课程的资料
-    materials = db.relationship('Material', backref='course', lazy='dynamic', foreign_keys='Material.course_id')
+    materials = db.relationship('Material', backref='course', lazy='dynamic')
     
     # 一对多：课程的考勤
     attendances = db.relationship('Attendance', backref='course', lazy='dynamic', cascade='all, delete-orphan')
