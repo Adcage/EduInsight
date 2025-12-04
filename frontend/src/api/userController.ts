@@ -13,8 +13,8 @@ export async function userApiGet(
     params: {
       // page has a default value: 1
       page: '1',
-      // per_page has a default value: 20
-      per_page: '20',
+      // perPage has a default value: 20
+      perPage: '20',
 
       ...params,
     },
@@ -22,29 +22,29 @@ export async function userApiGet(
   })
 }
 
-/** 获取指定用户 获取指定用户信息</br></br>只有教师和管理员可以访问。 GET /api/v1/users/${param0} */
+/** 获取指定用户 获取指定用户信息</br></br>只有教师和管理员可以访问。 GET /api/v1/users/${param1} */
 export async function userApiIntUserIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdGetParams,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<API.UserResponseModel>(`/api/v1/users/${param0}`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<API.UserResponseModel>(`/api/v1/users/${param1}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 更新用户信息 更新用户信息</br></br>只有管理员可以更新其他用户的信息。 PUT /api/v1/users/${param0} */
+/** 更新用户信息 更新用户信息</br></br>只有管理员可以更新其他用户的信息。 PUT /api/v1/users/${param1} */
 export async function userApiIntUserIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdPutParams,
   body: API.UserUpdateModel,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<API.UserResponseModel>(`/api/v1/users/${param0}`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<API.UserResponseModel>(`/api/v1/users/${param1}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -55,28 +55,28 @@ export async function userApiIntUserIdPut(
   })
 }
 
-/** 激活用户账户 激活用户账户</br></br>只有管理员可以激活用户账户。 POST /api/v1/users/${param0}/activate */
+/** 激活用户账户 激活用户账户</br></br>只有管理员可以激活用户账户。 POST /api/v1/users/${param1}/activate */
 export async function userApiIntUserIdActivatePost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdActivatePostParams,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<API.MessageResponseModel>(`/api/v1/users/${param0}/activate`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<API.MessageResponseModel>(`/api/v1/users/${param1}/activate`, {
     method: 'POST',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 停用用户账户 停用用户账户</br></br>只有管理员可以停用用户账户。 POST /api/v1/users/${param0}/deactivate */
+/** 停用用户账户 停用用户账户</br></br>只有管理员可以停用用户账户。 POST /api/v1/users/${param1}/deactivate */
 export async function userApiIntUserIdDeactivatePost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.userApiIntUserIdDeactivatePostParams,
   options?: { [key: string]: any }
 ) {
-  const { user_id: param0, ...queryParams } = params
-  return request<API.MessageResponseModel>(`/api/v1/users/${param0}/deactivate`, {
+  const { userId: param0, user_id: param1, ...queryParams } = params
+  return request<API.MessageResponseModel>(`/api/v1/users/${param1}/deactivate`, {
     method: 'POST',
     params: { ...queryParams },
     ...(options || {}),

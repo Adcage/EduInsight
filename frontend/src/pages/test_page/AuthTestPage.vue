@@ -242,7 +242,7 @@ import {
   authApiStatusGet,
   authApiLogoutPost,
   authApiChangePasswordPost,
-  authApiProfileGet,
+  authApiGetLoginuserGet,
   authApiHealthGet
 } from '@/api/authController'
 import {

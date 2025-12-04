@@ -5,6 +5,12 @@ Schemas 模块 - 所有 Pydantic 数据模型
 # 基础模型
 from .base_schemas import CamelCaseModel
 
+# 通用模型
+from .common_schemas import (
+    BaseResponseModel,
+    PaginationModel,
+)
+
 # 用户相关模型
 from .user_schemas import (
     UserRoleEnum,
@@ -22,15 +28,159 @@ from .user_schemas import (
     UserProfileModel,
 )
 
-# 通用模型
-from .common_schemas import (
-    BaseResponseModel,
-    PaginationModel,
+# 资料中心模块
+from .material_schemas import (
+    MaterialCategoryCreateModel,
+    MaterialCategoryUpdateModel,
+    MaterialCategoryResponseModel,
+    MaterialCategoryTreeModel,
+    MaterialTagCreateModel,
+    MaterialTagResponseModel,
+    MaterialUploadModel,
+    MaterialUpdateModel,
+    MaterialResponseModel,
+    MaterialDetailResponseModel,
+    MaterialListResponseModel,
+    MaterialQueryModel,
+    MaterialPathModel,
+    MaterialTagPathModel,
+    MaterialCategoryPathModel,
+    MaterialTagAddModel,
+    MaterialStatsModel,
+)
+
+# 课程模块
+from .course_schemas import (
+    CourseCreateModel,
+    CourseUpdateModel,
+    CourseResponseModel,
+    CourseDetailResponseModel,
+    CourseListResponseModel,
+    CourseQueryModel,
+    CoursePathModel,
+    CourseClassAddModel,
+    CourseStatsModel,
+)
+
+# 考勤管理模块
+from .attendance_schemas import (
+    AttendanceTypeEnum,
+    AttendanceStatusEnum,
+    CheckInStatusEnum,
+    AttendanceCreateModel,
+    AttendanceUpdateModel,
+    AttendanceResponseModel,
+    AttendanceDetailResponseModel,
+    AttendanceListResponseModel,
+    AttendanceQueryModel,
+    AttendancePathModel,
+    AttendanceCheckInModel,
+    AttendanceRecordCreateModel,
+    AttendanceRecordUpdateModel,
+    AttendanceRecordResponseModel,
+    AttendanceRecordDetailResponseModel,
+    AttendanceRecordListResponseModel,
+    AttendanceStatisticsResponseModel,
+    AttendanceStatisticsDetailResponseModel,
+    AttendanceStatisticsListResponseModel,
+)
+
+# 成绩管理模块
+from .grade_schemas import (
+    ExamTypeEnum,
+    RiskLevelEnum,
+    GradeCreateModel,
+    GradeUpdateModel,
+    GradeBatchImportModel,
+    GradeResponseModel,
+    GradeDetailResponseModel,
+    GradeListResponseModel,
+    GradeQueryModel,
+    GradePathModel,
+    GradeStatisticsResponseModel,
+    GradeStatisticsDetailResponseModel,
+    GradePredictionCreateModel,
+    GradePredictionResponseModel,
+    GradePredictionDetailResponseModel,
+    GradePredictionListResponseModel,
+)
+
+# 课堂互动模块
+from .interaction_schemas import (
+    PollTypeEnum,
+    PollStatusEnum,
+    QuestionStatusEnum,
+    PollCreateModel,
+    PollUpdateModel,
+    PollResponseModel,
+    PollDetailResponseModel,
+    PollListResponseModel,
+    PollPathModel,
+    PollVoteModel,
+    PollResponseResponseModel,
+    QuestionCreateModel,
+    QuestionUpdateModel,
+    QuestionResponseModel,
+    QuestionDetailResponseModel,
+    QuestionListResponseModel,
+    QuestionPathModel,
+    QuestionAnswerCreateModel,
+    QuestionAnswerUpdateModel,
+    QuestionAnswerResponseModel,
+    QuestionAnswerDetailResponseModel,
+    QuestionAnswerPathModel,
+    BarrageCreateModel,
+    BarrageResponseModel,
+    BarrageDetailResponseModel,
+    BarrageListResponseModel,
+    BarragePathModel,
+)
+
+# 智能模块
+from .intelligence_schemas import (
+    DocumentKeywordResponseModel,
+    DocumentKeywordListResponseModel,
+    PopularKeywordModel,
+    PopularKeywordListModel,
+    ClassificationLogCreateModel,
+    ClassificationLogUpdateModel,
+    ClassificationLogResponseModel,
+    ClassificationLogDetailResponseModel,
+    ClassificationLogListResponseModel,
+    ClassificationLogPathModel,
+    MaterialClassifyRequestModel,
+    MaterialClassifyResponseModel,
+    KeywordExtractionRequestModel,
+    KeywordExtractionResponseModel,
+)
+
+# 系统日志模块
+from .system_schemas import (
+    NotificationTypeEnum,
+    NotificationPriorityEnum,
+    SystemLogCreateModel,
+    SystemLogResponseModel,
+    SystemLogDetailResponseModel,
+    SystemLogListResponseModel,
+    SystemLogQueryModel,
+    SystemLogPathModel,
+    NotificationCreateModel,
+    NotificationBatchCreateModel,
+    NotificationUpdateModel,
+    NotificationResponseModel,
+    NotificationListResponseModel,
+    NotificationQueryModel,
+    NotificationPathModel,
+    NotificationStatsModel,
 )
 
 __all__ = [
     # 基础
     'CamelCaseModel',
+    
+    # 通用
+    'BaseResponseModel',
+    'PaginationModel',
     
     # 用户
     'UserRoleEnum',
@@ -47,7 +197,135 @@ __all__ = [
     'UserStatsModel',
     'UserProfileModel',
     
-    # 通用
-    'BaseResponseModel',
-    'PaginationModel',
+    # 资料中心
+    'MaterialCategoryCreateModel',
+    'MaterialCategoryUpdateModel',
+    'MaterialCategoryResponseModel',
+    'MaterialCategoryTreeModel',
+    'MaterialTagCreateModel',
+    'MaterialTagResponseModel',
+    'MaterialUploadModel',
+    'MaterialUpdateModel',
+    'MaterialResponseModel',
+    'MaterialDetailResponseModel',
+    'MaterialListResponseModel',
+    'MaterialQueryModel',
+    'MaterialPathModel',
+    'MaterialTagPathModel',
+    'MaterialCategoryPathModel',
+    'MaterialTagAddModel',
+    'MaterialStatsModel',
+    
+    # 课程
+    'CourseCreateModel',
+    'CourseUpdateModel',
+    'CourseResponseModel',
+    'CourseDetailResponseModel',
+    'CourseListResponseModel',
+    'CourseQueryModel',
+    'CoursePathModel',
+    'CourseClassAddModel',
+    'CourseStatsModel',
+    
+    # 考勤管理
+    'AttendanceTypeEnum',
+    'AttendanceStatusEnum',
+    'CheckInStatusEnum',
+    'AttendanceCreateModel',
+    'AttendanceUpdateModel',
+    'AttendanceResponseModel',
+    'AttendanceDetailResponseModel',
+    'AttendanceListResponseModel',
+    'AttendanceQueryModel',
+    'AttendancePathModel',
+    'AttendanceCheckInModel',
+    'AttendanceRecordCreateModel',
+    'AttendanceRecordUpdateModel',
+    'AttendanceRecordResponseModel',
+    'AttendanceRecordDetailResponseModel',
+    'AttendanceRecordListResponseModel',
+    'AttendanceStatisticsResponseModel',
+    'AttendanceStatisticsDetailResponseModel',
+    'AttendanceStatisticsListResponseModel',
+    
+    # 成绩管理
+    'ExamTypeEnum',
+    'RiskLevelEnum',
+    'GradeCreateModel',
+    'GradeUpdateModel',
+    'GradeBatchImportModel',
+    'GradeResponseModel',
+    'GradeDetailResponseModel',
+    'GradeListResponseModel',
+    'GradeQueryModel',
+    'GradePathModel',
+    'GradeStatisticsResponseModel',
+    'GradeStatisticsDetailResponseModel',
+    'GradePredictionCreateModel',
+    'GradePredictionResponseModel',
+    'GradePredictionDetailResponseModel',
+    'GradePredictionListResponseModel',
+    
+    # 课堂互动
+    'PollTypeEnum',
+    'PollStatusEnum',
+    'QuestionStatusEnum',
+    'PollCreateModel',
+    'PollUpdateModel',
+    'PollResponseModel',
+    'PollDetailResponseModel',
+    'PollListResponseModel',
+    'PollPathModel',
+    'PollVoteModel',
+    'PollResponseResponseModel',
+    'QuestionCreateModel',
+    'QuestionUpdateModel',
+    'QuestionResponseModel',
+    'QuestionDetailResponseModel',
+    'QuestionListResponseModel',
+    'QuestionPathModel',
+    'QuestionAnswerCreateModel',
+    'QuestionAnswerUpdateModel',
+    'QuestionAnswerResponseModel',
+    'QuestionAnswerDetailResponseModel',
+    'QuestionAnswerPathModel',
+    'BarrageCreateModel',
+    'BarrageResponseModel',
+    'BarrageDetailResponseModel',
+    'BarrageListResponseModel',
+    'BarragePathModel',
+    
+    # 智能模块
+    'DocumentKeywordResponseModel',
+    'DocumentKeywordListResponseModel',
+    'PopularKeywordModel',
+    'PopularKeywordListModel',
+    'ClassificationLogCreateModel',
+    'ClassificationLogUpdateModel',
+    'ClassificationLogResponseModel',
+    'ClassificationLogDetailResponseModel',
+    'ClassificationLogListResponseModel',
+    'ClassificationLogPathModel',
+    'MaterialClassifyRequestModel',
+    'MaterialClassifyResponseModel',
+    'KeywordExtractionRequestModel',
+    'KeywordExtractionResponseModel',
+    
+    # 系统日志
+    'NotificationTypeEnum',
+    'NotificationPriorityEnum',
+    'SystemLogCreateModel',
+    'SystemLogResponseModel',
+    'SystemLogDetailResponseModel',
+    'SystemLogListResponseModel',
+    'SystemLogQueryModel',
+    'SystemLogPathModel',
+    'NotificationCreateModel',
+    'NotificationBatchCreateModel',
+    'NotificationUpdateModel',
+    'NotificationResponseModel',
+    'NotificationListResponseModel',
+    'NotificationQueryModel',
+    'NotificationPathModel',
+    'NotificationStatsModel',
 ]

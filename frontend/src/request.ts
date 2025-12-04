@@ -4,7 +4,7 @@ import router from '@/router'
 
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: 'http://localhost:5001',
+  baseURL: 'http://localhost:5030',
   timeout: 60000,
   withCredentials: true,
 })

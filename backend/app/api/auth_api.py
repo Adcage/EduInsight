@@ -137,12 +137,12 @@ class AuthAPI:
             }, 500
     
     @staticmethod
-    @auth_api_bp.get('/profile', 
-                    summary="获取当前用户信息", 
+    @auth_api_bp.get('/get_loginuser', 
+                    summary="获取当前登录用户信息", 
                     tags=[auth_tag],
                     responses={200: UserProfileModel, 401: MessageResponseModel})
     @login_required
-    def get_current_profile():
+    def get_loginuser():
         """
         获取当前登录用户的个人信息
         """
@@ -157,10 +157,10 @@ class AuthAPI:
             return user.to_dict(), 200
             
         except Exception as e:
-            logger.error(f"Get profile error: {str(e)}")
+            logger.error(f"Get loginuser error: {str(e)}")
             return {
                 'message': '获取用户信息失败',
-                'error_code': 'GET_PROFILE_ERROR'
+                'error_code': 'GET_LOGINUSER_ERROR'
             }, 500
     
     @staticmethod
