@@ -31,7 +31,6 @@
 - ✅ RESTful API 设计规范
 - ✅ 自动生成 OpenAPI 3.0 文档 (Swagger/ReDoc)
 - ✅ Pydantic 数据验证
-- ✅ JWT 身份认证
 - ✅ 类装饰器模式开发
 - ✅ 驼峰命名自动转换
 
@@ -54,7 +53,6 @@ flask-openapi3==3.1.0          # OpenAPI 3.0 支持
 Flask==3.0.0                   # Web 框架
 Flask-SQLAlchemy==3.1.1        # ORM
 pydantic==2.4.2                # 数据验证
-Flask-JWT-Extended==4.6.0      # JWT 认证
 Flask-CORS==4.0.0              # 跨域支持
 email-validator==2.3.0         # 邮箱验证
 python-dotenv==1.0.0           # 环境变量管理
@@ -151,13 +149,6 @@ from app.extensions import init_extensions
 
 def create_app(config_name='development'):
     """应用工厂函数"""
-    # 定义JWT安全方案
-    jwt_scheme = SecurityScheme(
-        type="http",
-        scheme="bearer",
-        bearerFormat="JWT",
-        description="JWT认证令牌"
-    )
     
     # OpenAPI 信息配置
     info = Info(
@@ -170,7 +161,6 @@ def create_app(config_name='development'):
     app = OpenAPI(
         __name__, 
         info=info,
-        security_schemes={"bearerAuth": jwt_scheme}
     )
     
     # 加载配置
@@ -216,10 +206,6 @@ class Config:
         'max_overflow': 20
     }
     
-    # JWT配置
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret'
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     
     # CORS配置
     CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']
@@ -251,12 +237,10 @@ config = {
 ```python
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 
 # 初始化扩展
 db = SQLAlchemy()
 cors = CORS()
-jwt = JWTManager()
 
 def init_extensions(app):
     """初始化所有扩展"""
@@ -264,7 +248,6 @@ def init_extensions(app):
     cors.init_app(app, 
                   supports_credentials=True, 
                   origins=app.config['CORS_ORIGINS'])
-    jwt.init_app(app)
 ```
 
 ### 4.4 环境变量配置
@@ -275,7 +258,6 @@ def init_extensions(app):
 # 应用配置
 FLASK_ENV=development
 SECRET_KEY=your-secret-key-here
-JWT_SECRET_KEY=your-jwt-secret-here
 
 # 数据库配置
 DATABASE_URL=sqlite:///app.db
@@ -346,7 +328,6 @@ from app.services import UserService
 # 格式: <type>(<scope>): <subject>
 
 feat(user): 添加用户列表分页功能
-fix(auth): 修复JWT令牌过期问题
 docs(api): 更新API文档
 refactor(service): 重构用户服务层
 test(user): 添加用户创建测试用例
@@ -388,7 +369,6 @@ def create_user(user_data: dict) -> User:
 
 ```python
 from flask_openapi3 import APIBlueprint, Tag
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.model.user_model import UserCreateModel, UserResponseModel
 from app.services.user_service import UserService
 
@@ -411,12 +391,8 @@ class UserAPI:
         '/', 
         summary="创建新用户", 
         tags=[user_tag],
-        security=[{"bearerAuth": []}]  # 🔒 需要JWT认证
     )
-    @jwt_required()
     def create_user(body: UserCreateModel):
-        """创建新用户 - 需要JWT认证"""
-        current_user_id = get_jwt_identity()
         user = UserService.create_user(body)
         return {
             'message': 'User created successfully',
@@ -615,19 +591,10 @@ class User(db.Model):
 
 ## 8. 认证授权
 
-### 8.1 JWT 认证配置
-
-```python
-# config.py
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
-JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
-JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
-```
 
 ### 8.2 登录接口
 
 ```python
-from flask_jwt_extended import create_access_token, create_refresh_token
 
 @auth_api_bp.post('/login', summary="用户登录", tags=[auth_tag])
 def login(body: LoginModel):
@@ -636,8 +603,6 @@ def login(body: LoginModel):
     if not user:
         return {'message': '邮箱或密码错误'}, 401
     
-    # 生成JWT令牌
-    access_token = create_access_token(identity=user.id)
     refresh_token = create_refresh_token(identity=user.id)
     
     return TokenResponseModel(
@@ -650,17 +615,14 @@ def login(body: LoginModel):
 ### 8.3 保护接口
 
 ```python
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 @user_api_bp.get(
     '/me', 
     summary="获取当前用户信息",
     security=[{"bearerAuth": []}]  # 🔒 OpenAPI文档中显示需要认证
 )
-@jwt_required()  # 🔒 实际的JWT验证装饰器
 def get_current_user():
     """获取当前登录用户信息"""
-    current_user_id = get_jwt_identity()
     user = UserService.get_user_by_id(current_user_id)
     return UserResponseModel.model_validate(user).model_dump()
 ```
@@ -879,9 +841,6 @@ A: 在 `create_app()` 中添加 `app.json.ensure_ascii = False`
 
 **Q: 如何实现驼峰命名转换?**  
 A: 所有 Pydantic 模型继承 `CamelCaseModel` 基类
-
-**Q: JWT 令牌如何传递?**  
-A: 在请求头中添加 `Authorization: Bearer <token>`
 
 **Q: 如何处理跨域问题?**  
 A: 已配置 Flask-CORS,在 `config.py` 中设置 `CORS_ORIGINS`
