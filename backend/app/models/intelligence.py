@@ -8,9 +8,9 @@ from .base import BaseModel
 
 
 class DocumentKeyword(BaseModel):
-    """文档关键词模型（智能归类）
+    """文档关键词模型
     
-    NLP提取的文档关键词，用于自动分类。
+    存储从文档中提取的关键词及其权重。
     """
     __tablename__ = 'document_keywords'
     
@@ -66,7 +66,7 @@ class DocumentKeyword(BaseModel):
 class ClassificationLog(BaseModel):
     """分类日志模型
     
-    记录自动分类的过程和结果。
+    记录智能分类的建议和用户的接受/拒绝情况。
     """
     __tablename__ = 'classification_logs'
     

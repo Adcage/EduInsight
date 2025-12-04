@@ -4,6 +4,7 @@
 包含课程、课程班级关联等相关模型定义。
 """
 from app.extensions import db
+from sqlalchemy.orm import foreign
 from .base import BaseModel
 
 
@@ -42,7 +43,7 @@ class Course(BaseModel):
     total_hours = db.Column(db.Integer, nullable=True)
     
     # 外键关联
-    teacher_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 状态
     status = db.Column(db.Boolean, default=True, nullable=False)  # 1:进行中, 0:已结束
@@ -57,7 +58,7 @@ class Course(BaseModel):
     )
     
     # 一对多：课程的资料
-    materials = db.relationship('Material', backref='course', lazy='dynamic', foreign_keys='Material.course_id')
+    materials = db.relationship('Material', backref='course', lazy='dynamic')
     
     # 一对多：课程的考勤
     attendances = db.relationship('Attendance', backref='course', lazy='dynamic', foreign_keys='Attendance.course_id', cascade='all, delete-orphan')

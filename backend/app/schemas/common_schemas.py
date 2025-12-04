@@ -22,6 +22,11 @@ class BaseResponseModel(CamelCaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="时间戳")
 
 
+class MessageResponseModel(CamelCaseModel):
+    """消息响应模型（用于简单的成功/失败响应）"""
+    message: str = Field(..., description="响应消息")
+
+
 class PaginationModel(CamelCaseModel):
     """分页模型"""
     page: int = Field(1, description="当前页码", ge=1)

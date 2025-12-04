@@ -1,4 +1,5 @@
 from app.extensions import db
+from sqlalchemy.orm import foreign
 from .base import BaseModel
 
 class Class(BaseModel):
@@ -14,18 +15,17 @@ class Class(BaseModel):
     grade = db.Column(db.String(50), nullable=True)  # 年级
     major = db.Column(db.String(100), nullable=True)  # 专业
     
-    # 班主任 [FK→users.id]（不设置外键约束，避免循环依赖）
-    teacher_id = db.Column(db.Integer, nullable=True, index=True)
+    # 班主任
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     
     # 状态
     status = db.Column(db.Boolean, default=True, nullable=False)  # 1:正常, 0:禁用
     
-    # 关系（使用primaryjoin显式指定关联条件，因为没有外键约束）
+    # 关系
     students = db.relationship('User', 
-                              primaryjoin='User.class_id == Class.id',
+                              foreign_keys='User.class_id',
                               backref='class_rel', 
-                              lazy='dynamic',
-                              foreign_keys='User.class_id')
+                              lazy='dynamic')
     
     def __repr__(self):
         return f'<Class {self.name}({self.code})>'

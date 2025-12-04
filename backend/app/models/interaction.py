@@ -39,8 +39,8 @@ class Poll(BaseModel):
     description = db.Column(db.Text, nullable=True)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    teacher_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 投票设置
     poll_type = db.Column(db.Enum(PollType), nullable=False)
@@ -119,8 +119,8 @@ class PollResponse(BaseModel):
     
     # ==================== 字段定义 ====================
     # 外键关联
-    poll_id = db.Column(db.Integer, nullable=False, index=True)  # FK→polls.id
-    student_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    poll_id = db.Column(db.Integer, db.ForeignKey('polls.id'), nullable=False, index=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 投票内容
     selected_options = db.Column(db.JSON, nullable=False)  # JSON数组
@@ -157,8 +157,8 @@ class Question(BaseModel):
     content = db.Column(db.Text, nullable=False)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    user_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 设置
     is_anonymous = db.Column(db.Boolean, default=False, nullable=False)
@@ -241,8 +241,8 @@ class QuestionAnswer(BaseModel):
     content = db.Column(db.Text, nullable=False)
     
     # 外键关联
-    question_id = db.Column(db.Integer, nullable=False, index=True)  # FK→questions.id
-    user_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 状态
     is_accepted = db.Column(db.Boolean, default=False, nullable=False)
@@ -302,8 +302,8 @@ class Barrage(BaseModel):
     content = db.Column(db.String(200), nullable=False)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=False, index=True)  # FK→courses.id
-    user_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
     # 设置
     is_anonymous = db.Column(db.Boolean, default=False, nullable=False)

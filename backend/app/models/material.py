@@ -4,6 +4,7 @@
 包含资料、分类、标签等相关模型定义。
 """
 from app.extensions import db
+from sqlalchemy.orm import foreign
 from .base import BaseModel
 
 
@@ -11,8 +12,8 @@ from .base import BaseModel
 material_tag_relation = db.Table(
     'material_tag_relation',
     db.Column('id', db.Integer, primary_key=True, autoincrement=True),
-    db.Column('material_id', db.Integer, nullable=False, index=True),  # FK→materials.id
-    db.Column('tag_id', db.Integer, nullable=False, index=True),  # FK→material_tags.id
+    db.Column('material_id', db.Integer, db.ForeignKey('materials.id'), nullable=False, index=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('material_tags.id'), nullable=False, index=True),
     db.Column('created_at', db.DateTime, default=db.func.current_timestamp(), nullable=False),
     db.Column('updated_at', db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp(), nullable=False),
     db.UniqueConstraint('material_id', 'tag_id', name='uk_material_tag')
@@ -33,7 +34,7 @@ class MaterialCategory(BaseModel):
     sort_order = db.Column(db.Integer, default=0, nullable=False)
     
     # 父分类（支持多级分类）
-    parent_id = db.Column(db.Integer, nullable=True, index=True)  # FK→material_categories.id
+    parent_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=True, index=True)
     
     # ==================== 关系定义 ====================
     # 自引用关系：父子分类
@@ -140,9 +141,9 @@ class Material(BaseModel):
     file_type = db.Column(db.String(50), nullable=False)
     
     # 外键关联
-    course_id = db.Column(db.Integer, nullable=True, index=True)  # FK→courses.id
-    uploader_id = db.Column(db.Integer, nullable=False, index=True)  # FK→users.id
-    category_id = db.Column(db.Integer, nullable=True, index=True)  # FK→material_categories.id
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True, index=True)
+    uploader_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('material_categories.id'), nullable=True, index=True)
     
     # 统计信息
     download_count = db.Column(db.Integer, default=0, nullable=False)
@@ -162,10 +163,16 @@ class Material(BaseModel):
     )
     
     # 一对多：资料的关键词
-    document_keywords = db.relationship('DocumentKeyword', backref='material', lazy='dynamic', cascade='all, delete-orphan')
+    document_keywords = db.relationship('DocumentKeyword', 
+                                      backref='material', 
+                                      lazy='dynamic', 
+                                      cascade='all, delete-orphan')
     
     # 一对多：分类日志
-    classification_logs = db.relationship('ClassificationLog', backref='material', lazy='dynamic', cascade='all, delete-orphan')
+    classification_logs = db.relationship('ClassificationLog', 
+                                        backref='material', 
+                                        lazy='dynamic', 
+                                        cascade='all, delete-orphan')
     
     # ==================== 实例方法 ====================
     def increment_download_count(self):
