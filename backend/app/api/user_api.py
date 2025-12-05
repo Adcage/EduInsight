@@ -144,7 +144,7 @@ class UserAPI:
             }, 500
     
     @staticmethod
-    @user_api_bp.get('/<int:user_id>', 
+    @user_api_bp.get('/<int:userId>', 
                     summary="获取指定用户", 
                     tags=[user_tag],
                     responses={200: UserResponseModel, 404: MessageResponseModel})
@@ -175,7 +175,7 @@ class UserAPI:
             }, 500
     
     @staticmethod
-    @user_api_bp.put('/<int:user_id>', 
+    @user_api_bp.put('/<int:userId>', 
                     summary="更新用户信息", 
                     tags=[user_tag],
                     responses={200: UserResponseModel, 404: MessageResponseModel})
@@ -219,7 +219,7 @@ class UserAPI:
             }, 500
     
     @staticmethod
-    @user_api_bp.post('/<int:user_id>/deactivate', 
+    @user_api_bp.post('/<int:userId>/deactivate', 
                      summary="停用用户账户", 
                      tags=[user_tag],
                      responses={200: MessageResponseModel, 404: MessageResponseModel})
@@ -253,7 +253,7 @@ class UserAPI:
             }, 500
     
     @staticmethod
-    @user_api_bp.post('/<int:user_id>/activate', 
+    @user_api_bp.post('/<int:userId>/activate', 
                      summary="激活用户账户", 
                      tags=[user_tag],
                      responses={200: MessageResponseModel, 404: MessageResponseModel})

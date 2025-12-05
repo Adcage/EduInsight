@@ -145,7 +145,7 @@ class TagAPI:
             return error_response("搜索标签失败", 500)
     
     @staticmethod
-    @tag_api_bp.get('/<int:tag_id>',
+    @tag_api_bp.get('/<int:tagId>',
                    summary="获取标签详情",
                    tags=[tag_tag],
                    responses={200: MaterialTagResponseModel, 404: MessageResponseModel})
@@ -169,7 +169,7 @@ class TagAPI:
             return error_response("获取标签详情失败", 500)
     
     @staticmethod
-    @tag_api_bp.delete('/<int:tag_id>',
+    @tag_api_bp.delete('/<int:tagId>',
                       summary="删除标签",
                       tags=[tag_tag],
                       responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})

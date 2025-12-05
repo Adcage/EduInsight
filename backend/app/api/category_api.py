@@ -110,7 +110,7 @@ class CategoryAPI:
             return error_response("获取分类树失败", 500)
     
     @staticmethod
-    @category_api_bp.get('/<int:category_id>',
+    @category_api_bp.get('/<int:categoryId>',
                         summary="获取分类详情",
                         tags=[category_tag],
                         responses={200: MaterialCategoryResponseModel, 404: MessageResponseModel})
@@ -134,7 +134,7 @@ class CategoryAPI:
             return error_response("获取分类详情失败", 500)
     
     @staticmethod
-    @category_api_bp.get('/<int:category_id>/children',
+    @category_api_bp.get('/<int:categoryId>/children',
                         summary="获取子分类",
                         tags=[category_tag])
     @login_required
@@ -155,7 +155,7 @@ class CategoryAPI:
             return error_response("获取子分类失败", 500)
     
     @staticmethod
-    @category_api_bp.put('/<int:category_id>',
+    @category_api_bp.put('/<int:categoryId>',
                         summary="更新分类",
                         tags=[category_tag],
                         responses={200: MaterialCategoryResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
@@ -191,7 +191,7 @@ class CategoryAPI:
             return error_response("分类更新失败", 500)
     
     @staticmethod
-    @category_api_bp.delete('/<int:category_id>',
+    @category_api_bp.delete('/<int:categoryId>',
                            summary="删除分类",
                            tags=[category_tag],
                            responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
