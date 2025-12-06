@@ -10,8 +10,9 @@ from app.extensions import db
 from app.models import Material, MaterialCategory, MaterialTag, Course
 from app.utils.file_utils import (
     save_uploaded_file, delete_file, get_file_type,
-    get_file_size_mb, validate_file
+    get_file_size_mb, validate_file, get_file_icon
 )
+from app.utils.file_security import validate_file_security
 import logging
 
 logger = logging.getLogger(__name__)
@@ -49,9 +50,14 @@ class MaterialService:
             ValueError: 文件验证失败或参数错误
         """
         try:
-            # 验证文件
+            # 验证文件基本信息
             is_valid, error_msg = validate_file(file)
             if not is_valid:
+                raise ValueError(error_msg)
+            
+            # 验证文件安全性
+            is_safe, error_msg = validate_file_security(file)
+            if not is_safe:
                 raise ValueError(error_msg)
             
             # 保存文件

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { ConfigProvider, theme } from 'ant-design-vue'
 import { BasicLayout } from '@/layouts'
 import { useTheme } from '@/composables/useTheme'
-import { authApiHealthGet } from './api/authController'
 
 // 使用主题管理
 const { isDark } = useTheme()
@@ -17,9 +16,6 @@ const antdTheme = computed(() => ({
     wireframe: false,
   },
 }))
-authApiHealthGet().then((res) => {
-  console.log(res);
-})
 </script>
 
 <template>

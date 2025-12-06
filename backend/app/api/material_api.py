@@ -128,25 +128,29 @@ class MaterialAPI:
                 search=query.search
             )
             
-            # 转换为字典
-            materials_data = [material.to_dict() for material in result['materials']]
+            # 使用 Pydantic 模型序列化每个资料（to_dict 已自动转换 datetime）
+            materials_models = [
+                MaterialResponseModel(**material.to_dict())
+                for material in result['materials']
+            ]
             
-            response_data = {
-                'materials': materials_data,
-                'total': result['total'],
-                'page': result['page'],
-                'per_page': result['per_page'],
-                'pages': result['pages']
-            }
+            # 使用 Pydantic 模型序列化列表响应，success_response 会自动处理
+            response_model = MaterialListResponseModel(
+                materials=materials_models,
+                total=result['total'],
+                page=result['page'],
+                per_page=result['per_page'],
+                pages=result['pages']
+            )
             
-            return success_response(data=response_data)
+            return success_response(data=response_model)
             
         except Exception as e:
             logger.error(f"获取资料列表失败: {str(e)}")
             return error_response("获取资料列表失败", 500)
     
     @staticmethod
-    @material_api_bp.get('/<int:material_id>',
+    @material_api_bp.get('/<int:materialId>',
                         summary="获取资料详情",
                         tags=[material_tag],
                         responses={200: MaterialDetailResponseModel, 404: MessageResponseModel})
@@ -166,7 +170,7 @@ class MaterialAPI:
             if not material:
                 return error_response("资料不存在", 404)
             
-            # 构建详细信息
+            # 构建详细信息字典（to_dict 已自动转换 datetime）
             material_data = material.to_dict()
             
             # 添加标签信息
@@ -182,14 +186,17 @@ class MaterialAPI:
             if uploader:
                 material_data['uploader_name'] = uploader.real_name or uploader.username
             
-            return success_response(data=material_data)
+            # 使用 Pydantic 模型序列化，success_response 会自动转换为驼峰命名
+            response_model = MaterialDetailResponseModel(**material_data)
+            
+            return success_response(data=response_model)
             
         except Exception as e:
             logger.error(f"获取资料详情失败: {str(e)}")
             return error_response("获取资料详情失败", 500)
     
     @staticmethod
-    @material_api_bp.put('/<int:material_id>',
+    @material_api_bp.put('/<int:materialId>',
                         summary="更新资料信息",
                         tags=[material_tag],
                         responses={200: MaterialResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
@@ -227,7 +234,7 @@ class MaterialAPI:
             return error_response("资料更新失败", 500)
     
     @staticmethod
-    @material_api_bp.delete('/<int:material_id>',
+    @material_api_bp.delete('/<int:materialId>',
                            summary="删除资料",
                            tags=[material_tag],
                            responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
@@ -258,7 +265,7 @@ class MaterialAPI:
             return error_response("资料删除失败", 500)
     
     @staticmethod
-    @material_api_bp.get('/<int:material_id>/download',
+    @material_api_bp.get('/<int:materialId>/download',
                         summary="下载资料",
                         tags=[material_tag],
                         responses={404: MessageResponseModel})
@@ -276,14 +283,25 @@ class MaterialAPI:
             if not material:
                 return error_response("资料不存在", 404)
             
+            # 转换为绝对路径
+            # 如果是相对路径，则相对于项目根目录（backend目录）
+            if not os.path.isabs(material.file_path):
+                # 获取项目根目录（backend目录）
+                # __file__ 是 app/api/material_api.py
+                # 需要向上两级到 app，再向上一级到 backend
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                file_path = os.path.join(base_dir, material.file_path)
+            else:
+                file_path = material.file_path
+            
             # 检查文件是否存在
-            if not os.path.exists(material.file_path):
-                logger.error(f"文件不存在: {material.file_path}")
+            if not os.path.exists(file_path):
+                logger.error(f"文件不存在: {file_path}")
                 return error_response("文件不存在", 404)
             
             # 发送文件
             return send_file(
-                material.file_path,
+                file_path,
                 as_attachment=True,
                 download_name=material.file_name
             )
@@ -291,6 +309,49 @@ class MaterialAPI:
         except Exception as e:
             logger.error(f"文件下载失败: {str(e)}")
             return error_response("文件下载失败", 500)
+    
+    @staticmethod
+    @material_api_bp.get('/<int:materialId>/preview',
+                        summary="预览资料",
+                        tags=[material_tag],
+                        responses={404: MessageResponseModel})
+    @login_required
+    @log_user_action("预览资料")
+    def preview_material(path: MaterialPathModel):
+        """
+        预览资料文件
+        
+        返回文件流，浏览器会在线预览文件（不下载）。
+        支持PDF、图片等可以在浏览器中直接显示的文件类型。
+        """
+        try:
+            material = MaterialService.get_material_by_id(path.material_id)
+            
+            if not material:
+                return error_response("资料不存在", 404)
+            
+            # 转换为绝对路径
+            if not os.path.isabs(material.file_path):
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                file_path = os.path.join(base_dir, material.file_path)
+            else:
+                file_path = material.file_path
+            
+            # 检查文件是否存在
+            if not os.path.exists(file_path):
+                logger.error(f"文件不存在: {file_path}")
+                return error_response("文件不存在", 404)
+            
+            # 发送文件用于预览（不作为附件下载）
+            return send_file(
+                file_path,
+                as_attachment=False,  # 关键：设置为False，浏览器会尝试在线预览
+                download_name=material.file_name
+            )
+            
+        except Exception as e:
+            logger.error(f"文件预览失败: {str(e)}")
+            return error_response("文件预览失败", 500)
     
     @staticmethod
     @material_api_bp.get('/search',

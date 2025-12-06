@@ -58,10 +58,7 @@ src/
 │   └── index.ts
 ├── assets/              # 静态资源
 │   ├── styles/          # 全局样式
-│   │   ├── variables.scss
-│   │   ├── mixins.scss
 │   │   ├── themes/
-│   │   └── index.scss
 │   └── images/
 ├── components/          # 公共组件
 ├── composables/         # 组合式函数
@@ -116,12 +113,6 @@ request.ts
 ```
 
 #### 样式文件
-```
-# 使用 kebab-case
-variables.scss
-mixins.scss
-theme-light.scss
-```
 
 ### 3.2 变量命名
 ```typescript
@@ -146,7 +137,7 @@ class UserService {
 ```
 
 ### 3.3 CSS类名命名
-```scss
+```css
 // BEM命名规范
 .user-card {}                    // 块
 .user-card__header {}            // 元素
@@ -213,7 +204,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .component-name {
   // 组件样式
 }
@@ -793,30 +784,10 @@ const fetchTableData = async () => {
 ## 7. 样式开发规范
 
 ### 7.1 CSS类名规范
-```scss
+```css
 // BEM命名规范
 .user-table {
   // 块样式
-  
-  &__header {
-    // 元素样式
-    padding: 16px;
-  }
-  
-  &__row {
-    // 元素样式
-    border-bottom: 1px solid #f0f0f0;
-    
-    &--selected {
-      // 元素修饰符
-      background-color: #e6f7ff;
-    }
-  }
-  
-  &--loading {
-    // 块修饰符
-    opacity: 0.6;
-  }
 }
 ```
 
@@ -831,21 +802,11 @@ const fetchTableData = async () => {
 ```
 
 ### 7.3 响应式设计
-```scss
+```css
 // 移动端优先
 .component {
   // 移动端样式
   padding: 8px;
-  
-  @include respond-to(tablet) {
-    // 平板样式
-    padding: 16px;
-  }
-  
-  @include respond-to(desktop) {
-    // 桌面样式
-    padding: 24px;
-  }
 }
 ```
 

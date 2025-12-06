@@ -3,6 +3,8 @@ API 响应处理工具
 提供统一的响应格式封装
 """
 from typing import Any, Optional, Dict
+from datetime import datetime
+from pydantic import BaseModel
 from app.schemas.common_schemas import (
     BaseResponseModel,
     PaginationModel,
@@ -98,23 +100,54 @@ class ResponseHandler:
         return response.model_dump(by_alias=True)
 
 
+# 工具函数
+def _convert_datetime_to_string(obj: Any) -> Any:
+    """
+    递归转换对象中的 datetime 为字符串
+    
+    Args:
+        obj: 要转换的对象（可以是字典、列表、datetime等）
+        
+    Returns:
+        转换后的对象
+    """
+    if isinstance(obj, datetime):
+        return obj.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    elif isinstance(obj, dict):
+        return {key: _convert_datetime_to_string(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_datetime_to_string(item) for item in obj]
+    elif isinstance(obj, BaseModel):
+        # 如果是 Pydantic 模型，先转换为字典
+        return _convert_datetime_to_string(obj.model_dump(by_alias=True))
+    else:
+        return obj
+
+
 # 便捷函数别名
 def success_response(data: Any = None, message: str = "操作成功", status_code: int = 200):
     """
     返回成功响应（便捷函数）
     
+    自动处理：
+    - datetime 对象转换为字符串
+    - Pydantic 模型转换为驼峰命名的字典
+    
     Args:
-        data: 响应数据
+        data: 响应数据（支持字典、列表、Pydantic模型等）
         message: 响应消息
         status_code: HTTP状态码
         
     Returns:
         (响应字典, 状态码) 元组
     """
+    # 自动转换 datetime 和 Pydantic 模型
+    processed_data = _convert_datetime_to_string(data)
+    
     return {
         'code': status_code,
         'message': message,
-        'data': data
+        'data': processed_data
     }, status_code
 
 

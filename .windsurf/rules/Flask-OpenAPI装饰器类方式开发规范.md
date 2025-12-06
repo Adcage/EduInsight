@@ -177,6 +177,9 @@ def create_app(config_name='development'):
 ### 4. 数据库模型定义
 
 #### 基础模型类
+
+**⚠️ 重要：to_dict() 方法必须自动转换 datetime**
+
 ```python
 # app/models/base.py
 from datetime import datetime
@@ -191,8 +194,21 @@ class BaseModel(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     def to_dict(self):
-        """转换为字典"""
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        """
+        转换为字典
+        
+        ⚠️ 重要：自动将 datetime 对象转换为字符串格式
+        这样可以避免在每个 API 中手动转换 datetime
+        """
+        result = {}
+        for c in self.__table__.columns:
+            value = getattr(self, c.name)
+            # 自动转换 datetime 为字符串
+            if isinstance(value, datetime):
+                result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
+            else:
+                result[c.name] = value
+        return result
     
     def save(self):
         """保存到数据库"""
@@ -204,6 +220,30 @@ class BaseModel(db.Model):
         """从数据库删除"""
         db.session.delete(self)
         db.session.commit()
+```
+
+**为什么要在 to_dict() 中转换 datetime？**
+
+1. **Pydantic 验证要求**：Pydantic Schema 中定义的 `created_at: str`，但数据库返回的是 `datetime` 对象
+2. **避免重复代码**：不需要在每个 API 中手动转换
+3. **统一格式**：所有 datetime 都使用相同的格式
+4. **一次修改，全局生效**：所有继承 `BaseModel` 的模型都自动获得此功能
+
+**错误示例（不要这样做）：**
+```python
+# ❌ 错误：每个 API 都要手动转换
+material_data = material.to_dict()
+if material_data.get('created_at'):
+    material_data['created_at'] = material_data['created_at'].strftime(...)
+if material_data.get('updated_at'):
+    material_data['updated_at'] = material_data['updated_at'].strftime(...)
+```
+
+**正确示例：**
+```python
+# ✅ 正确：to_dict() 自动转换
+material_data = material.to_dict()  # datetime 已经是字符串了
+response_model = MaterialResponseModel(**material_data)  # 直接使用
 ```
 
 #### 用户模型
@@ -718,30 +758,88 @@ class UserAPI:
     def create_user(body: UserCreateModel):
         pass
     
-    # GET /api/v1/users/{user_id} - 获取指定用户
+    # GET /api/v1/users/{userId} - 获取指定用户
     @staticmethod
-    @user_api_bp.get('/<int:user_id>', summary="获取指定用户", tags=[user_tag])
+    @user_api_bp.get('/<int:userId>', summary="获取指定用户", tags=[user_tag])
     def get_user(path: UserPathModel):
         pass
     
-    # PUT /api/v1/users/{user_id} - 完整更新用户
+    # PUT /api/v1/users/{userId} - 完整更新用户
     @staticmethod
-    @user_api_bp.put('/<int:user_id>', summary="更新用户信息", tags=[user_tag])
+    @user_api_bp.put('/<int:userId>', summary="更新用户信息", tags=[user_tag])
     def update_user(path: UserPathModel, body: UserCreateModel):
         pass
     
-    # PATCH /api/v1/users/{user_id} - 部分更新用户
+    # PATCH /api/v1/users/{userId} - 部分更新用户
     @staticmethod
-    @user_api_bp.patch('/<int:user_id>', summary="部分更新用户", tags=[user_tag])
+    @user_api_bp.patch('/<int:userId>', summary="部分更新用户", tags=[user_tag])
     def patch_user(path: UserPathModel, body: UserUpdateModel):
         pass
     
-    # DELETE /api/v1/users/{user_id} - 删除用户
+    # DELETE /api/v1/users/{userId} - 删除用户
     @staticmethod
-    @user_api_bp.delete('/<int:user_id>', summary="删除用户", tags=[user_tag])
+    @user_api_bp.delete('/<int:userId>', summary="删除用户", tags=[user_tag])
     def delete_user(path: UserPathModel):
         pass
 ```
+
+### ⚠️ 重要：路径参数命名规范
+
+**必须使用驼峰命名（camelCase）而非蛇形命名（snake_case）！**
+
+#### ❌ 错误示例
+```python
+# 错误：使用蛇形命名
+@user_api_bp.get('/<int:user_id>', ...)  # ❌
+@material_api_bp.get('/<int:material_id>', ...)  # ❌
+@category_api_bp.get('/<int:category_id>', ...)  # ❌
+```
+
+#### ✅ 正确示例
+```python
+# 正确：使用驼峰命名
+@user_api_bp.get('/<int:userId>', ...)  # ✅
+@material_api_bp.get('/<int:materialId>', ...)  # ✅
+@category_api_bp.get('/<int:categoryId>', ...)  # ✅
+```
+
+#### 原因说明
+
+1. **OpenAPI 文档生成**：
+   - Pydantic 模型使用 `CamelCaseModel`，字段名会自动转换为驼峰命名
+   - 路径参数如果使用蛇形命名，会导致 OpenAPI 文档中出现两个参数名（`userId` 和 `user_id`）
+   - 前端自动生成工具会同时支持两者，但实际使用时会出现 `undefined` 错误
+
+2. **前端代码生成**：
+   - 前端使用 `openapi2ts` 自动生成 API 调用代码
+   - 如果路径参数和 Schema 参数名不一致，生成的代码会有歧义
+   - 统一使用驼峰命名可以避免参数名冲突
+
+3. **示例对比**：
+
+```python
+# ❌ 错误：路径参数与 Schema 不一致
+class UserPathModel(CamelCaseModel):
+    user_id: int  # Schema 中是 user_id，但会转换为 userId
+
+@user_api_bp.get('/<int:user_id>', ...)  # 路径中是 user_id
+# OpenAPI 文档中会出现：materialId（来自 Schema）和 material_id（来自路径）
+
+# ✅ 正确：路径参数与 Schema 一致
+class UserPathModel(CamelCaseModel):
+    user_id: int  # Schema 中是 user_id，转换为 userId
+
+@user_api_bp.get('/<int:userId>', ...)  # 路径中也是 userId
+# OpenAPI 文档中只有：userId
+```
+
+#### 检查清单
+
+在编写 API 时，请确保：
+- [ ] 所有路径参数使用驼峰命名
+- [ ] 路径参数名与 Pydantic 模型字段名（转换后）一致
+- [ ] 生成 OpenAPI 文档后检查参数名是否唯一
+- [ ] 前端重新生成 API 代码后测试是否正常
 
 ### 2. 扩展路由模式
 
@@ -796,59 +894,105 @@ class PaginationModel(CamelCaseModel):
 
 ### 2. 响应处理工具
 
-#### ResponseHandler 工具类
+#### success_response 便捷函数（推荐使用）
+
+**⚠️ 重要：success_response 会自动处理 Pydantic 模型转换**
 
 ```python
 # app/utils/response_handler.py
-from app.schemas.common_schemas import BaseResponseModel, PaginationModel
+from typing import Any, Optional, Dict
+from datetime import datetime
+from pydantic import BaseModel
 
-class ResponseHandler:
-    """API 响应处理类"""
+def _convert_datetime_to_string(obj: Any) -> Any:
+    """
+    递归转换对象中的 datetime 为字符串
     
-    @staticmethod
-    def success(data: Any = None, message: str = "操作成功") -> Dict[str, Any]:
-        """返回成功响应"""
-        response = BaseResponseModel(
-            message=message,
-            success=True,
-            data=data
-        )
-        return response.model_dump(by_alias=True)
+    自动处理：
+    - datetime 对象 → 字符串
+    - Pydantic 模型 → 驼峰命名字典
+    - 嵌套结构的递归转换
+    """
+    if isinstance(obj, datetime):
+        return obj.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    elif isinstance(obj, dict):
+        return {key: _convert_datetime_to_string(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_datetime_to_string(item) for item in obj]
+    elif isinstance(obj, BaseModel):
+        # 如果是 Pydantic 模型，自动调用 model_dump(by_alias=True)
+        return _convert_datetime_to_string(obj.model_dump(by_alias=True))
+    else:
+        return obj
+
+
+def success_response(data: Any = None, message: str = "操作成功", status_code: int = 200):
+    """
+    返回成功响应（便捷函数）
     
-    @staticmethod
-    def error(message: str, error_code: Optional[str] = None, details: Any = None) -> Dict[str, Any]:
-        """返回错误响应"""
-        response = BaseResponseModel(
-            message=message,
-            success=False,
-            error_code=error_code,
-            details=details
-        )
-        return response.model_dump(by_alias=True)
+    ✅ 自动处理：
+    - datetime 对象转换为字符串
+    - Pydantic 模型转换为驼峰命名的字典
+    - 嵌套结构的递归转换
     
-    @staticmethod
-    def paginated(items: list, total: int, page: int, per_page: int, message: str = "获取成功") -> Dict[str, Any]:
-        """返回分页数据响应"""
-        pages = (total + per_page - 1) // per_page if per_page > 0 else 0
+    Args:
+        data: 响应数据（支持字典、列表、Pydantic模型等）
+        message: 响应消息
+        status_code: HTTP状态码
         
-        pagination = PaginationModel(
-            page=page,
-            per_page=per_page,
-            total=total,
-            pages=pages,
-            has_prev=page > 1,
-            has_next=page < pages
-        )
+    Returns:
+        (响应字典, 状态码) 元组
+    """
+    # 自动转换 datetime 和 Pydantic 模型
+    processed_data = _convert_datetime_to_string(data)
+    
+    return {
+        'code': status_code,
+        'message': message,
+        'data': processed_data
+    }, status_code
+
+
+def error_response(message: str, status_code: int = 400, error_code: Optional[str] = None):
+    """
+    返回错误响应（便捷函数）
+    
+    Args:
+        message: 错误消息
+        status_code: HTTP状态码
+        error_code: 错误代码
         
-        response = BaseResponseModel(
-            message=message,
-            success=True,
-            data={
-                'items': items,
-                'pagination': pagination.model_dump(by_alias=True)
-            }
-        )
-        return response.model_dump(by_alias=True)
+    Returns:
+        (响应字典, 状态码) 元组
+    """
+    return {
+        'code': status_code,
+        'message': message,
+        'error_code': error_code
+    }, status_code
+```
+
+**为什么 success_response 要自动处理 Pydantic 模型？**
+
+1. **简化代码**：不需要手动调用 `model_dump(by_alias=True)`
+2. **统一转换**：所有 API 自动获得驼峰命名转换
+3. **递归处理**：自动处理嵌套的 Pydantic 模型和列表
+4. **datetime 兼容**：同时处理可能遗漏的 datetime 对象
+
+**使用示例：**
+
+```python
+# ✅ 推荐：直接传递 Pydantic 模型
+response_model = MaterialDetailResponseModel(**material_data)
+return success_response(data=response_model)
+
+# ✅ 也支持：传递 Pydantic 模型列表
+materials_models = [MaterialResponseModel(**m.to_dict()) for m in materials]
+response_model = MaterialListResponseModel(materials=materials_models, ...)
+return success_response(data=response_model)
+
+# ✅ 也支持：传递普通字典
+return success_response(data={'key': 'value'})
 ```
 
 ### 3. 标准响应格式
@@ -914,39 +1058,92 @@ class ResponseHandler:
 
 ### 4. API 实现规范
 
-#### 手动使用 ResponseHandler
+#### 完整的 API 实现示例
+
+**⚠️ 重要：遵循三层自动化处理**
 
 ```python
-from app.utils.response_handler import ResponseHandler
+from app.utils.response_handler import success_response, error_response
+from app.schemas.material_schemas import MaterialDetailResponseModel
 
-class UserAPI:
+class MaterialAPI:
     @staticmethod
-    @user_api_bp.post('/', summary="创建新用户", tags=[user_tag])
-    def create_user(body: UserRegisterModel):
-        """创建新用户 - 手动响应处理"""
+    @material_api_bp.get('/<int:materialId>', 
+                        summary="获取资料详情",
+                        tags=[material_tag])
+    @login_required
+    def get_material_detail(path: MaterialPathModel):
+        """
+        获取资料详情
+        
+        三层自动化处理：
+        1. BaseModel.to_dict() - 自动转换 datetime 为字符串
+        2. Pydantic 模型 - 验证数据类型
+        3. success_response() - 自动转换为驼峰命名
+        """
         try:
-            # 业务逻辑
-            user = UserService.create_user(body)
+            # 1. 获取数据库对象
+            material = MaterialService.get_material_by_id(path.material_id)
             
-            # 返回成功响应
-            return ResponseHandler.success(
-                data=user.to_dict(),
-                message="用户创建成功"
-            ), 201
+            if not material:
+                return error_response("资料不存在", 404)
             
-        except ValueError as e:
-            # 返回业务错误
-            return ResponseHandler.error(
-                message=str(e),
-                error_code="VALIDATION_ERROR"
-            ), 400
+            # 2. 转换为字典（to_dict 已自动转换 datetime）
+            material_data = material.to_dict()
+            
+            # 3. 添加额外信息
+            material_data['tags'] = [tag.to_dict() for tag in material.tags.all()]
+            if material.category:
+                material_data['category_name'] = material.category.name
+            
+            # 4. 创建 Pydantic 模型（验证数据）
+            response_model = MaterialDetailResponseModel(**material_data)
+            
+            # 5. 返回响应（success_response 自动转换为驼峰命名）
+            return success_response(data=response_model)
+            
         except Exception as e:
-            # 返回系统错误
-            return ResponseHandler.error(
-                message="系统内部错误",
-                error_code="INTERNAL_ERROR",
-                details=str(e)
-            ), 500
+            logger.error(f"获取资料详情失败: {str(e)}")
+            return error_response("获取资料详情失败", 500)
+```
+
+**三层自动化处理流程：**
+
+```
+数据库对象 (datetime)
+    ↓
+to_dict() → 字典 (datetime → 字符串) ✅ 第一层
+    ↓
+Pydantic 模型 → 验证数据类型 ✅ 第二层
+    ↓
+success_response() → 驼峰命名字典 ✅ 第三层
+    ↓
+前端接收 (驼峰命名 + 字符串时间)
+```
+
+**错误示例（不要这样做）：**
+
+```python
+# ❌ 错误1：手动转换 datetime（重复劳动）
+material_data = material.to_dict()
+if material_data.get('created_at'):
+    material_data['created_at'] = material_data['created_at'].strftime(...)
+
+# ❌ 错误2：手动调用 model_dump（重复劳动）
+response_model = MaterialDetailResponseModel(**material_data)
+return success_response(data=response_model.model_dump(by_alias=True))
+
+# ❌ 错误3：不使用 Pydantic 模型（缺少验证）
+return success_response(data=material.to_dict())
+```
+
+**正确示例：**
+
+```python
+# ✅ 正确：让三层自动化处理
+material_data = material.to_dict()  # 自动转换 datetime
+response_model = MaterialDetailResponseModel(**material_data)  # 验证
+return success_response(data=response_model)  # 自动转驼峰
 ```
 
 ### 6. 响应格式最佳实践

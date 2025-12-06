@@ -1,4 +1,24 @@
 declare namespace API {
+  type categoryApiIntCategoryIdChildrenGetParams = {
+    /** 分类ID */
+    categoryId: number
+  }
+
+  type categoryApiIntCategoryIdDeleteParams = {
+    /** 分类ID */
+    categoryId: number
+  }
+
+  type categoryApiIntCategoryIdGetParams = {
+    /** 分类ID */
+    categoryId: number
+  }
+
+  type categoryApiIntCategoryIdPutParams = {
+    /** 分类ID */
+    categoryId: number
+  }
+
   type LoginResponseModel = {
     /** Message 登录结果消息 */
     message: string
@@ -6,9 +26,220 @@ declare namespace API {
     user: UserResponseModel
   }
 
+  type materialApiGetParams = {
+    /** 页码 */
+    page?: number
+    /** 每页数量 */
+    perPage?: number
+    /** 课程ID筛选 */
+    courseId?: number | null
+    /** 分类ID筛选 */
+    categoryId?: number | null
+    /** 上传者ID筛选 */
+    uploaderId?: number | null
+    /** 文件类型筛选 */
+    fileType?: string | null
+    /** 搜索关键词（标题、描述、关键词） */
+    search?: string | null
+  }
+
+  type materialApiIntMaterialIdDeleteParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
+  type materialApiIntMaterialIdDownloadGetParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
+  type materialApiIntMaterialIdGetParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
+  type materialApiIntMaterialIdPutParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
+  type MaterialCategoryCreateModel = {
+    /** Description 分类描述 */
+    description?: string | null
+    /** Name 分类名称 */
+    name: string
+    /** Parentid 父分类ID */
+    parentId?: number | null
+    /** Sortorder 排序顺序 */
+    sortOrder?: number
+  }
+
+  type MaterialCategoryResponseModel = {
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Description 分类描述 */
+    description?: string | null
+    /** Id 分类ID */
+    id: number
+    /** Name 分类名称 */
+    name: string
+    /** Parentid 父分类ID */
+    parentId?: number | null
+    /** Sortorder 排序顺序 */
+    sortOrder: number
+    /** Updatedat 更新时间 */
+    updatedAt: string
+  }
+
+  type MaterialCategoryUpdateModel = {
+    /** Description 分类描述 */
+    description?: string | null
+    /** Name 分类名称 */
+    name?: string | null
+    /** Parentid 父分类ID */
+    parentId?: number | null
+    /** Sortorder 排序顺序 */
+    sortOrder?: number | null
+  }
+
+  type MaterialDetailResponseModel = {
+    /** Autoclassified 是否自动分类 */
+    autoClassified: boolean
+    /** Categoryid 分类ID */
+    categoryId?: number | null
+    /** Categoryname 分类名称 */
+    categoryName?: string | null
+    /** Courseid 课程ID */
+    courseId?: number | null
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Description 资料描述 */
+    description?: string | null
+    /** Downloadcount 下载次数 */
+    downloadCount: number
+    /** Filename 文件名 */
+    fileName: string
+    /** Filepath 文件路径 */
+    filePath: string
+    /** Filesize 文件大小(字节) */
+    fileSize: number
+    /** Filetype 文件类型 */
+    fileType: string
+    /** Id 资料ID */
+    id: number
+    /** Keywords 关键词 */
+    keywords?: string | null
+    /** Tags 标签列表 */
+    tags?: MaterialTagResponseModel[]
+    /** Title 资料标题 */
+    title: string
+    /** Updatedat 更新时间 */
+    updatedAt: string
+    /** Uploaderid 上传者ID */
+    uploaderId: number
+    /** Uploadername 上传者姓名 */
+    uploaderName?: string | null
+    /** Viewcount 浏览次数 */
+    viewCount: number
+  }
+
+  type MaterialListResponseModel = {
+    /** Materials 资料列表 */
+    materials: MaterialResponseModel[]
+    /** Page 当前页码 */
+    page?: number
+    /** Pages 总页数 */
+    pages: number
+    /** Perpage 每页数量 */
+    perPage?: number
+    /** Total 资料总数 */
+    total: number
+  }
+
+  type MaterialResponseModel = {
+    /** Autoclassified 是否自动分类 */
+    autoClassified: boolean
+    /** Categoryid 分类ID */
+    categoryId?: number | null
+    /** Courseid 课程ID */
+    courseId?: number | null
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Description 资料描述 */
+    description?: string | null
+    /** Downloadcount 下载次数 */
+    downloadCount: number
+    /** Filename 文件名 */
+    fileName: string
+    /** Filepath 文件路径 */
+    filePath: string
+    /** Filesize 文件大小(字节) */
+    fileSize: number
+    /** Filetype 文件类型 */
+    fileType: string
+    /** Id 资料ID */
+    id: number
+    /** Keywords 关键词 */
+    keywords?: string | null
+    /** Title 资料标题 */
+    title: string
+    /** Updatedat 更新时间 */
+    updatedAt: string
+    /** Uploaderid 上传者ID */
+    uploaderId: number
+    /** Viewcount 浏览次数 */
+    viewCount: number
+  }
+
+  type MaterialStatsModel = {
+    /** Bycategory 按分类统计 */
+    byCategory: Record<string, any>
+    /** Bytype 按文件类型统计 */
+    byType: Record<string, any>
+    /** Popularmaterials 热门资料 */
+    popularMaterials: MaterialResponseModel[]
+    /** Recentuploads 最近上传 */
+    recentUploads: MaterialResponseModel[]
+    /** Totaldownloads 总下载次数 */
+    totalDownloads: number
+    /** Totalmaterials 资料总数 */
+    totalMaterials: number
+    /** Totalsize 总大小(字节) */
+    totalSize: number
+    /** Totalviews 总浏览次数 */
+    totalViews: number
+  }
+
+  type MaterialTagCreateModel = {
+    /** Name 标签名称 */
+    name: string
+  }
+
+  type MaterialTagResponseModel = {
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Id 标签ID */
+    id: number
+    /** Name 标签名称 */
+    name: string
+    /** Updatedat 更新时间 */
+    updatedAt: string
+    /** Usagecount 使用次数 */
+    usageCount: number
+  }
+
+  type MaterialUpdateModel = {
+    /** Categoryid 分类ID */
+    categoryId?: number | null
+    /** Description 资料描述 */
+    description?: string | null
+    /** Tags 标签列表 */
+    tags?: string[] | null
+    /** Title 资料标题 */
+    title?: string | null
+  }
+
   type MessageResponseModel = {
-    /** Errorcode 错误代码 */
-    errorCode?: string | null
     /** Message 响应消息 */
     message: string
   }
@@ -20,6 +251,16 @@ declare namespace API {
     newPassword: string
     /** Oldpassword 原密码 */
     oldPassword: string
+  }
+
+  type tagApiIntTagIdDeleteParams = {
+    /** 标签ID */
+    tagId: number
+  }
+
+  type tagApiIntTagIdGetParams = {
+    /** 标签ID */
+    tagId: number
   }
 
   type userApiGetParams = {
