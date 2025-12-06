@@ -139,11 +139,12 @@ import AttendanceDetail from './components/AttendanceDetail.vue';
 import { MOCK_TASKS } from './mock';
 import type { AttendanceTask } from './types';
 import { getTeacherCourses, getCourseClasses } from '@/api/courseController';
+import { authApiGetLoginuserGet } from '@/api/authController';
 import type { Course, ClassInfo } from '@/api/courseController';
 import { message } from 'ant-design-vue';
 
 // State
-const TEACHER_ID = 2; // 固定为张老师的ID
+const currentUser = ref<API.UserProfileModel | null>(null);
 const courses = ref<Course[]>([]);
 const tasks = ref<AttendanceTask[]>(MOCK_TASKS);
 const currentCourseId = ref<number | undefined>(undefined);
@@ -192,7 +193,7 @@ const handleCreateSuccess = (payload: any) => {
     courseId: payload.courseId,
     courseName: payload.courseName,
     className: payload.classes.map((c:any) => c.name).join(', '),
-    teacherId: 't001',
+    teacherId: currentUser.value?.id ? String(currentUser.value.id) : 'unknown',
     title: `${payload.courseName}考勤`, 
     type: payload.method,
     requireLocation: payload.method === 'location',
@@ -217,9 +218,11 @@ const handleViewDetail = (task: AttendanceTask) => {
 
 // 加载教师课程列表
 const loadTeacherCourses = async () => {
+    if (!currentUser.value?.id) return;
+    
     try {
         loading.value = true;
-        const res = await getTeacherCourses(TEACHER_ID, {
+        const res = await getTeacherCourses(currentUser.value.id, {
             includeStats: true,
             status: true // 只获取进行中的课程
         });
@@ -242,8 +245,18 @@ const loadTeacherCourses = async () => {
 };
 
 // Init
-onMounted(() => {
-    loadTeacherCourses();
+onMounted(async () => {
+    try {
+        // 获取当前用户信息
+        const res = await authApiGetLoginuserGet() as unknown as API.UserProfileModel;
+        if (res) {
+            currentUser.value = res;
+            await loadTeacherCourses();
+        }
+    } catch (error) {
+        console.error('获取用户信息失败:', error);
+        message.error('获取用户信息失败');
+    }
 });
 </script>
 

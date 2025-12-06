@@ -104,6 +104,11 @@ class CoursePathModel(CamelCaseModel):
     course_id: int = Field(..., description="课程ID", ge=1)
 
 
+class TeacherPathModel(CamelCaseModel):
+    """教师路径参数模型"""
+    teacher_id: int = Field(..., description="教师ID", ge=1)
+
+
 class CourseClassAddModel(CamelCaseModel):
     """课程添加班级模型"""
     class_ids: List[int] = Field(..., description="班级ID列表", min_items=1)

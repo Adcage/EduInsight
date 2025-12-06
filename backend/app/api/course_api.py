@@ -6,6 +6,7 @@ from flask import request, g
 from flask_openapi3 import APIBlueprint, Tag
 from app.schemas.course_schemas import (
     CoursePathModel,
+    TeacherPathModel,
     CourseClassListResponseModel,
     CourseClassAddModel,
     CourseResponseModel,
@@ -181,7 +182,7 @@ class CourseAPI:
     )
     # @login_required  # 暂时注释，方便开发测试
     @log_api_call
-    def get_teacher_courses(teacher_id: int, query: CourseQueryModel):
+    def get_teacher_courses(path: TeacherPathModel, query: CourseQueryModel):
         """
         获取教师的课程列表
         
@@ -194,7 +195,7 @@ class CourseAPI:
         """
         try:
             result = CourseService.get_courses_by_teacher(
-                teacher_id=teacher_id,
+                teacher_id=path.teacher_id,
                 page=query.page,
                 per_page=query.per_page,
                 include_stats=query.include_stats,

@@ -8,7 +8,7 @@ from sqlalchemy import or_, and_, func
 from app.extensions import db
 from app.models.course import Course, course_classes
 from app.models.class_model import Class
-from app.models.user import User
+from app.models.user import User, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class CourseService:
             Class.id == course_classes.c.class_id
         ).outerjoin(
             User,
-            and_(User.class_id == Class.id, User.role == 'student')
+            and_(User.class_id == Class.id, User.role == UserRole.STUDENT)
         ).filter(
             course_classes.c.course_id == course_id
         ).group_by(
@@ -175,7 +175,7 @@ class CourseService:
                 ).filter(
                     and_(
                         course_classes.c.course_id == course.id,
-                        User.role == 'student'
+                        User.role == UserRole.STUDENT
                     )
                 ).scalar() or 0
                 
@@ -332,7 +332,7 @@ class CourseService:
         ).filter(
             and_(
                 course_classes.c.course_id == course_id,
-                User.role == 'student'
+                User.role == UserRole.STUDENT
             )
         ).scalar() or 0
         course_data['student_count'] = student_count

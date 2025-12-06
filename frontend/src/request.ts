@@ -4,7 +4,7 @@ import router from '@/router'
 
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: 'http://localhost:5030',
   timeout: 60000,
   withCredentials: true,
 })
@@ -38,7 +38,7 @@ myAxios.interceptors.response.use(
         })
       }
     }
-    return response
+    return data
   },
   function (error) {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
