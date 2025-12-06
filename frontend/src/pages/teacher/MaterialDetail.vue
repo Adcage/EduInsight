@@ -111,41 +111,21 @@
     <a-modal
       v-model:open="previewModalVisible"
       :title="`预览 - ${material?.fileName}`"
-      width="90%"
+      width="85%"
       :footer="null"
       :destroyOnClose="true"
       centered
+      :bodyStyle="{ height: '70vh', padding: 0, maxHeight: '70vh' }"
+      :wrapStyle="{ maxHeight: '90vh' }"
     >
-      <div class="preview-modal-content">
-        <!-- PDF 预览 -->
-        <div v-if="material?.fileType === 'pdf'" class="pdf-preview-modal">
-          <iframe
-            :src="previewUrl"
-            frameborder="0"
-            width="100%"
-            height="700px"
-          ></iframe>
-        </div>
-
-        <!-- 图片预览 -->
-        <div v-else-if="material?.fileType === 'image'" class="image-preview-modal">
-          <img
-            :src="previewUrl"
-            :alt="material?.fileName"
-            style="max-width: 100%; max-height: 700px; display: block; margin: 0 auto;"
-          />
-        </div>
-
-        <!-- 其他类型暂不支持预览 -->
-        <a-empty v-else description="该文件类型暂不支持在线预览">
-          <template #image>
-            <FileOutlined style="font-size: 64px; color: #ccc" />
-          </template>
-          <a-button type="primary" @click="handleDownload">
-            下载查看
-          </a-button>
-        </a-empty>
-      </div>
+      <FilePreview
+        v-if="previewUrl"
+        :file-url="previewUrl"
+        :file-type="material?.fileType"
+        :file-name="material?.fileName"
+        @download="handleDownload"
+        @back="previewModalVisible = false"
+      />
     </a-modal>
 
     <!-- 编辑资料对话框 -->
@@ -251,6 +231,7 @@ import {
 } from '@/api/materialController'
 import { useMaterialStore } from '@/stores/material'
 import { useCategoryStore } from '@/stores/category'
+import FilePreview from '@/components/materials/preview/FilePreview.vue'
 
 const route = useRoute()
 const router = useRouter()
