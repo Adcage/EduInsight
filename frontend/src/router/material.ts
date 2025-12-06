@@ -22,6 +22,16 @@ const materialRoutes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/teacher/materials/my',
+    name: 'MyMaterials',
+    component: () => import('@/pages/teacher/MyMaterials.vue'),
+    meta: {
+      title: '我的资料',
+      requiresAuth: true,
+      roles: ['teacher']
+    }
+  },
+  {
     path: '/teacher/materials/:id',
     name: 'MaterialDetail',
     component: () => import('@/pages/teacher/MaterialDetail.vue'),
