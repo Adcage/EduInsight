@@ -178,3 +178,112 @@ class GradePredictionListResponseModel(CamelCaseModel):
     """成绩预测列表响应模型"""
     predictions: List[GradePredictionDetailResponseModel] = Field(..., description="预测列表")
     total: int = Field(..., description="预测总数")
+
+
+# ==================== Excel导入相关 Schema ====================
+
+class GradeImportResultModel(CamelCaseModel):
+    """成绩导入结果模型"""
+    total_rows: int = Field(..., description="总行数")
+    success_count: int = Field(..., description="成功导入数量")
+    skip_count: int = Field(..., description="跳过重复数量")
+    fail_count: int = Field(..., description="失败数量")
+    errors: List[dict] = Field(default_factory=list, description="错误列表")
+    warnings: List[dict] = Field(default_factory=list, description="警告列表")
+
+
+class MessageResponseModel(CamelCaseModel):
+    """通用消息响应模型"""
+    message: str = Field(..., description="消息内容")
+
+
+class GradeTemplateQueryModel(CamelCaseModel):
+    """成绩模板下载查询参数"""
+    course_name: Optional[str] = Field(None, description="课程名称")
+
+
+class GradeParseFormModel(CamelCaseModel):
+    """Excel解析表单模型"""
+    course_id: int = Field(..., description="课程ID", ge=1)
+
+
+class GradeImportFormModel(CamelCaseModel):
+    """成绩导入表单模型"""
+    course_id: int = Field(..., description="课程ID", ge=1)
+    exam_type: ExamTypeEnum = Field(..., description="考试类型")
+    exam_name: Optional[str] = Field(None, description="考试名称", max_length=100)
+    exam_date: str = Field(..., description="考试日期(YYYY-MM-DD)")
+    full_score: float = Field(100.0, description="满分", ge=0)
+    weight: float = Field(1.0, description="权重", ge=0, le=10)
+
+
+class GradeExportQueryModel(CamelCaseModel):
+    """成绩导出查询参数"""
+    course_id: int = Field(..., description="课程ID", ge=1)
+    exam_type: Optional[ExamTypeEnum] = Field(None, description="考试类型筛选")
+
+
+class TeacherCourseModel(CamelCaseModel):
+    """教师课程模型"""
+    id: int = Field(..., description="课程ID")
+    name: str = Field(..., description="课程名称")
+    code: str = Field(..., description="课程代码")
+    semester: str = Field(..., description="学期")
+    student_count: int = Field(0, description="学生人数")
+
+
+class CourseStudentModel(CamelCaseModel):
+    """课程学生模型"""
+    id: int = Field(..., description="学生ID")
+    user_code: str = Field(..., description="学号")
+    real_name: str = Field(..., description="姓名")
+    class_name: Optional[str] = Field(None, description="班级名称")
+    grade_count: int = Field(0, description="该课程成绩数量")
+
+
+class CourseIdQueryModel(CamelCaseModel):
+    """课程ID查询参数"""
+    course_id: int = Field(..., description="课程ID", ge=1)
+
+
+class TeacherCourseListModel(CamelCaseModel):
+    """教师课程列表响应模型"""
+    courses: List[TeacherCourseModel] = Field(..., description="课程列表")
+
+
+class CourseStudentListModel(CamelCaseModel):
+    """课程学生列表响应模型"""
+    students: List[CourseStudentModel] = Field(..., description="学生列表")
+
+
+# ==================== 学生端成绩查看 Schema ====================
+
+class StudentGradeQueryModel(CamelCaseModel):
+    """学生成绩查询参数模型"""
+    page: int = Field(1, description="页码", ge=1)
+    per_page: int = Field(20, description="每页数量", ge=1, le=100)
+    course_id: Optional[int] = Field(None, description="课程ID筛选", ge=1)
+    exam_type: Optional[ExamTypeEnum] = Field(None, description="考试类型筛选")
+
+
+class StudentCourseGradeModel(CamelCaseModel):
+    """学生课程成绩模型"""
+    course_id: int = Field(..., description="课程ID")
+    course_name: str = Field(..., description="课程名称")
+    course_code: str = Field(..., description="课程代码")
+    semester: str = Field(..., description="学期")
+    grade_count: int = Field(..., description="成绩数量")
+    average_score: Optional[float] = Field(None, description="平均分")
+    highest_score: Optional[float] = Field(None, description="最高分")
+    lowest_score: Optional[float] = Field(None, description="最低分")
+    pass_rate: Optional[float] = Field(None, description="及格率(%)")
+
+
+class StudentGradeStatisticsModel(CamelCaseModel):
+    """学生成绩统计模型"""
+    total_courses: int = Field(..., description="总课程数")
+    total_grades: int = Field(..., description="总成绩数")
+    average_score: Optional[float] = Field(None, description="总平均分")
+    pass_count: int = Field(..., description="及格科目数")
+    fail_count: int = Field(..., description="不及格科目数")
+    pass_rate: Optional[float] = Field(None, description="及格率(%)")

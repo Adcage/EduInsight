@@ -3,8 +3,20 @@
 // API 更新时间：
 // API 唯一标识：
 import * as authController from './authController'
+import * as gradeController from './gradeController'
+import * as categoryController from './categoryController'
+import * as tagController from './tagController'
+import * as materialController from './materialController'
+import * as predictionController from './predictionController'
+import * as statisticsController from './statisticsController'
 import * as userController from './userController'
 export default {
   authController,
+  gradeController,
+  categoryController,
+  tagController,
+  materialController,
+  predictionController,
+  statisticsController,
   userController,
 }

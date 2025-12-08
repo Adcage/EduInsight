@@ -9,6 +9,14 @@ const routes: Array<RouteRecordRaw> = [
       title: '用户认证测试页面'
     }
   },
+  {
+    path: '/test-route',
+    name: 'RouteTest',
+    component: () => import('@/pages/test_page/RouteTest.vue'),
+    meta: {
+      title: '路由测试页面'
+    }
+  }
 ]
 
 export default routes

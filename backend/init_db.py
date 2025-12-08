@@ -9,7 +9,10 @@ from app.models import (
     Class,
     Course,
     Material, MaterialCategory, MaterialTag,
-    DocumentKeyword, ClassificationLog
+    DocumentKeyword, ClassificationLog,
+    Grade, ExamType,
+    Prediction, Intervention, PredictionConfig,
+    RiskLevel, InterventionType, PredictFrequency, PredictTrigger
 )
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
@@ -137,7 +140,7 @@ def create_users():
             username=username,
             user_code=user_code,
             email=email,
-            password_hash=generate_password_hash('password123'),
+            password_hash=generate_password_hash(' '),
             real_name=real_name,
             role=UserRole.TEACHER,
             status=True

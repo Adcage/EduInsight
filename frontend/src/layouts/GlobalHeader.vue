@@ -15,8 +15,8 @@
         <a-menu-item key="home">
           <router-link to="/">首页</router-link>
         </a-menu-item>
-        <a-menu-item key="about">
-          <router-link to="/about">关于</router-link>
+        <a-menu-item key="test">
+          <router-link to="/test-auth">测试</router-link>
         </a-menu-item>
       </a-menu>
 
@@ -40,8 +40,8 @@ watch(
   (newPath) => {
     if (newPath === '/') {
       selectedKeys.value = ['home']
-    } else if (newPath.startsWith('/about')) {
-      selectedKeys.value = ['about']
+    } else if (newPath.startsWith('/test')) {
+      selectedKeys.value = ['test']
     }
   },
   { immediate: true }

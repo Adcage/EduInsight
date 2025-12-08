@@ -19,10 +19,18 @@ Object.entries(modules).forEach(([key, value]) => {
   }
 })
 
+// 调试：打印所有注册的路由
+console.log('📋 已注册的路由:', routeModules)
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: routeModules
+})
+
+// 路由守卫：打印路由跳转信息
+router.beforeEach((to, from, next) => {
+  console.log('🚀 路由跳转:', from.path, '->', to.path)
+  next()
 })
 
 export default router

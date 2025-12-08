@@ -10,4 +10,7 @@ def init_extensions(app):
     db.init_app(app)
     cors.init_app(app, 
                   supports_credentials=True, 
-                  origins=app.config['CORS_ORIGINS'])
+                  origins=app.config['CORS_ORIGINS'],
+                  allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+                  methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+                  expose_headers=['Content-Type', 'X-Total-Count'])
