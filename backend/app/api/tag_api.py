@@ -11,6 +11,7 @@ from app.schemas.material_schemas import (
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.tag_service import TagService
+from app.models.user import UserRole
 from app.utils.auth_decorators import login_required, role_required, log_user_action
 from app.utils.response_handler import success_response, error_response
 import logging
@@ -174,7 +175,7 @@ class TagAPI:
                       tags=[tag_tag],
                       responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    @role_required(['admin', 'teacher'])
+    @role_required(UserRole.ADMIN, UserRole.TEACHER)
     @log_user_action("删除资料标签")
     def delete_tag(path: TagPathModel):
         """

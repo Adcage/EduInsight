@@ -125,6 +125,9 @@ class MaterialService:
         uploader_id: Optional[int] = None,
         file_type: Optional[str] = None,
         search: Optional[str] = None,
+        tag_ids: Optional[List[int]] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
         sort_by: str = 'created_at',
         order: str = 'desc'
     ) -> Dict[str, Any]:
@@ -139,6 +142,9 @@ class MaterialService:
             uploader_id: 上传者ID筛选
             file_type: 文件类型筛选
             search: 搜索关键词
+            tag_ids: 标签ID列表筛选
+            start_date: 开始日期(YYYY-MM-DD)
+            end_date: 结束日期(YYYY-MM-DD)
             sort_by: 排序字段
             order: 排序方向
             
@@ -147,7 +153,8 @@ class MaterialService:
         """
         # 构建查询
         query = Material.query
-        
+        print(f"查询条件: {locals()}")
+
         # 应用筛选条件
         if course_id:
             query = query.filter(Material.course_id == course_id)
@@ -170,6 +177,33 @@ class MaterialService:
                     Material.keywords.like(search_pattern)
                 )
             )
+        
+        # 按标签筛选
+        if tag_ids and len(tag_ids) > 0:
+            from app.models.material import material_tag_relation
+            # 使用 JOIN 查询包含指定标签的资料
+            query = query.join(material_tag_relation).filter(material_tag_relation.c.tag_id.in_(tag_ids))
+            # 去重（因为一个资料可能有多个标签）
+            query = query.distinct()
+        
+        # 按日期范围筛选
+        if start_date:
+            from datetime import datetime
+            try:
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                query = query.filter(Material.created_at >= start_dt)
+            except ValueError:
+                logger.warning(f"无效的开始日期格式: {start_date}")
+        
+        if end_date:
+            from datetime import datetime, timedelta
+            try:
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                # 包含结束日期当天，所以加1天
+                end_dt = end_dt + timedelta(days=1)
+                query = query.filter(Material.created_at < end_dt)
+            except ValueError:
+                logger.warning(f"无效的结束日期格式: {end_date}")
         
         # 应用排序
         sort_column = getattr(Material, sort_by, Material.created_at)
@@ -304,19 +338,70 @@ class MaterialService:
         return material
     
     @staticmethod
-    def search_materials(keyword: str, page: int = 1, per_page: int = 20) -> Dict[str, Any]:
+    def search_materials(
+        keyword: str,
+        page: int = 1,
+        per_page: int = 20,
+        category_id: Optional[int] = None,
+        file_type: Optional[str] = None,
+        sort_by: str = 'relevance'
+    ) -> Dict[str, Any]:
         """
-        搜索资料
+        搜索资料（增强版）
         
         Args:
             keyword: 搜索关键词
             page: 页码
             per_page: 每页数量
+            category_id: 分类ID筛选
+            file_type: 文件类型筛选
+            sort_by: 排序方式（relevance/created_at/download_count/view_count）
             
         Returns:
             Dict: 包含搜索结果和分页信息
         """
-        pagination = Material.search(keyword, page=page, per_page=per_page)
+        # 构建搜索查询
+        search_pattern = f"%{keyword}%"
+        query = Material.query.filter(
+            or_(
+                Material.title.like(search_pattern),
+                Material.description.like(search_pattern),
+                Material.keywords.like(search_pattern),
+                Material.file_name.like(search_pattern)
+            )
+        )
+        
+        # 应用筛选条件
+        if category_id:
+            query = query.filter(Material.category_id == category_id)
+        
+        if file_type:
+            query = query.filter(Material.file_type == file_type)
+        
+        # 应用排序
+        if sort_by == 'relevance':
+            # 相关度排序：标题匹配 > 描述匹配 > 关键词匹配
+            # 使用 CASE WHEN 实现简单的相关度评分
+            query = query.order_by(
+                db.case(
+                    (Material.title.like(search_pattern), 3),
+                    (Material.description.like(search_pattern), 2),
+                    (Material.keywords.like(search_pattern), 1),
+                    else_=0
+                ).desc(),
+                Material.created_at.desc()
+            )
+        elif sort_by == 'created_at':
+            query = query.order_by(Material.created_at.desc())
+        elif sort_by == 'download_count':
+            query = query.order_by(Material.download_count.desc())
+        elif sort_by == 'view_count':
+            query = query.order_by(Material.view_count.desc())
+        else:
+            query = query.order_by(Material.created_at.desc())
+        
+        # 分页
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
         
         return {
             'materials': pagination.items,

@@ -24,5 +24,7 @@ class CamelCaseModel(BaseModel):
         # 允许使用原字段名或别名进行赋值
         populate_by_name=True,
         # 支持从ORM对象创建(如SQLAlchemy模型)
-        from_attributes=True
+        from_attributes=True,
+        # 允许使用 model_ 开头的字段名
+        protected_namespaces=()
     )

@@ -149,12 +149,18 @@ class MaterialListResponseModel(CamelCaseModel):
 class MaterialQueryModel(CamelCaseModel):
     """资料查询参数模型"""
     page: int = Field(1, description="页码", ge=1)
-    per_page: int = Field(20, description="每页数量", ge=1, le=100)
+    per_page: int = Field(20, description="每页数量", ge=1, le=100, alias="page_size")
     course_id: Optional[int] = Field(None, description="课程ID筛选", ge=1)
     category_id: Optional[int] = Field(None, description="分类ID筛选", ge=1)
     uploader_id: Optional[int] = Field(None, description="上传者ID筛选", ge=1)
     file_type: Optional[str] = Field(None, description="文件类型筛选", max_length=50)
     search: Optional[str] = Field(None, description="搜索关键词（标题、描述、关键词）", max_length=100)
+    tag_ids: Optional[List[int]] = Field(None, description="标签ID列表筛选")
+    start_date: Optional[str] = Field(None, description="开始日期(YYYY-MM-DD)")
+    end_date: Optional[str] = Field(None, description="结束日期(YYYY-MM-DD)")
+    sort_by: str = Field("created_at", description="排序字段(created_at, download_count, view_count, file_size)")
+    order: str = Field("desc", description="排序方向(asc, desc)")
+
 
 
 class MaterialPathModel(CamelCaseModel):

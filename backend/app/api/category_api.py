@@ -11,6 +11,7 @@ from app.schemas.material_schemas import (
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.category_service import CategoryService
+from app.models.user import UserRole
 from app.utils.auth_decorators import login_required, role_required, log_user_action
 from app.utils.response_handler import success_response, error_response
 import logging
@@ -38,7 +39,7 @@ class CategoryAPI:
                          tags=[category_tag],
                          responses={201: MaterialCategoryResponseModel, 400: MessageResponseModel})
     @login_required
-    @role_required(['admin', 'teacher'])
+    @role_required(UserRole.ADMIN, UserRole.TEACHER)
     @log_user_action("创建资料分类")
     def create_category(body: MaterialCategoryCreateModel):
         """
@@ -160,7 +161,7 @@ class CategoryAPI:
                         tags=[category_tag],
                         responses={200: MaterialCategoryResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    @role_required(['admin', 'teacher'])
+    @role_required(UserRole.ADMIN, UserRole.TEACHER)
     @log_user_action("更新资料分类")
     def update_category(path: MaterialCategoryPathModel, body: MaterialCategoryUpdateModel):
         """
@@ -196,7 +197,7 @@ class CategoryAPI:
                            tags=[category_tag],
                            responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    @role_required(['admin', 'teacher'])
+    @role_required(UserRole.ADMIN, UserRole.TEACHER)
     @log_user_action("删除资料分类")
     def delete_category(path: MaterialCategoryPathModel):
         """
