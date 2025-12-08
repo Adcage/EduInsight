@@ -10,8 +10,14 @@ from app.schemas.material_schemas import (
     MaterialDetailResponseModel, MaterialListResponseModel,
     MaterialQueryModel, MaterialPathModel, MaterialStatsModel
 )
+from app.schemas.classification_schemas import (
+    ClassifyMaterialResponseModel, KeywordResponseModel, KeywordQueryModel,
+    TagSuggestionResponseModel, ClassificationLogPathModel,
+    MaterialClassifyPathModel
+)
 from app.schemas.common_schemas import BaseResponseModel, MessageResponseModel
 from app.services.material_service import MaterialService
+from app.services.classification_service import ClassificationService
 from app.utils.auth_decorators import login_required, log_user_action
 from app.utils.response_handler import success_response, error_response
 import logging
@@ -21,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 material_api_bp = APIBlueprint('material_api', __name__, url_prefix='/api/v1/materials')
 material_tag = Tag(name="MaterialController", description="资料管理API")
+classification_tag = Tag(name="ClassificationController", description="智能分类API")
 
 
 class MaterialAPI:
@@ -115,17 +122,70 @@ class MaterialAPI:
         - 按分类筛选
         - 按上传者筛选
         - 按文件类型筛选
+        - 按标签筛选
         - 关键词搜索
         """
         try:
+            # 手动从 request.args 获取参数（作为备用方案）
+            # 优先使用 request.args 中的值，如果不存在则使用 query 对象的默认值
+            page = request.args.get('page', type=int) or query.page
+            
+            # per_page 可能来自 page_size 或 perPage
+            per_page_raw = request.args.get('page_size') or request.args.get('perPage')
+            per_page = int(per_page_raw) if per_page_raw else query.per_page
+            
+            # 其他参数
+            course_id_raw = request.args.get('course_id') or request.args.get('courseId')
+            course_id = int(course_id_raw) if course_id_raw else query.course_id
+            
+            category_id_raw = request.args.get('category_id') or request.args.get('categoryId')
+            category_id = int(category_id_raw) if category_id_raw else query.category_id
+            
+            uploader_id_raw = request.args.get('uploader_id') or request.args.get('uploaderId')
+            uploader_id = int(uploader_id_raw) if uploader_id_raw else query.uploader_id
+            
+            file_type = request.args.get('file_type') or request.args.get('fileType') or query.file_type
+            search = request.args.get('search') or query.search
+            sort_by = request.args.get('sort_by') or request.args.get('sortBy') or query.sort_by
+            order = request.args.get('order') or query.order
+            
+            # 处理标签ID列表
+            tag_ids = None
+            tag_ids_raw = request.args.get('tag_ids') or request.args.get('tagIds')
+            if tag_ids_raw:
+                try:
+                    # 支持逗号分隔的字符串或JSON数组
+                    if isinstance(tag_ids_raw, str):
+                        if tag_ids_raw.startswith('['):
+                            import json
+                            tag_ids = json.loads(tag_ids_raw)
+                        else:
+                            tag_ids = [int(x.strip()) for x in tag_ids_raw.split(',') if x.strip()]
+                    else:
+                        tag_ids = [int(tag_ids_raw)]
+                except (ValueError, json.JSONDecodeError) as e:
+                    print(f"解析 tag_ids 失败: {e}")
+                    tag_ids = None
+            elif query.tag_ids:
+                tag_ids = query.tag_ids
+            
+            # 处理日期范围
+            start_date = request.args.get('start_date') or request.args.get('startDate') or query.start_date
+            end_date = request.args.get('end_date') or request.args.get('endDate') or query.end_date
+            
             result = MaterialService.get_materials(
-                page=query.page,
-                per_page=query.per_page,
-                course_id=query.course_id,
-                category_id=query.category_id,
-                uploader_id=query.uploader_id,
-                file_type=query.file_type,
-                search=query.search
+                page=page,
+                per_page=per_page,
+                course_id=course_id,
+                category_id=category_id,
+                uploader_id=uploader_id,
+                file_type=file_type,
+                search=search,
+                tag_ids=tag_ids,
+                start_date=start_date,
+                end_date=end_date,
+                sort_by=sort_by,
+                order=order
             )
             
             # 使用 Pydantic 模型序列化每个资料（to_dict 已自动转换 datetime）
@@ -363,12 +423,16 @@ class MaterialAPI:
         """
         搜索资料
         
-        在资料标题、描述和关键词中搜索。
+        在资料标题、描述、关键词和文件名中搜索。
+        支持按分类、文件类型筛选，支持多种排序方式。
         """
         try:
             keyword = request.args.get('q', '')
             page = request.args.get('page', 1, type=int)
             per_page = request.args.get('per_page', 20, type=int)
+            category_id = request.args.get('category_id', type=int)
+            file_type = request.args.get('file_type')
+            sort_by = request.args.get('sort_by', 'relevance')
             
             if not keyword:
                 return error_response("搜索关键词不能为空", 400)
@@ -376,7 +440,10 @@ class MaterialAPI:
             result = MaterialService.search_materials(
                 keyword=keyword,
                 page=page,
-                per_page=per_page
+                per_page=per_page,
+                category_id=category_id,
+                file_type=file_type,
+                sort_by=sort_by
             )
             
             materials_data = [material.to_dict() for material in result['materials']]
@@ -427,3 +494,183 @@ class MaterialAPI:
         except Exception as e:
             logger.error(f"获取统计信息失败: {str(e)}")
             return error_response("获取统计信息失败", 500)
+
+
+class ClassificationAPI:
+    """
+    智能分类API类
+    
+    提供资料智能分类相关功能，包括：
+    - 分析并分类资料
+    - 提取关键词
+    - 推荐标签
+    - 分类日志管理
+    """
+    
+    @staticmethod
+    @material_api_bp.post('/<int:materialId>/classify',
+                         summary="分析并分类资料",
+                         tags=[classification_tag],
+                         responses={200: ClassifyMaterialResponseModel, 404: MessageResponseModel})
+    @login_required
+    @log_user_action("分析分类资料")
+    def classify_material(path: MaterialClassifyPathModel):
+        """
+        分析并分类资料
+        
+        对指定资料进行内容分析，提取关键词并推荐分类。
+        - 高置信度 (>0.7): 自动应用分类
+        - 中等置信度 (0.5-0.7): 需要用户确认
+        - 低置信度 (<0.5): 不推荐分类
+        """
+        try:
+            result = ClassificationService.classify_material(path.material_id)
+            
+            # 转换关键词为响应模型
+            keywords = [
+                KeywordResponseModel(keyword=kw['keyword'], weight=kw['weight'])
+                for kw in result.get('keywords', [])
+            ]
+            
+            response = ClassifyMaterialResponseModel(
+                material_id=result['material_id'],
+                suggested_category_id=result.get('suggested_category_id'),
+                suggested_category_name=result.get('suggested_category_name'),
+                confidence=result['confidence'],
+                should_auto_apply=result['should_auto_apply'],
+                needs_confirmation=result['needs_confirmation'],
+                keywords=keywords,
+                log_id=result.get('log_id'),
+                error=result.get('error')
+            )
+            
+            return success_response(data=response, message="分类分析完成")
+            
+        except ValueError as e:
+            logger.warning(f"分类分析失败: {str(e)}")
+            return error_response(str(e), 404)
+        except Exception as e:
+            logger.error(f"分类分析异常: {str(e)}")
+            return error_response("分类分析失败", 500)
+    
+    @staticmethod
+    @material_api_bp.get('/<int:materialId>/keywords',
+                        summary="获取资料关键词",
+                        tags=[classification_tag],
+                        responses={200: KeywordResponseModel, 404: MessageResponseModel})
+    @login_required
+    def get_keywords(path: MaterialClassifyPathModel, query: KeywordQueryModel):
+        """
+        获取资料关键词
+        
+        返回资料的关键词列表，包含关键词和权重。
+        如果关键词尚未提取，会自动进行提取。
+        """
+        try:
+            # 从请求参数获取 top_n
+            top_n = request.args.get('top_n', type=int) or request.args.get('topN', type=int) or query.top_n
+            
+            keywords = ClassificationService.extract_keywords(path.material_id, top_n=top_n)
+            
+            # 转换为响应模型
+            keyword_models = [
+                KeywordResponseModel(keyword=kw['keyword'], weight=kw['weight'])
+                for kw in keywords
+            ]
+            
+            return success_response(data=keyword_models, message="获取关键词成功")
+            
+        except ValueError as e:
+            logger.warning(f"获取关键词失败: {str(e)}")
+            return error_response(str(e), 404)
+        except Exception as e:
+            logger.error(f"获取关键词异常: {str(e)}")
+            return error_response("获取关键词失败", 500)
+    
+    @staticmethod
+    @material_api_bp.post('/<int:materialId>/suggest-tags',
+                         summary="获取标签建议",
+                         tags=[classification_tag],
+                         responses={200: TagSuggestionResponseModel, 404: MessageResponseModel})
+    @login_required
+    def suggest_tags(path: MaterialClassifyPathModel):
+        """
+        获取标签建议
+        
+        根据资料内容和关键词推荐相关标签。
+        返回最多5个标签建议，包括现有标签和新建议的标签。
+        """
+        try:
+            suggestions = ClassificationService.suggest_tags(path.material_id)
+            
+            # 转换为响应模型
+            suggestion_models = [
+                TagSuggestionResponseModel(
+                    tag_name=s['tag_name'],
+                    tag_id=s.get('tag_id'),
+                    is_existing=s['is_existing'],
+                    relevance=s['relevance']
+                )
+                for s in suggestions
+            ]
+            
+            return success_response(data=suggestion_models, message="获取标签建议成功")
+            
+        except ValueError as e:
+            logger.warning(f"获取标签建议失败: {str(e)}")
+            return error_response(str(e), 404)
+        except Exception as e:
+            logger.error(f"获取标签建议异常: {str(e)}")
+            return error_response("获取标签建议失败", 500)
+    
+    @staticmethod
+    @material_api_bp.post('/classification-logs/<int:logId>/accept',
+                         summary="接受分类建议",
+                         tags=[classification_tag],
+                         responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
+    @login_required
+    @log_user_action("接受分类建议")
+    def accept_classification(path: ClassificationLogPathModel):
+        """
+        接受分类建议
+        
+        接受指定的分类建议，将建议的分类应用到资料。
+        """
+        try:
+            ClassificationService.accept_classification(path.log_id)
+            return success_response(message="已接受分类建议")
+            
+        except ValueError as e:
+            logger.warning(f"接受分类建议失败: {str(e)}")
+            if "不存在" in str(e):
+                return error_response(str(e), 404)
+            return error_response(str(e), 400)
+        except Exception as e:
+            logger.error(f"接受分类建议异常: {str(e)}")
+            return error_response("接受分类建议失败", 500)
+    
+    @staticmethod
+    @material_api_bp.post('/classification-logs/<int:logId>/reject',
+                         summary="拒绝分类建议",
+                         tags=[classification_tag],
+                         responses={200: MessageResponseModel, 400: MessageResponseModel, 404: MessageResponseModel})
+    @login_required
+    @log_user_action("拒绝分类建议")
+    def reject_classification(path: ClassificationLogPathModel):
+        """
+        拒绝分类建议
+        
+        拒绝指定的分类建议，保持资料原有分类不变。
+        """
+        try:
+            ClassificationService.reject_classification(path.log_id)
+            return success_response(message="已拒绝分类建议")
+            
+        except ValueError as e:
+            logger.warning(f"拒绝分类建议失败: {str(e)}")
+            if "不存在" in str(e):
+                return error_response(str(e), 404)
+            return error_response(str(e), 400)
+        except Exception as e:
+            logger.error(f"拒绝分类建议异常: {str(e)}")
+            return error_response("拒绝分类建议失败", 500)
