@@ -58,6 +58,11 @@ declare namespace API {
     materialId: number
   }
 
+  type materialApiIntMaterialIdPreviewGetParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
   type materialApiIntMaterialIdPutParams = {
     /** 资料ID */
     materialId: number

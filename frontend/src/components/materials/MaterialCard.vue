@@ -192,6 +192,7 @@ const handleMore = () => {
   justify-content: center;
   height: 160px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px 8px 0 0;
 }
 
 .file-icon {

@@ -32,7 +32,7 @@ const materialRoutes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/teacher/materials/:id',
+    path: '/teacher/material/:id',
     name: 'MaterialDetail',
     component: () => import('@/pages/teacher/MaterialDetail.vue'),
     meta: {

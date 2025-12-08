@@ -69,20 +69,6 @@ export async function materialApiIntMaterialIdDelete(
   })
 }
 
-/** 预览资料 预览资料文件</br></br>返回文件流，浏览器会在线预览文件（不下载）。 GET /api/v1/materials/${param0}/preview */
-export async function materialApiIntMaterialIdPreviewGet(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.materialApiIntMaterialIdDownloadGetParams,
-  options?: { [key: string]: any }
-) {
-  const { materialId: param0, ...queryParams } = params
-  return request<any>(`/api/v1/materials/${param0}/preview`, {
-    method: 'GET',
-    params: { ...queryParams },
-    ...(options || {}),
-  })
-}
-
 /** 下载资料 下载资料文件</br></br>返回文件流，浏览器会自动下载文件。 GET /api/v1/materials/${param0}/download */
 export async function materialApiIntMaterialIdDownloadGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -97,7 +83,21 @@ export async function materialApiIntMaterialIdDownloadGet(
   })
 }
 
-/** 搜索资料 搜索资料</br></br>在资料标题、描述和关键词中搜索。 GET /api/v1/materials/search */
+/** 预览资料 预览资料文件</br></br>返回文件流，浏览器会在线预览文件（不下载）。</br>支持PDF、图片等可以在浏览器中直接显示的文件类型。 GET /api/v1/materials/${param0}/preview */
+export async function materialApiIntMaterialIdPreviewGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.materialApiIntMaterialIdPreviewGetParams,
+  options?: { [key: string]: any }
+) {
+  const { materialId: param0, ...queryParams } = params
+  return request<any>(`/api/v1/materials/${param0}/preview`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {}),
+  })
+}
+
+/** 搜索资料 搜索资料</br></br>在资料标题、描述、关键词和文件名中搜索。</br>支持按分类、文件类型筛选，支持多种排序方式。 GET /api/v1/materials/search */
 export async function materialApiSearchGet(options?: { [key: string]: any }) {
   return request<API.MaterialListResponseModel>('/api/v1/materials/search', {
     method: 'GET',
