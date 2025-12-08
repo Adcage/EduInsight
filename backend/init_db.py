@@ -258,6 +258,8 @@ def create_material_categories():
         ('考试资料', '考试相关的复习资料', 1),
         ('项目资料', '课程项目和实践资料', 2),
         ('参考资料', '参考书籍和文档', 3),
+        ('多媒体资源', '视频、音频等多媒体学习资源', 4),
+        ('作业与练习', '课后作业和练习题', 5),
     ]
     
     top_categories = []
@@ -277,24 +279,45 @@ def create_material_categories():
     sub_categories_data = [
         # 课程资料的子分类
         ('课件PPT', '教师上课使用的PPT课件', top_categories[0].id, 0),
-        ('教学视频', '课程录播视频', top_categories[0].id, 1),
-        ('课后习题', '课后练习题和答案', top_categories[0].id, 2),
+        ('教学大纲', '课程教学大纲和计划', top_categories[0].id, 1),
+        ('讲义笔记', '课程讲义和学习笔记', top_categories[0].id, 2),
         ('实验指导', '实验课程指导书', top_categories[0].id, 3),
+        ('案例分析', '教学案例和分析', top_categories[0].id, 4),
         
         # 考试资料的子分类
         ('历年真题', '往年考试真题', top_categories[1].id, 0),
         ('模拟试卷', '模拟考试试卷', top_categories[1].id, 1),
         ('复习提纲', '考试复习重点', top_categories[1].id, 2),
+        ('考点总结', '重要考点归纳总结', top_categories[1].id, 3),
+        ('答题技巧', '考试答题方法和技巧', top_categories[1].id, 4),
         
         # 项目资料的子分类
         ('项目文档', '项目需求和设计文档', top_categories[2].id, 0),
         ('源代码', '项目源代码', top_categories[2].id, 1),
         ('演示文稿', '项目展示PPT', top_categories[2].id, 2),
+        ('项目报告', '项目总结报告', top_categories[2].id, 3),
+        ('开发文档', '开发规范和技术文档', top_categories[2].id, 4),
         
         # 参考资料的子分类
         ('电子书籍', '相关领域电子书', top_categories[3].id, 0),
         ('论文文献', '学术论文和文献', top_categories[3].id, 1),
-        ('技术文档', '技术手册和文档', top_categories[3].id, 2),
+        ('技术文档', '技术手册和API文档', top_categories[3].id, 2),
+        ('行业报告', '行业分析和研究报告', top_categories[3].id, 3),
+        ('标准规范', '技术标准和开发规范', top_categories[3].id, 4),
+        
+        # 多媒体资源的子分类
+        ('教学视频', '课程录播和教学视频', top_categories[4].id, 0),
+        ('演示动画', '概念演示动画', top_categories[4].id, 1),
+        ('音频资料', '音频讲解和播客', top_categories[4].id, 2),
+        ('在线课程', 'MOOC和在线课程链接', top_categories[4].id, 3),
+        ('直播回放', '课程直播回放', top_categories[4].id, 4),
+        
+        # 作业与练习的子分类
+        ('课后习题', '课后练习题和答案', top_categories[5].id, 0),
+        ('编程作业', '编程练习和项目作业', top_categories[5].id, 1),
+        ('思考题', '课程思考题和讨论题', top_categories[5].id, 2),
+        ('实验报告', '实验报告模板和范例', top_categories[5].id, 3),
+        ('小测验', '课堂小测验和随堂练习', top_categories[5].id, 4),
     ]
     
     for name, desc, parent_id, order in sub_categories_data:
