@@ -38,6 +38,7 @@ export interface AttendanceRecord {
   studentNumber: string;
   status: CheckInStatus;
   checkInTime?: string;
+  remark?: string;
 }
 
 // API Response types structure based on rules

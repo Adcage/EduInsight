@@ -154,6 +154,7 @@ class UserStatsModel(CamelCaseModel):
 
 class UserProfileModel(CamelCaseModel):
     """用户个人资料模型"""
+    id: int = Field(..., description="用户ID")
     username: str = Field(..., description="用户名")
     user_code: str = Field(..., description="工号/学号")
     email: str = Field(..., description="邮箱地址")

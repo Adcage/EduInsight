@@ -140,13 +140,14 @@ import { MOCK_TASKS } from './mock';
 import type { AttendanceTask } from './types';
 import { getTeacherCourses, getCourseClasses } from '@/api/courseController';
 import { authApiGetLoginuserGet } from '@/api/authController';
+import { getAttendanceList } from '@/api/attendanceController';
 import type { Course, ClassInfo } from '@/api/courseController';
 import { message } from 'ant-design-vue';
 
 // State
 const currentUser = ref<API.UserProfileModel | null>(null);
 const courses = ref<Course[]>([]);
-const tasks = ref<AttendanceTask[]>(MOCK_TASKS);
+const tasks = ref<AttendanceTask[]>([]);
 const currentCourseId = ref<number | undefined>(undefined);
 const currentCourseClasses = ref<ClassInfo[]>([]);
 const activeTab = ref('publish');
@@ -169,46 +170,73 @@ const currentCourseClassCount = computed(() => {
 
 const currentCourseTaskCount = computed(() => currentCourseTasks.value.length);
 
+// 加载课程考勤任务
+const loadCourseTasks = async (courseId: number) => {
+    try {
+        const res = await getAttendanceList({
+            courseId: courseId,
+            teacherId: currentUser.value?.id
+        });
+        console.log('API Response:', res);
+        // 后端返回的数据直接在根级别，不在data字段中
+        if (res && res.attendances) {
+            console.log('Attendances:', res.attendances);
+            // 转换后端数据格式为前端格式
+            tasks.value = res.attendances.map((att: any) => ({
+                id: String(att.id),
+                courseId: String(att.course_id),
+                courseName: currentCourse.value?.name || '',
+                className: '', // 需要从班级信息获取
+                teacherId: String(att.teacher_id),
+                title: att.title,
+                type: att.attendance_type,
+                requireLocation: att.attendance_type === 'location',
+                status: att.status,
+                totalStudents: att.total_students || 0,
+                attendedCount: att.present_count || 0,
+                createTime: att.created_at,
+                startTime: att.start_time,
+                endTime: att.end_time
+            }));
+            console.log('Mapped tasks:', tasks.value);
+        } else {
+            console.warn('No attendances in response:', res);
+        }
+    } catch (error) {
+        console.error('获取考勤任务失败:', error);
+        message.error('获取考勤任务失败');
+    }
+};
+
 // Handlers
 const handleCourseChange = async () => {
     if (!currentCourseId.value) return;
     
     try {
         loading.value = true;
+        // 获取课程班级
         const res = await getCourseClasses(currentCourseId.value);
         if (res && res.classes) {
             currentCourseClasses.value = res.classes;
         }
+        // 加载考勤任务
+        await loadCourseTasks(currentCourseId.value);
     } catch (error) {
-        console.error('获取课程班级失败:', error);
-        message.error('获取课程班级信息失败');
+        console.error('获取课程信息失败:', error);
+        message.error('获取课程信息失败');
     } finally {
         loading.value = false;
     }
 };
 
-const handleCreateSuccess = (payload: any) => {
-  const task: AttendanceTask = {
-    id: `t${Date.now()}`,
-    courseId: payload.courseId,
-    courseName: payload.courseName,
-    className: payload.classes.map((c:any) => c.name).join(', '),
-    teacherId: currentUser.value?.id ? String(currentUser.value.id) : 'unknown',
-    title: `${payload.courseName}考勤`, 
-    type: payload.method,
-    requireLocation: payload.method === 'location',
-    status: 'active',
-    totalStudents: payload.students.length > 0 
-      ? payload.students.length 
-      : payload.classes.reduce((sum:number, c:any) => sum + c.studentCount, 0),
-    attendedCount: 0,
-    createTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    startTime: payload.startTime,
-    endTime: payload.endTime
-  };
-  
-  tasks.value.unshift(task);
-  activeTab.value = 'records'; // Switch to records tab
+const handleCreateSuccess = async (payload: any) => {
+  // 重新加载考勤任务列表
+  if (currentCourseId.value) {
+    await loadCourseTasks(currentCourseId.value);
+  }
+  // 切换到考勤记录标签页
+  activeTab.value = 'records';
+  message.success('考勤任务已创建，可以在考勤记录中查看');
 };
 
 const handleViewDetail = (task: AttendanceTask) => {

@@ -9,6 +9,7 @@ from app.models.class_model import Class
 from app.models.user import User, UserRole
 from app.extensions import db
 from app.utils.helpers import generate_random_string
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,8 +28,10 @@ class AttendanceService:
         start_time: datetime,
         end_time: datetime,
         student_ids: Optional[List[int]] = None,
-        location: Optional[str] = None,
-        require_location: bool = False
+        description: Optional[str] = None,
+        gesture_pattern: Optional[Dict[str, Any]] = None,
+        location_config: Optional[Dict[str, Any]] = None,
+        face_recognition_threshold: Optional[float] = None
     ) -> Attendance:
         """
         创建考勤任务
@@ -38,12 +41,14 @@ class AttendanceService:
             course_id: 课程ID
             class_ids: 班级ID列表
             teacher_id: 教师ID
-            attendance_type: 考勤方式
+            attendance_type: 考勤方式（qrcode/gesture/location/face/manual）
             start_time: 开始时间
             end_time: 结束时间
             student_ids: 指定学生ID列表（可选）
-            location: 考勤地点
-            require_location: 是否需要位置验证
+            description: 考勤描述
+            gesture_pattern: 手势路径数据（手势签到时必填）
+            location_config: 位置配置（位置签到时必填）
+            face_recognition_threshold: 人脸识别阈值（人脸签到时可选）
             
         Returns:
             创建的考勤任务对象
@@ -69,23 +74,52 @@ class AttendanceService:
                 if class_id not in course_class_ids:
                     raise ValueError(f"班级ID {class_id} 不属于该课程")
             
+            # 根据考勤方式验证必填参数
+            if attendance_type == AttendanceType.GESTURE.value:
+                if not gesture_pattern:
+                    raise ValueError("手势签到需要提供手势路径数据")
+            elif attendance_type == AttendanceType.LOCATION.value:
+                if not location_config:
+                    raise ValueError("位置签到需要提供位置配置")
+            
             # 生成二维码token（如果是二维码签到）
             qr_code = None
             if attendance_type == AttendanceType.QRCODE.value:
                 qr_code = generate_random_string(32)
+            
+            # 处理手势数据（转换为JSON字符串）
+            gesture_pattern_json = None
+            if gesture_pattern:
+                gesture_pattern_json = json.dumps(gesture_pattern)
+            
+            # 处理位置配置
+            location_name = None
+            location_latitude = None
+            location_longitude = None
+            location_radius = 100  # 默认100米
+            if location_config:
+                location_name = location_config.get('name')
+                location_latitude = location_config.get('latitude')
+                location_longitude = location_config.get('longitude')
+                location_radius = location_config.get('radius', 100)
             
             # 创建考勤任务（为每个班级创建一个考勤任务）
             attendances = []
             for class_id in class_ids:
                 attendance = Attendance(
                     title=title,
+                    description=description,
                     course_id=course_id,
                     class_id=class_id,
                     teacher_id=teacher_id,
                     attendance_type=AttendanceType(attendance_type),
                     qr_code=qr_code,
-                    location=location,
-                    require_location=require_location,
+                    gesture_pattern=gesture_pattern_json,
+                    location_name=location_name,
+                    location_latitude=location_latitude,
+                    location_longitude=location_longitude,
+                    location_radius=location_radius,
+                    face_recognition_threshold=face_recognition_threshold,
                     start_time=start_time,
                     end_time=end_time,
                     status=AttendanceStatus.PENDING
@@ -414,3 +448,105 @@ class AttendanceService:
         detail['attendance_rate'] = attendance.get_attendance_rate()
         
         return detail
+    
+    @staticmethod
+    def get_attendance_records(attendance_id: int) -> Optional[Dict[str, Any]]:
+        """
+        获取考勤记录列表
+        
+        Args:
+            attendance_id: 考勤ID
+            
+        Returns:
+            包含记录列表和总数的字典，考勤不存在返回None
+        """
+        # 验证考勤是否存在
+        attendance = Attendance.query.get(attendance_id)
+        if not attendance:
+            return None
+        
+        # 获取所有考勤记录
+        records = AttendanceRecord.query.filter_by(
+            attendance_id=attendance_id
+        ).all()
+        
+        # 转换为字典并添加学生信息
+        records_data = []
+        for record in records:
+            record_dict = record.to_dict()
+            # 获取学生信息
+            student = User.query.get(record.student_id)
+            if student:
+                record_dict['student_name'] = student.real_name
+                record_dict['student_code'] = student.user_code
+                record_dict['student_avatar'] = student.avatar
+            records_data.append(record_dict)
+        
+        return {
+            'records': records_data,
+            'total': len(records_data)
+        }
+    
+    @staticmethod
+    def update_attendance_record(
+        attendance_id: int,
+        record_id: int,
+        teacher_id: int,
+        status: str,
+        remark: Optional[str] = None
+    ) -> Optional[AttendanceRecord]:
+        """
+        更新考勤记录（教师手动标记）
+        
+        Args:
+            attendance_id: 考勤ID
+            record_id: 记录ID
+            teacher_id: 教师ID
+            status: 新的签到状态
+            remark: 备注
+            
+        Returns:
+            更新后的考勤记录，失败返回None
+        """
+        try:
+            # 验证考勤任务是否存在且属于该教师
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                return None
+            
+            if attendance.teacher_id != teacher_id:
+                raise ValueError("只有创建考勤的教师可以修改记录")
+            
+            # 获取考勤记录
+            record = AttendanceRecord.query.filter_by(
+                id=record_id,
+                attendance_id=attendance_id
+            ).first()
+            
+            if not record:
+                return None
+            
+            # 更新状态
+            record.status = CheckInStatus(status)
+            if remark is not None:
+                record.remark = remark
+            
+            # 如果标记为出勤或迟到，记录签到时间
+            if status in ['present', 'late'] and not record.check_in_time:
+                from datetime import datetime
+                record.check_in_time = datetime.now()
+                record.check_in_method = 'manual'  # 手动标记
+            
+            db.session.commit()
+            logger.info(f"Record {record_id} updated to {status} by teacher {teacher_id}")
+            
+            return record
+            
+        except ValueError as e:
+            db.session.rollback()
+            logger.warning(f"Validation error updating record: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating record: {str(e)}")
+            raise

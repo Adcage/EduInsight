@@ -19,6 +19,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div 
                     v-for="item in classList" 
+                    v-if="!loading"
                     :key="item.id"
                     class="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors cursor-pointer"
                     :class="{ 'border-2 border-blue-500 bg-blue-50': item.selected }"
@@ -365,10 +366,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, reactive, nextTick, watch, onUnmounted } from 'vue';
+import { ref, computed, reactive, nextTick, watch, onUnmounted, onMounted } from 'vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
-import dayjs, { type Dayjs } from 'dayjs';
+import { getCourseClasses } from '@/api/courseController';
+import { getClassStudents } from '@/api/classController';
+import { createAttendance, AttendanceType } from '@/api/attendanceController';
 import { message } from 'ant-design-vue';
+import dayjs, { type Dayjs } from 'dayjs';
 import { 
   SearchOutlined, 
   CaretDownOutlined, 
@@ -392,7 +396,11 @@ import { MOCK_CLASSES } from '../mock';
 const props = defineProps<{
   courseId?: number;
   courseName?: string;
-  availableClasses?: any[]; // 可用的班级列表
+  availableClasses?: Array<{
+    classId: number;
+    className: string;
+    studentCount: number;
+  }>;
 }>();
 
 const emits = defineEmits(['success', 'cancel']);
@@ -400,25 +408,43 @@ const emits = defineEmits(['success', 'cancel']);
 // --- 1. 考勤范围 Logic ---
 
 // Class Selection
-const classList = ref<any[]>([]);
+const classList = ref<Array<{id: number, name: string, studentCount: number, selected: boolean}>>([]);
+const loading = ref(false);
 
-// 监听props变化，更新班级列表
-watch(() => props.availableClasses, (newClasses) => {
-  if (newClasses && newClasses.length > 0) {
-    classList.value = newClasses.map(c => ({
-      id: c.classId,
-      name: c.className,
-      code: c.classCode,
-      studentCount: c.studentCount,
-      selected: false
-    }));
+// 获取课程关联的班级
+const fetchCourseClasses = async (courseId: number) => {
+  try {
+    loading.value = true;
+    const response = await getCourseClasses(courseId);
+    console.log('API Response:', response); // 调试日志
+    
+    if (response && response.classes && Array.isArray(response.classes)) {
+      classList.value = response.classes.map(cls => ({
+        id: (cls.classId || cls.class_id) as number,
+        name: (cls.className || cls.class_name) as string,
+        studentCount: (cls.studentCount || cls.student_count) as number,
+        selected: false
+      }));
+      console.log('Mapped classList:', classList.value); // 调试日志
+    } else {
+      console.warn('Invalid response structure:', response);
+      classList.value = [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch course classes:', error);
+    message.error('获取班级列表失败，请稍后重试');
+    classList.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 当课程ID变化时获取班级
+watch(() => props.courseId, (newVal) => {
+  if (newVal) {
+    fetchCourseClasses(newVal);
   } else {
-    // 如果没有传入班级数据，使用mock数据
-    classList.value = MOCK_CLASSES.map(c => ({
-      ...c,
-      studentCount: Math.floor(Math.random() * 10) + 30,
-      selected: false
-    }));
+    classList.value = [];
   }
 }, { immediate: true });
 
@@ -430,13 +456,59 @@ const selectedClasses = computed(() => classList.value.filter(c => c.selected));
 
 // Student Selection
 const studentSearch = ref('');
-const allStudents = ref(Array.from({ length: 20 }).map((_, i) => ({
-  id: `s${i}`,
-  name: `学生${i + 1}`,
-  studentId: `202300${100 + i}`,
-  classId: i % 2 === 0 ? 'cl1' : 'cl2',
-  selected: true
-})));
+const allStudents = ref<Array<{
+  id: number;
+  name: string;
+  studentId: string;
+  classId: number;
+  selected: boolean;
+}>>([]);
+
+// 当选中的班级变化时，获取学生列表
+watch(selectedClasses, async (newClasses) => {
+  if (newClasses.length === 0) {
+    allStudents.value = [];
+    return;
+  }
+  
+  try {
+    // 获取所有选中班级的学生
+    const studentPromises = newClasses.map(cls => getClassStudents(cls.id));
+    const results = await Promise.all(studentPromises);
+    
+    // 合并所有班级的学生
+    const students: Array<{
+      id: number;
+      name: string;
+      studentId: string;
+      classId: number;
+      selected: boolean;
+    }> = [];
+    
+    results.forEach((result, index) => {
+      const currentClass = newClasses[index];
+      if (!currentClass) return;
+      
+      const classId = currentClass.id;
+      result.students.forEach(student => {
+        students.push({
+          id: student.id,
+          name: student.realName || student.real_name || student.username,
+          studentId: student.userCode || student.user_code || '',
+          classId: classId,
+          selected: true // 默认全选
+        });
+      });
+    });
+    
+    allStudents.value = students;
+    console.log('Loaded students:', students.length);
+  } catch (error) {
+    console.error('Failed to fetch students:', error);
+    message.error('获取学生列表失败');
+    allStudents.value = [];
+  }
+}, { deep: true });
 
 const filteredStudents = computed(() => {
   const selectedClassIds = selectedClasses.value.map(c => c.id);
@@ -454,12 +526,16 @@ const filteredStudents = computed(() => {
   return students;
 });
 
-const toggleStudentSelection = (student: any) => {
+const toggleStudentSelection = (student: { selected: boolean }) => {
   student.selected = !student.selected;
 };
 
+const selectedStudents = computed(() => 
+  filteredStudents.value.filter(s => s.selected)
+);
+
 const selectedStudentsCount = computed(() => 
-  filteredStudents.value.filter(s => s.selected).length
+  selectedStudents.value.length
 );
 
 // --- 2. 考勤时间 Logic ---
@@ -524,7 +600,7 @@ const formattedTimeRange = computed(() => {
 
 const attendanceMethods = ref([
   { 
-    id: 'manual', 
+    id: 'gesture', 
     name: '手势签到', 
     description: '学生通过特定手势完成签到',
     icon: FormOutlined,
@@ -785,14 +861,15 @@ const updateCircleRadius = () => {
 };
 
 const confirmLocation = () => {
-  if (selectedLocation.value) {
+  const location = selectedLocation.value;
+  if (location && location.name) {
     showLocationModal.value = false;
-    message.success(`已选择位置：${selectedLocation.value.name}`);
+    message.success(`已选择位置：${location.name}`);
   }
 };
 
 const destroyMap = () => {
-  if (map) {
+  if (map && typeof map.destroy === 'function') {
     map.destroy();
     map = null;
     marker = null;
@@ -811,7 +888,7 @@ watch(showLocationModal, (val) => {
 });
 
 const selectAttendanceMethod = (method: any) => {
-  if (method.id === 'manual') {
+  if (method.id === 'gesture') {
     showGestureModal.value = true;
     resetGesture();
   } else if (method.id === 'location') {
@@ -833,36 +910,123 @@ const selectedCourseLabel = computed(() => props.courseName || '未选择');
 
 const selectedClassNames = computed(() => {
   if (selectedClasses.value.length === 0) return '未选择';
-  if (selectedClasses.value.length === 1) return selectedClasses.value[0].name;
-  return `${selectedClasses.value[0].name} 等 ${selectedClasses.value.length} 个班级`;
+  const firstClass = selectedClasses.value[0];
+  if (selectedClasses.value.length === 1) return firstClass?.name || '未知班级';
+  return `${firstClass?.name || '未知班级'} 等 ${selectedClasses.value.length} 个班级`;
 });
 
 const publishing = ref(false);
 
-const handlePublish = () => {
-  if (selectedClasses.value.length === 0) {
-    message.warning('请选择班级');
+const handlePublish = async () => {
+  if (!props.courseId) {
+    message.error('请选择课程');
     return;
   }
 
-  publishing.value = true;
+  // 获取选中的班级ID列表
+  const selectedClassIds = classList.value
+    .filter(cls => cls.selected)
+    .map(cls => cls.id);
+
+  if (selectedClassIds.length === 0) {
+    message.error('请至少选择一个班级');
+    return;
+  }
+
+  // 获取选中的学生ID列表（如果有）
+  const selectedStudentIds = allStudents.value
+    .filter(student => student.selected)
+    .map(student => student.id);
+
+  // 获取选中的考勤方式
+  const selectedMethod = attendanceMethods.value.find(m => m.selected);
+  if (!selectedMethod) {
+    message.error('请选择考勤方式');
+    return;
+  }
+
+  // 验证考勤方式特定的配置
+  if (selectedMethod.id === 'gesture' && gesturePath.value.length === 0) {
+    message.error('请绘制手势路径');
+    return;
+  }
   
-  setTimeout(() => {
-    publishing.value = false;
-    const payload = {
+  if (selectedMethod.id === 'location' && !selectedLocation.value) {
+    message.error('请选择签到位置');
+    return;
+  }
+
+  try {
+    publishing.value = true;
+
+    // 准备考勤数据
+    const attendanceData: any = {
+      title: `${props.courseName || '课程'}考勤`,
+      courseId: props.courseId,
+      classIds: selectedClassIds,
+      studentIds: selectedStudentIds.length > 0 ? selectedStudentIds : undefined,
+      startTime: dayjs(selectedDate.value).format('YYYY-MM-DD') + ' ' + (startTime.value?.format('HH:mm') || '00:00'),
+      endTime: dayjs(selectedDate.value).format('YYYY-MM-DD') + ' ' + (endTime.value?.format('HH:mm') || '23:59'),
+      attendanceType: selectedMethod.id as AttendanceType
+    };
+
+    // 根据考勤方式添加特定配置
+    if (selectedMethod.id === 'gesture') {
+      // 手势签到 - 将点索引转换为坐标
+      const gestureCoords = gesturePath.value.map(pointIndex => {
+        const point = gesturePoints.value[pointIndex];
+        return point ? { x: point.x, y: point.y } : { x: 0, y: 0 };
+      });
+      
+      attendanceData.gesturePattern = {
+        points: gestureCoords,
+        width: 300,
+        height: 300,
+        duration: gesturePath.value.length > 0 ? 1000 : 0
+      };
+    } else if (selectedMethod.id === 'location') {
+      // 位置签到
+      const location = selectedLocation.value;
+      if (location && location.lng && location.lat) {
+        attendanceData.locationConfig = {
+          name: location.name || '签到位置',
+          latitude: location.lat,
+          longitude: location.lng,
+          radius: locationRadius.value
+        };
+      }
+    } else if (selectedMethod.id === 'face') {
+      // 人脸识别
+      attendanceData.faceRecognitionThreshold = 0.80;
+    }
+
+    console.log('Publishing attendance:', attendanceData);
+    
+    // 调用API发布考勤
+    const response = await createAttendance(attendanceData);
+    
+    message.success('考勤发布成功');
+    
+    // 发送成功事件，包含前端需要的数据
+    emits('success', {
+      ...response.data,
       courseId: props.courseId,
       courseName: props.courseName,
+      method: selectedMethod.id,
       classes: selectedClasses.value,
-      students: filteredStudents.value.filter(s => s.selected),
-      date: selectedDate.value,
-      startTime: startTime.value?.format('HH:mm'),
-      endTime: endTime.value?.format('HH:mm'),
-      method: attendanceMethods.value.find(m => m.selected)?.id
-    };
-    message.success('考勤发布成功！');
-    emits('success', payload);
-  }, 1000);
+      students: selectedStudents.value,
+      startTime: attendanceData.startTime,
+      endTime: attendanceData.endTime
+    });
+    
+  } catch (error: any) {
+    console.error('Failed to publish attendance:', error);
+    message.error(error.response?.data?.message || '考勤发布失败，请稍后重试');
+  } finally {
+    publishing.value = false;
+  }
 };
+
 </script>
 
 <style scoped>

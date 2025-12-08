@@ -159,6 +159,7 @@ import {
 } from '@ant-design/icons-vue';
 import type { AttendanceTask, AttendanceRecord, CheckInStatus } from '../types';
 import { MOCK_RECORDS } from '../mock';
+import { getAttendanceRecords, updateAttendanceRecord } from '@/api/attendanceController';
 
 // Ensure Security Config
 (window as any)._AMapSecurityConfig = {
@@ -268,11 +269,45 @@ const initMap = () => {
   });
 };
 
-onMounted(() => {
-  // Fetch records
-  records.value = MOCK_RECORDS.filter(r => r.taskId === props.task.id || props.task.id !== 't1');
-  if (records.value.length === 0) {
-    records.value = MOCK_RECORDS;
+onMounted(async () => {
+  // 从API获取考勤记录
+  console.log('AttendanceDetail mounted, task:', props.task);
+  try {
+    const taskId = Number(props.task.id);
+    console.log('Task ID:', taskId);
+    if (!isNaN(taskId)) {
+      const res = await getAttendanceRecords(taskId);
+      console.log('Records API response:', res);
+      if (res && res.records) {
+        // 转换后端数据格式为前端格式
+        records.value = res.records.map((record: any) => ({
+          id: record.id,
+          taskId: String(record.attendance_id),
+          studentId: String(record.student_id),
+          studentName: record.student_name || '未知学生',
+          studentNumber: record.student_code || '',
+          studentCode: record.student_code || '',
+          studentAvatar: record.student_avatar || '',
+          status: record.status,
+          checkInTime: record.check_in_time || '',
+          remark: record.remark || ''
+        }));
+        console.log('Mapped records:', records.value);
+      }
+    } else {
+      // 如果ID不是数字，使用mock数据（兼容旧数据）
+      records.value = MOCK_RECORDS.filter(r => r.taskId === props.task.id || props.task.id !== 't1');
+      if (records.value.length === 0) {
+        records.value = MOCK_RECORDS;
+      }
+    }
+  } catch (error) {
+    console.error('获取考勤记录失败:', error);
+    // 失败时使用mock数据
+    records.value = MOCK_RECORDS.filter(r => r.taskId === props.task.id || props.task.id !== 't1');
+    if (records.value.length === 0) {
+      records.value = MOCK_RECORDS;
+    }
   }
 
   if (shouldShowLeftCol.value && props.task.type === 'location') {
@@ -324,10 +359,31 @@ const endAttendance = () => {
   emits('update:task', updatedTask);
 };
 
-const toggleStatus = (record: AttendanceRecord) => {
+const toggleStatus = async (record: AttendanceRecord) => {
   const newStatus = record.status === 'present' ? 'absent' : 'present';
-  record.status = newStatus;
-  message.success(`已标记 ${record.studentName} 为 ${getRecordStatusText(newStatus)}`);
+  
+  try {
+    const taskId = Number(props.task.id);
+    const recordId = Number(record.id);
+    
+    if (isNaN(taskId) || isNaN(recordId)) {
+      message.error('无效的任务或记录ID');
+      return;
+    }
+    
+    // 调用API更新状态
+    await updateAttendanceRecord(taskId, recordId, {
+      status: newStatus,
+      remark: record.remark
+    });
+    
+    // 更新本地状态
+    record.status = newStatus;
+    message.success(`已标记 ${record.studentName} 为 ${getRecordStatusText(newStatus)}`);
+  } catch (error) {
+    console.error('更新考勤记录失败:', error);
+    message.error('更新失败，请稍后重试');
+  }
 };
 </script>
 

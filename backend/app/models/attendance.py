@@ -10,9 +10,11 @@ from enum import Enum
 
 class AttendanceType(Enum):
     """考勤方式枚举"""
-    QRCODE = 'qrcode'  # 二维码签到
-    MANUAL = 'manual'  # 手动签到
-    FACE = 'face'      # 人脸识别签到
+    QRCODE = 'qrcode'    # 二维码签到
+    GESTURE = 'gesture'  # 手势签到
+    LOCATION = 'location'  # 位置签到
+    FACE = 'face'        # 人脸识别签到
+    MANUAL = 'manual'    # 手动签到（教师手动点名）
 
 
 class AttendanceStatus(Enum):
@@ -40,7 +42,7 @@ class Attendance(BaseModel):
     # ==================== 字段定义 ====================
     # 基本信息
     title = db.Column(db.String(100), nullable=False)
-    location = db.Column(db.String(100), nullable=True)
+    description = db.Column(db.String(255), nullable=True)
     
     # 外键关联
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
@@ -49,8 +51,21 @@ class Attendance(BaseModel):
     
     # 考勤设置
     attendance_type = db.Column(db.Enum(AttendanceType), nullable=False)
+    
+    # 二维码签到配置
     qr_code = db.Column(db.String(255), nullable=True, index=True)
-    require_location = db.Column(db.Boolean, default=False, nullable=False)
+    
+    # 手势签到配置
+    gesture_pattern = db.Column(db.Text, nullable=True)  # JSON格式存储手势路径数据
+    
+    # 位置签到配置
+    location_name = db.Column(db.String(200), nullable=True)  # 位置名称
+    location_latitude = db.Column(db.Numeric(10, 7), nullable=True)  # 纬度
+    location_longitude = db.Column(db.Numeric(10, 7), nullable=True)  # 经度
+    location_radius = db.Column(db.Integer, default=100, nullable=True)  # 签到半径（米）
+    
+    # 人脸识别配置
+    face_recognition_threshold = db.Column(db.Numeric(3, 2), default=0.80, nullable=True)  # 人脸识别阈值
     
     # 时间
     start_time = db.Column(db.DateTime, nullable=False, index=True)
@@ -126,6 +141,27 @@ class Attendance(BaseModel):
         """根据二维码获取考勤"""
         return cls.query.filter_by(qr_code=qr_code).first()
     
+    def to_dict(self):
+        """转换为字典，处理JSON字段"""
+        import json
+        result = super().to_dict()
+        
+        # 将gesture_pattern从JSON字符串转换为字典
+        if result.get('gesture_pattern'):
+            try:
+                result['gesture_pattern'] = json.loads(result['gesture_pattern'])
+            except (json.JSONDecodeError, TypeError):
+                result['gesture_pattern'] = None
+        
+        # 将枚举类型转换为字符串
+        if result.get('attendance_type'):
+            result['attendance_type'] = result['attendance_type'].value if hasattr(result['attendance_type'], 'value') else str(result['attendance_type'])
+        
+        if result.get('status'):
+            result['status'] = result['status'].value if hasattr(result['status'], 'value') else str(result['status'])
+        
+        return result
+    
     def __repr__(self):
         return f'<Attendance {self.title}>'
 
@@ -145,14 +181,20 @@ class AttendanceRecord(BaseModel):
     # 签到信息
     status = db.Column(db.Enum(CheckInStatus), nullable=False)
     check_in_time = db.Column(db.DateTime, nullable=True)
-    check_in_method = db.Column(db.String(20), nullable=True)  # qrcode/manual/face/location
+    check_in_method = db.Column(db.String(20), nullable=True)  # qrcode/gesture/location/face/manual
     
-    # 位置信息
+    # 位置信息（位置签到）
     latitude = db.Column(db.Numeric(10, 7), nullable=True)
     longitude = db.Column(db.Numeric(10, 7), nullable=True)
+    distance = db.Column(db.Integer, nullable=True)  # 与目标位置的距离（米）
     
-    # 人脸识别
+    # 手势信息（手势签到）
+    gesture_data = db.Column(db.Text, nullable=True)  # JSON格式存储学生绘制的手势数据
+    gesture_similarity = db.Column(db.Numeric(5, 2), nullable=True)  # 手势相似度（百分比）
+    
+    # 人脸识别（人脸签到）
     face_image_path = db.Column(db.String(255), nullable=True)
+    face_similarity = db.Column(db.Numeric(5, 2), nullable=True)  # 人脸相似度（百分比）
     
     # 备注
     remark = db.Column(db.String(255), nullable=True)
@@ -173,6 +215,16 @@ class AttendanceRecord(BaseModel):
     def is_leave(self):
         """检查是否请假"""
         return self.status == CheckInStatus.LEAVE
+    
+    def to_dict(self):
+        """转换为字典，处理枚举字段"""
+        result = super().to_dict()
+        
+        # 将status枚举转换为字符串
+        if result.get('status'):
+            result['status'] = result['status'].value if hasattr(result['status'], 'value') else str(result['status'])
+        
+        return result
     
     # ==================== 类方法 ====================
     @classmethod

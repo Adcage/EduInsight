@@ -5,7 +5,8 @@ from flask_openapi3 import APIBlueprint, Tag
 from app.schemas.attendance_schemas import (
     AttendanceCreateModel, AttendanceUpdateModel, AttendanceResponseModel,
     AttendanceDetailResponseModel, AttendanceListResponseModel,
-    AttendanceQueryModel, AttendancePathModel
+    AttendanceQueryModel, AttendancePathModel, AttendanceRecordListResponseModel,
+    AttendanceRecordUpdateModel, AttendanceRecordPathModel, AttendanceRecordResponseModel
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.attendance_service import AttendanceService
@@ -76,6 +77,26 @@ class AttendanceAPI:
             current_user = get_current_user_info()
             teacher_id = current_user['user_id']
             
+            # 准备手势数据
+            gesture_pattern = None
+            if body.gesture_pattern:
+                gesture_pattern = {
+                    'points': body.gesture_pattern.points,
+                    'width': body.gesture_pattern.width,
+                    'height': body.gesture_pattern.height,
+                    'duration': body.gesture_pattern.duration
+                }
+            
+            # 准备位置配置
+            location_config = None
+            if body.location_config:
+                location_config = {
+                    'name': body.location_config.name,
+                    'latitude': body.location_config.latitude,
+                    'longitude': body.location_config.longitude,
+                    'radius': body.location_config.radius
+                }
+            
             # 创建考勤任务
             attendance = AttendanceService.create_attendance(
                 title=body.title,
@@ -86,8 +107,10 @@ class AttendanceAPI:
                 start_time=body.start_time,
                 end_time=body.end_time,
                 student_ids=body.student_ids,
-                location=body.location,
-                require_location=body.require_location
+                description=body.description,
+                gesture_pattern=gesture_pattern,
+                location_config=location_config,
+                face_recognition_threshold=body.face_recognition_threshold
             )
             
             return {
@@ -169,8 +192,17 @@ class AttendanceAPI:
                     status=query.status.value if query.status else None
                 )
             
-            # 转换为字典
-            attendances = [att.to_dict() for att in result['attendances']]
+            # 转换为字典并添加统计信息
+            attendances = []
+            for att in result['attendances']:
+                att_dict = att.to_dict()
+                # 添加统计信息
+                att_dict['total_students'] = att.records.count()
+                att_dict['present_count'] = att.get_present_count()
+                att_dict['late_count'] = att.get_late_count()
+                att_dict['absent_count'] = att.get_absent_count()
+                att_dict['attendance_rate'] = att.get_attendance_rate()
+                attendances.append(att_dict)
             
             return {
                 'attendances': attendances,
@@ -431,5 +463,95 @@ class AttendanceAPI:
             logger.error(f"Error ending attendance: {str(e)}")
             return {
                 'message': '结束考勤失败',
+                'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.get('/<int:attendance_id>/records',
+                          summary="获取考勤记录列表",
+                          tags=[attendance_tag],
+                          responses={
+                              200: AttendanceRecordListResponseModel,
+                              404: MessageResponseModel,
+                              401: MessageResponseModel
+                          })
+    @login_required
+    @log_user_action("查询考勤记录列表")
+    def get_attendance_records(path: AttendancePathModel):
+        """
+        获取指定考勤任务的所有签到记录
+        
+        返回该考勤任务下所有学生的签到记录，包括学生信息。
+        """
+        try:
+            AttendanceAPI.log_request(f"GET_ATTENDANCE_RECORDS: {path.attendance_id}")
+            
+            # 获取考勤记录
+            records = AttendanceService.get_attendance_records(path.attendance_id)
+            
+            if records is None:
+                return {
+                    'message': f'考勤任务ID {path.attendance_id} 不存在'
+                }, 404
+            
+            return records, 200
+            
+        except Exception as e:
+            logger.error(f"Error getting attendance records: {str(e)}")
+            return {
+                'message': '获取考勤记录失败',
+                'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.put('/<int:attendance_id>/records/<int:record_id>',
+                          summary="更新考勤记录",
+                          tags=[attendance_tag],
+                          responses={
+                              200: AttendanceRecordResponseModel,
+                              400: MessageResponseModel,
+                              404: MessageResponseModel,
+                              401: MessageResponseModel,
+                              403: MessageResponseModel
+                          })
+    @teacher_required
+    @log_user_action("更新考勤记录")
+    def update_attendance_record(path: AttendanceRecordPathModel, body: AttendanceRecordUpdateModel):
+        """
+        更新考勤记录（教师手动标记）
+        
+        教师可以手动修改学生的签到状态和备注。
+        """
+        try:
+            user_info = get_current_user_info()
+            teacher_id = user_info['user_id']
+            
+            AttendanceAPI.log_request(f"UPDATE_RECORD: attendance={path.attendance_id}, record={path.record_id}")
+            
+            # 更新考勤记录
+            record = AttendanceService.update_attendance_record(
+                attendance_id=path.attendance_id,
+                record_id=path.record_id,
+                teacher_id=teacher_id,
+                status=body.status.value,
+                remark=body.remark
+            )
+            
+            if not record:
+                return {
+                    'message': '考勤记录不存在或无权限修改'
+                }, 404
+            
+            return record.to_dict(), 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e)
+            }, 400
+        except Exception as e:
+            logger.error(f"Error updating attendance record: {str(e)}")
+            return {
+                'message': '更新考勤记录失败',
                 'error': str(e)
             }, 500

@@ -22,6 +22,7 @@ class User(BaseModel):
     phone = db.Column(db.String(20), nullable=True)
     real_name = db.Column(db.String(50), nullable=False)
     avatar = db.Column(db.String(255), nullable=True)
+    face_image = db.Column(db.String(255), nullable=True)  # 人脸照片路径，用于人脸识别签到
     
     # 角色和权限
     role = db.Column(db.Enum(UserRole), default=UserRole.STUDENT, nullable=False, index=True)

@@ -29,14 +29,20 @@ export interface CourseDetail extends Course {
 
 // 班级信息接口
 export interface ClassInfo {
-  classId: number
-  className: string
-  classCode: string
+  classId?: number
+  class_id?: number
+  className?: string
+  class_name?: string
+  classCode?: string
+  class_code?: string
   grade?: string
   major?: string
-  studentCount: number
+  studentCount?: number
+  student_count?: number
   startDate?: string
+  start_date?: string
   endDate?: string
+  end_date?: string
   status: boolean
 }
 
@@ -53,7 +59,8 @@ export interface CourseListResponse {
 export interface CourseClassListResponse {
   classes: ClassInfo[]
   total: number
-  totalStudents: number
+  totalStudents?: number
+  total_students?: number
 }
 
 // 查询参数接口
