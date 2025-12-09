@@ -4,7 +4,7 @@ const materialRoutes: RouteRecordRaw[] = [
   {
     path: '/teacher/materials',
     name: 'MaterialCenter',
-    component: () => import('@/pages/teacher/MaterialCenter.vue'),
+    component: () => import('@/pages/teacher/materials/MaterialCenter.vue'),
     meta: {
       title: '资料中心',
       requiresAuth: true,
@@ -14,7 +14,7 @@ const materialRoutes: RouteRecordRaw[] = [
   {
     path: '/teacher/materials/upload',
     name: 'MaterialUpload',
-    component: () => import('@/pages/teacher/MaterialUpload.vue'),
+    component: () => import('@/pages/teacher/materials/MaterialUpload.vue'),
     meta: {
       title: '上传资料',
       requiresAuth: true,
@@ -24,7 +24,7 @@ const materialRoutes: RouteRecordRaw[] = [
   {
     path: '/teacher/materials/my',
     name: 'MyMaterials',
-    component: () => import('@/pages/teacher/MyMaterials.vue'),
+    component: () => import('@/pages/teacher/materials/MyMaterials.vue'),
     meta: {
       title: '我的资料',
       requiresAuth: true,
@@ -34,7 +34,7 @@ const materialRoutes: RouteRecordRaw[] = [
   {
     path: '/teacher/material/:id',
     name: 'MaterialDetail',
-    component: () => import('@/pages/teacher/MaterialDetail.vue'),
+    component: () => import('@/pages/teacher/materials/MaterialDetail.vue'),
     meta: {
       title: '资料详情',
       requiresAuth: true,

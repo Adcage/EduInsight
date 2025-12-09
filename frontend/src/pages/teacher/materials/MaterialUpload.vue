@@ -171,9 +171,9 @@ import {
   UploadOutlined,
   CheckOutlined
 } from '@ant-design/icons-vue'
-import { materialApiUploadPost } from '@/api/materialController'
-import { categoryApiGet } from '@/api/categoryController'
-import { tagApiGet } from '@/api/tagController'
+import { materialApiUploadPost } from '@/api/materialController.ts'
+import { categoryApiGet } from '@/api/categoryController.ts'
+import { tagApiGet } from '@/api/tagController.ts'
 import ClassificationPanel from '@/components/materials/ClassificationPanel.vue'
 import TagSuggestions from '@/components/materials/TagSuggestions.vue'
 

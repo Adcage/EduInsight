@@ -111,7 +111,7 @@ import MaterialCard from '@/components/materials/MaterialCard.vue'
 import {
   materialApiGet,
   materialApiIntMaterialIdDownloadGet
-} from '@/api/materialController'
+} from '@/api/materialController.ts'
 
 const router = useRouter()
 

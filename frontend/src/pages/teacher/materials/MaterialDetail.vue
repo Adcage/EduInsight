@@ -284,10 +284,10 @@ import {
 import dayjs from 'dayjs'
 import {
   materialApiIntMaterialIdDownloadGet
-} from '@/api/materialController'
-import { materialApiIntMaterialIdKeywordsGet } from '@/api/classificationController'
-import { useMaterialStore } from '@/stores/material'
-import { useCategoryStore } from '@/stores/category'
+} from '@/api/materialController.ts'
+import { materialApiIntMaterialIdKeywordsGet } from '@/api/classificationController.ts'
+import { useMaterialStore } from '@/stores/material.ts'
+import { useCategoryStore } from '@/stores/category.ts'
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
 
 const route = useRoute()
