@@ -254,7 +254,7 @@ const handleUpload = () => {
 
 // 查看详情
 const handleViewDetail = (material: any) => {
-  router.push(`/teacher/materials/${material.id}`)
+  router.push(`/teacher/material/${material.id}`)
 }
 
 // 预览

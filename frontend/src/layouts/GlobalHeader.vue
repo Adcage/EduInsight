@@ -22,6 +22,7 @@
 
       <div class="header-actions">
         <ThemeToggle />
+        <UserAvatar />
       </div>
     </div>
   </a-layout-header>
@@ -31,6 +32,7 @@
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import UserAvatar from '@/components/common/UserAvatar.vue'
 
 const route = useRoute()
 const selectedKeys = ref<string[]>(['home'])
