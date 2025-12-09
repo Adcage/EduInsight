@@ -40,9 +40,31 @@ myAxios.interceptors.response.use(
     }
     return response
   },
-  function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
+  async function (error) {
+    // 处理 401 错误（会话过期）
+    if (error.response?.status === 401) {
+      // 动态导入 auth store 以避免循环依赖
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      
+      // 清除用户状态
+      authStore.clearUser()
+      
+      // 如果不在登录页面，重定向到登录页
+      if (!window.location.pathname.includes('/login')) {
+        // 保存当前页面路径用于登录后返回
+        authStore.setRedirectPath(window.location.pathname)
+        
+        message.warning('登录已过期，请重新登录')
+        await router.push({
+          path: '/login',
+          query: {
+            redirect: window.location.pathname
+          }
+        })
+      }
+    }
+    
     return Promise.reject(error)
   },
 )
