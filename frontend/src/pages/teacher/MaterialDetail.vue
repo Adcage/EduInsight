@@ -50,11 +50,17 @@
             </a-descriptions-item>
             
             <a-descriptions-item label="分类">
-              {{ material?.category?.name || '未分类' }}
+              <span v-if="material?.categoryName">
+                {{ material.categoryName }}
+                <a-tag v-if="material?.autoClassified" color="purple" size="small" style="margin-left: 4px">
+                  <RobotOutlined /> 智能分类
+                </a-tag>
+              </span>
+              <span v-else class="text-muted">未分类</span>
             </a-descriptions-item>
             
             <a-descriptions-item label="上传者">
-              {{ material?.uploader?.realName || '未知' }}
+              {{ material?.uploaderName || '未知' }}
             </a-descriptions-item>
             
             <a-descriptions-item label="上传时间">
@@ -102,6 +108,54 @@
               </div>
             </a-descriptions-item>
           </a-descriptions>
+        </a-card>
+
+        <!-- 智能分析卡片 -->
+        <a-card :bordered="false" class="info-card" style="margin-top: 16px">
+          <template #title>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <RobotOutlined />
+              <span>智能分析</span>
+            </div>
+          </template>
+          <template #extra>
+            <a-button 
+              type="link" 
+              size="small" 
+              :loading="keywordsLoading"
+              @click="loadKeywords"
+            >
+              <template #icon><ReloadOutlined /></template>
+              刷新
+            </a-button>
+          </template>
+          
+          <a-row :gutter="16">
+            <!-- 关键词 -->
+            <a-col :span="24">
+              <div class="analysis-section">
+                <div class="section-label">提取的关键词</div>
+                <div v-if="keywordsLoading" class="loading-keywords">
+                  <a-spin size="small" />
+                  <span>正在提取关键词...</span>
+                </div>
+                <div v-else-if="keywords.length > 0" class="keywords-display">
+                  <a-tag 
+                    v-for="(kw, index) in keywords" 
+                    :key="index"
+                    :color="getKeywordColor(kw.weight)"
+                    class="keyword-tag"
+                  >
+                    {{ kw.keyword }}
+                    <span class="weight-text">({{ Math.round(kw.weight * 100) }}%)</span>
+                  </a-tag>
+                </div>
+                <div v-else class="no-keywords">
+                  <span class="text-muted">暂无关键词，点击刷新进行提取</span>
+                </div>
+              </div>
+            </a-col>
+          </a-row>
         </a-card>
 
       </a-spin>
@@ -223,12 +277,15 @@ import {
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
-  FileOutlined
+  FileOutlined,
+  RobotOutlined,
+  ReloadOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import {
   materialApiIntMaterialIdDownloadGet
 } from '@/api/materialController'
+import { materialApiIntMaterialIdKeywordsGet } from '@/api/classificationController'
 import { useMaterialStore } from '@/stores/material'
 import { useCategoryStore } from '@/stores/category'
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
@@ -252,6 +309,10 @@ const editForm = ref({
   tags: [] as string[]
 })
 const currentUserId = ref<number | null>(null)
+
+// 关键词状态
+const keywords = ref<API.KeywordResponseModel[]>([])
+const keywordsLoading = ref(false)
 
 // 资料ID
 const materialId = computed(() => {
@@ -362,10 +423,44 @@ const loadMaterialDetail = async () => {
     if (route.query.preview === 'true') {
       previewModalVisible.value = true
     }
+    
+    // 自动加载关键词
+    loadKeywords()
   } catch (error: any) {
     console.error('加载资料详情失败:', error)
     message.error(error.message || '加载资料详情失败')
   }
+}
+
+// 加载关键词
+const loadKeywords = async () => {
+  if (!materialId.value) return
+  
+  keywordsLoading.value = true
+  try {
+    const response = await materialApiIntMaterialIdKeywordsGet({ 
+      materialId: materialId.value,
+      topN: 10
+    })
+    
+    if (response.code === 200 && response.data) {
+      keywords.value = response.data
+    } else {
+      keywords.value = []
+    }
+  } catch (error: any) {
+    console.error('加载关键词失败:', error)
+    keywords.value = []
+  } finally {
+    keywordsLoading.value = false
+  }
+}
+
+// 获取关键词颜色
+const getKeywordColor = (weight: number): string => {
+  if (weight > 0.3) return 'blue'
+  if (weight > 0.15) return 'cyan'
+  return 'default'
 }
 
 // 下载
@@ -563,5 +658,45 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.65);
   font-weight: 500;
   margin-right: 8px;
+}
+
+.analysis-section {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.section-label {
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.loading-keywords {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.keywords-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.weight-text {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.no-keywords {
+  padding: 8px 0;
 }
 </style>

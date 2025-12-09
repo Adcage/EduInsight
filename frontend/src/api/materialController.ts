@@ -2,7 +2,7 @@
 /* eslint-disable */
 import request from '@/request'
 
-/** 获取资料列表 获取资料列表</br></br>支持分页、筛选和排序：</br>- 按课程筛选</br>- 按分类筛选</br>- 按上传者筛选</br>- 按文件类型筛选</br>- 关键词搜索 GET /api/v1/materials */
+/** 获取资料列表 获取资料列表</br></br>支持分页、筛选和排序：</br>- 按课程筛选</br>- 按分类筛选</br>- 按上传者筛选</br>- 按文件类型筛选</br>- 按标签筛选</br>- 关键词搜索 GET /api/v1/materials */
 export async function materialApiGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.materialApiGetParams,
@@ -13,9 +13,13 @@ export async function materialApiGet(
     params: {
       // page has a default value: 1
       page: '1',
-      // perPage has a default value: 20
-      perPage: '20',
+      // page_size has a default value: 20
+      page_size: '20',
 
+      // sortBy has a default value: created_at
+      sortBy: 'created_at',
+      // order has a default value: desc
+      order: 'desc',
       ...params,
     },
     ...(options || {}),

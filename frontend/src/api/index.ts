@@ -7,6 +7,7 @@ import * as chunkedUploadController from './chunkedUploadController'
 import * as categoryController from './categoryController'
 import * as tagController from './tagController'
 import * as materialController from './materialController'
+import * as classificationController from './classificationController'
 import * as userController from './userController'
 export default {
   authController,
@@ -14,5 +15,6 @@ export default {
   categoryController,
   tagController,
   materialController,
+  classificationController,
   userController,
 }

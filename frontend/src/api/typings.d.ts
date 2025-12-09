@@ -19,6 +19,34 @@ declare namespace API {
     categoryId: number
   }
 
+  type ClassifyMaterialResponseModel = {
+    /** Confidence 置信度 (0-1) */
+    confidence: number
+    /** Error 错误信息 */
+    error?: string | null
+    /** Keywords 提取的关键词列表 */
+    keywords?: KeywordResponseModel[]
+    /** Logid 分类日志ID */
+    logId?: number | null
+    /** Materialid 资料ID */
+    materialId: number
+    /** Needsconfirmation 是否需要确认 */
+    needsConfirmation: boolean
+    /** Shouldautoapply 是否自动应用 */
+    shouldAutoApply: boolean
+    /** Suggestedcategoryid 建议的分类ID */
+    suggestedCategoryId?: number | null
+    /** Suggestedcategoryname 建议的分类名称 */
+    suggestedCategoryName?: string | null
+  }
+
+  type KeywordResponseModel = {
+    /** Keyword 关键词 */
+    keyword: string
+    /** Weight 权重 (0-1) */
+    weight: number
+  }
+
   type LoginResponseModel = {
     /** Message 登录结果消息 */
     message: string
@@ -26,11 +54,21 @@ declare namespace API {
     user: UserResponseModel
   }
 
+  type materialApiClassificationLogsIntLogIdAcceptPostParams = {
+    /** 分类日志ID */
+    logId: number
+  }
+
+  type materialApiClassificationLogsIntLogIdRejectPostParams = {
+    /** 分类日志ID */
+    logId: number
+  }
+
   type materialApiGetParams = {
     /** 页码 */
     page?: number
     /** 每页数量 */
-    perPage?: number
+    page_size?: number
     /** 课程ID筛选 */
     courseId?: number | null
     /** 分类ID筛选 */
@@ -41,6 +79,21 @@ declare namespace API {
     fileType?: string | null
     /** 搜索关键词（标题、描述、关键词） */
     search?: string | null
+    /** 标签ID列表筛选 */
+    tagIds?: number[] | null
+    /** 开始日期(YYYY-MM-DD) */
+    startDate?: string | null
+    /** 结束日期(YYYY-MM-DD) */
+    endDate?: string | null
+    /** 排序字段(created_at, download_count, view_count, file_size) */
+    sortBy?: string
+    /** 排序方向(asc, desc) */
+    order?: string
+  }
+
+  type materialApiIntMaterialIdClassifyPostParams = {
+    /** 资料ID */
+    materialId: number
   }
 
   type materialApiIntMaterialIdDeleteParams = {
@@ -58,12 +111,24 @@ declare namespace API {
     materialId: number
   }
 
+  type materialApiIntMaterialIdKeywordsGetParams = {
+    /** 资料ID */
+    materialId: number
+    /** 返回的关键词数量 */
+    topN?: number
+  }
+
   type materialApiIntMaterialIdPreviewGetParams = {
     /** 资料ID */
     materialId: number
   }
 
   type materialApiIntMaterialIdPutParams = {
+    /** 资料ID */
+    materialId: number
+  }
+
+  type materialApiIntMaterialIdSuggestTagsPostParams = {
     /** 资料ID */
     materialId: number
   }
@@ -266,6 +331,17 @@ declare namespace API {
   type tagApiIntTagIdGetParams = {
     /** 标签ID */
     tagId: number
+  }
+
+  type TagSuggestionResponseModel = {
+    /** Isexisting 是否为现有标签 */
+    isExisting: boolean
+    /** Relevance 相关度 (0-1) */
+    relevance: number
+    /** Tagid 标签ID (如果是现有标签) */
+    tagId?: number | null
+    /** Tagname 标签名称 */
+    tagName: string
   }
 
   type userApiGetParams = {

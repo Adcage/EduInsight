@@ -191,7 +191,7 @@ const handleMore = () => {
   align-items: center;
   justify-content: center;
   height: 160px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66dbea 0%, #4996da 100%);
   border-radius: 8px 8px 0 0;
 }
 

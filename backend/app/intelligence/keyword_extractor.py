@@ -169,7 +169,8 @@ class KeywordExtractor:
         2. 单个字符（包括单个汉字）
         3. 停用词
         4. 纯数字
-        5. 纯标点符号
+        5. 纯标点符号（中英文）
+        6. 不包含任何中文或英文字母的词
         
         Args:
             word: 待检查的词语
@@ -194,8 +195,14 @@ class KeywordExtractor:
         if word.isdigit():
             return True
         
-        # 过滤纯标点符号
-        if all(c in '，。！？、；：""''（）【】《》…—·' for c in word):
+        # 过滤纯标点符号（包括中英文标点）
+        punctuation = '，。！？、；：""''（）【】《》…—·,.!?;:\'"()[]<>-_=+*/\\|@#$%^&~`'
+        if all(c in punctuation for c in word):
+            return True
+        
+        # 过滤不包含任何中文或英文字母的词
+        import re
+        if not re.search(r'[\u4e00-\u9fa5a-zA-Z]', word):
             return True
         
         return False
