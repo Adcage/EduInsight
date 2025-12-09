@@ -112,15 +112,14 @@ const handleProfileClick = () => {
 .user-info-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 0;
+  transition: opacity 0.3s;
 }
 
 .user-info-trigger:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  opacity: 0.8;
 }
 
 .user-avatar {
@@ -158,10 +157,6 @@ const handleProfileClick = () => {
 
 /* 暗色主题适配 */
 @media (prefers-color-scheme: dark) {
-  .user-info-trigger:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-  }
-
   .user-name {
     color: #fff;
   }

@@ -1,4 +1,22 @@
 declare namespace API {
+  type BatchDeleteModel = {
+    /** Userids 要删除的用户ID列表 */
+    userIds: number[]
+  }
+
+  type BatchImportResponseModel = {
+    /** Errors 错误信息列表 */
+    errors?: string[]
+    /** Failedcount 失败数量 */
+    failedCount: number
+    /** Message 响应消息 */
+    message: string
+    /** Successcount 成功导入数量 */
+    successCount: number
+    /** Totalcount 总数量 */
+    totalCount: number
+  }
+
   type categoryApiIntCategoryIdChildrenGetParams = {
     /** 分类ID */
     categoryId: number
@@ -344,19 +362,6 @@ declare namespace API {
     tagName: string
   }
 
-  type userApiGetParams = {
-    /** 页码 */
-    page?: number
-    /** 每页数量 */
-    perPage?: number
-    /** 角色筛选 */
-    role?: UserRoleEnum | null
-    /** 状态筛选 */
-    status?: boolean | null
-    /** 搜索关键词（用户名、真实姓名、邮箱） */
-    search?: string | null
-  }
-
   type userApiIntUserIdActivatePostParams = {
     /** 用户ID */
     userId: number
@@ -375,6 +380,38 @@ declare namespace API {
   type userApiIntUserIdPutParams = {
     /** 用户ID */
     userId: number
+  }
+
+  type userApiListGetParams = {
+    /** 页码 */
+    page?: number
+    /** 每页数量 */
+    perPage?: number
+    /** 角色筛选 */
+    role?: UserRoleEnum | null
+    /** 状态筛选 */
+    status?: boolean | null
+    /** 搜索关键词（用户名、真实姓名、邮箱） */
+    search?: string | null
+  }
+
+  type UserCreateModel = {
+    /** Classid 班级ID(学生角色时使用) */
+    classId?: number | null
+    /** Email 邮箱地址 */
+    email: string
+    /** Password 密码 */
+    password: string
+    /** Phone 手机号码 */
+    phone?: string | null
+    /** Realname 真实姓名 */
+    realName: string
+    /** 用户角色 */
+    role: UserRoleEnum
+    /** Usercode 工号/学号 */
+    userCode: string
+    /** Username 用户名 */
+    username: string
   }
 
   type UserListResponseModel = {
