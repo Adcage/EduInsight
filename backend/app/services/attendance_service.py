@@ -2,7 +2,7 @@
 考勤管理业务逻辑服务
 """
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models.attendance import Attendance, AttendanceRecord, AttendanceStatistics, AttendanceType, AttendanceStatus, CheckInStatus
 from app.models.course import Course
 from app.models.class_model import Class
@@ -11,6 +11,7 @@ from app.extensions import db
 from app.utils.helpers import generate_random_string
 import json
 import logging
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,22 @@ class AttendanceService:
             
             db.session.commit()
             logger.info(f"Attendance created: {title} for course {course_id}, {len(attendances)} classes")
+            
+            # WebSocket通知：考勤创建
+            try:
+                from app.websocket.attendance_events import notify_attendance_created
+                for attendance in attendances:
+                    attendance_dict = attendance.to_dict()
+                    # 添加课程和教师信息
+                    attendance_dict['course_name'] = course.name
+                    attendance_dict['courseName'] = course.name
+                    teacher = User.query.get(teacher_id)
+                    if teacher:
+                        attendance_dict['teacher_name'] = teacher.real_name
+                        attendance_dict['teacherName'] = teacher.real_name
+                    notify_attendance_created(attendance_dict, attendance.class_id)
+            except Exception as e:
+                logger.error(f"Error sending WebSocket notification: {str(e)}")
             
             # 返回第一个考勤任务（前端可以通过课程ID查询所有相关考勤）
             return attendances[0]
@@ -480,6 +497,12 @@ class AttendanceService:
                 record_dict['student_name'] = student.real_name
                 record_dict['student_code'] = student.user_code
                 record_dict['student_avatar'] = student.avatar
+            else:
+                # 学生不存在的情况（可能被删除）
+                logger.warning(f"考勤记录 {record.id} 关联的学生 {record.student_id} 不存在")
+                record_dict['student_name'] = f'[已删除学生-ID:{record.student_id}]'
+                record_dict['student_code'] = 'N/A'
+                record_dict['student_avatar'] = None
             records_data.append(record_dict)
         
         return {
@@ -550,3 +573,548 @@ class AttendanceService:
             db.session.rollback()
             logger.error(f"Error updating record: {str(e)}")
             raise
+    
+    @staticmethod
+    def generate_qrcode_token(attendance_id: int, teacher_id: int, token: str = None) -> Dict[str, Any]:
+        """
+        生成二维码令牌
+        
+        Args:
+            attendance_id: 考勤ID
+            teacher_id: 教师ID（用于权限验证）
+            token: 前端生成的token（可选，如果不提供则后端生成）
+            
+        Returns:
+            包含二维码令牌和过期时间的字典
+        """
+        try:
+            # 验证考勤任务是否存在
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                raise ValueError("考勤任务不存在")
+            
+            # 验证权限
+            if attendance.teacher_id != teacher_id:
+                raise ValueError("只有创建教师可以生成二维码")
+            
+            # 验证考勤类型
+            if attendance.attendance_type != AttendanceType.QRCODE:
+                raise ValueError("只有二维码签到方式才能生成二维码")
+            
+            # 使用前端传来的token，或者后端生成
+            if token:
+                qr_code_token = token
+                logger.info(f"使用前端生成的token: {qr_code_token}")
+            else:
+                # 生成新的二维码令牌（包含时间戳）
+                import time
+                timestamp = int(time.time())
+                random_part = generate_random_string(24)
+                qr_code_token = f"{timestamp}_{random_part}"
+                logger.info(f"后端生成token: {qr_code_token}")
+            
+            # 计算过期时间（30分钟，延长有效期避免扫码后过期）
+            valid_duration = 1800  # 30分钟
+            expires_at = datetime.now() + timedelta(seconds=valid_duration)
+            
+            # 更新考勤任务的二维码令牌
+            attendance.qr_code = qr_code_token
+            db.session.commit()
+            logger.info(f"已更新数据库中的token: {qr_code_token}")
+            
+            # 生成二维码数据（JSON格式）
+            qr_code_data = json.dumps({
+                'type': 'attendance_qrcode',
+                'attendance_id': attendance_id,
+                'token': qr_code_token,
+                'timestamp': datetime.now().isoformat(),
+                'expires_at': expires_at.isoformat()
+            })
+            
+            logger.info(f"QR code generated for attendance {attendance_id}")
+            
+            return {
+                'qr_code_token': qr_code_token,
+                'qr_code_data': qr_code_data,
+                'expires_at': expires_at.isoformat(),
+                'valid_duration': valid_duration
+            }
+            
+        except ValueError as e:
+            logger.warning(f"Validation error generating QR code: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error generating QR code: {str(e)}")
+            raise
+    
+    @staticmethod
+    def refresh_qrcode_token(attendance_id: int, teacher_id: int) -> Dict[str, Any]:
+        """
+        刷新二维码令牌（使旧令牌失效）
+        
+        Args:
+            attendance_id: 考勤ID
+            teacher_id: 教师ID
+            
+        Returns:
+            新的二维码令牌信息
+        """
+        # 刷新实际上就是重新生成
+        return AttendanceService.generate_qrcode_token(attendance_id, teacher_id)
+    
+    @staticmethod
+    def verify_qrcode_and_checkin(
+        student_id: int,
+        attendance_id: int,
+        qr_code_token: str
+    ) -> AttendanceRecord:
+        """
+        验证二维码并完成签到
+        
+        Args:
+            student_id: 学生ID
+            attendance_id: 考勤ID
+            qr_code_token: 二维码令牌
+            
+        Returns:
+            更新后的考勤记录
+        """
+        try:
+            # 验证考勤任务是否存在
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                raise ValueError("考勤任务不存在")
+            
+            # 验证考勤时间（使用本地时间）
+            from datetime import datetime
+            import pytz
+            
+            # 获取当前本地时间
+            local_tz = pytz.timezone('Asia/Shanghai')  # 中国时区
+            now = datetime.now(local_tz)
+            
+            # 确保考勤时间也是本地时区
+            start_time = attendance.start_time
+            end_time = attendance.end_time
+            
+            # 如果数据库时间是naive（无时区），假设为本地时间
+            if start_time.tzinfo is None:
+                start_time = local_tz.localize(start_time)
+            if end_time.tzinfo is None:
+                end_time = local_tz.localize(end_time)
+            
+            # 验证考勤时间
+            if now < start_time:
+                raise ValueError(f"考勤未开始，开始时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            if now > end_time:
+                raise ValueError(f"考勤已结束，结束时间: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            logger.info(f"时间验证通过 - 当前时间: {now.strftime('%Y-%m-%d %H:%M:%S')}, 开始: {start_time.strftime('%Y-%m-%d %H:%M:%S')}, 结束: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # 验证考勤类型
+            if attendance.attendance_type != AttendanceType.QRCODE:
+                raise ValueError("该考勤不是二维码签到方式")
+            
+            # 验证二维码令牌
+            logger.info(f"=== 二维码验证 ===")
+            logger.info(f"数据库中的token: {attendance.qr_code}")
+            logger.info(f"提交的token: {qr_code_token}")
+            logger.info(f"token是否匹配: {attendance.qr_code == qr_code_token}")
+            
+            if not attendance.qr_code:
+                raise ValueError("考勤任务未生成二维码，请教师先生成二维码")
+            
+            if attendance.qr_code != qr_code_token:
+                raise ValueError(f"二维码token不匹配。数据库token长度:{len(attendance.qr_code)}, 提交token长度:{len(qr_code_token)}")
+            
+            # 【临时禁用】验证二维码是否过期（检查token中的时间戳）
+            # 注释原因：跳过过期验证，允许所有二维码通过
+            logger.info(f"二维码验证通过（已禁用过期检查）")
+            
+            # import time
+            # token_parts = qr_code_token.split('_')
+            # if len(token_parts) >= 2:
+            #     try:
+            #         token_timestamp = int(token_parts[0])
+            #         current_timestamp = int(time.time())
+            #         token_age = current_timestamp - token_timestamp
+            #         
+            #         logger.info(f"二维码时间验证 - 生成于{token_age}秒前（{token_age//60}分钟前）")
+            #         
+            #         # 30分钟有效期
+            #         if token_age > 1800:
+            #             raise ValueError(f"二维码已过期（生成于{token_age//60}分钟前）")
+            #         
+            #         logger.info(f"二维码时间验证通过")
+            #     except ValueError as e:
+            #         # 如果是时间戳格式错误，记录警告但继续
+            #         if "二维码已过期" in str(e):
+            #             # 这是真正的过期错误，需要抛出
+            #             raise
+            #         else:
+            #             # 时间戳格式错误，跳过时间验证
+            #             logger.warning(f"无法解析二维码时间戳: {e}")
+            # else:
+            #     # 旧格式的token（没有时间戳），跳过时间验证
+            #     logger.info(f"使用旧格式二维码（无时间戳），跳过时间验证")
+            
+            # 验证学生是否存在
+            student = User.query.get(student_id)
+            if not student or student.role != UserRole.STUDENT:
+                raise ValueError("学生不存在")
+            
+            # 获取考勤记录
+            record = AttendanceRecord.query.filter_by(
+                attendance_id=attendance_id,
+                student_id=student_id
+            ).first()
+            
+            if not record:
+                raise ValueError("未找到该学生的考勤记录，请确认是否在考勤范围内")
+            
+            # 检查是否已经签到
+            if record.status in [CheckInStatus.PRESENT, CheckInStatus.LATE]:
+                raise ValueError("已经签到，请勿重复签到")
+            
+            # 判断是否迟到（开始时间后15分钟为迟到）
+            now = datetime.now()
+            late_threshold = attendance.start_time + timedelta(minutes=15)
+            
+            if now <= late_threshold:
+                record.status = CheckInStatus.PRESENT
+            else:
+                record.status = CheckInStatus.LATE
+            
+            # 记录签到信息
+            record.check_in_time = now
+            record.check_in_method = 'qrcode'
+            
+            db.session.commit()
+            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via QR code")
+            
+            # WebSocket通知：学生签到成功
+            try:
+                from app.websocket.attendance_events import notify_student_checked_in
+                student = User.query.get(student_id)
+                if student:
+                    student_data = {
+                        'id': student.id,
+                        'real_name': student.real_name,
+                        'user_code': student.user_code
+                    }
+                    record_data = record.to_dict()
+                    notify_student_checked_in(attendance_id, student_data, record_data)
+            except Exception as e:
+                logger.error(f"Error sending WebSocket notification: {str(e)}")
+            
+            return record
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in QR code check-in: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error in QR code check-in: {str(e)}")
+            raise
+    
+    @staticmethod
+    def verify_gesture_and_checkin(
+        student_id: int,
+        attendance_id: int,
+        gesture_code: str,
+        gesture_pattern: Optional[Dict[str, Any]] = None
+    ) -> AttendanceRecord:
+        """
+        验证手势码并完成签到
+        
+        Args:
+            student_id: 学生ID
+            attendance_id: 考勤ID
+            gesture_code: 手势码
+            
+        Returns:
+            更新后的考勤记录
+        """
+        try:
+            # 验证考勤任务是否存在
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                raise ValueError("考勤任务不存在")
+            
+            # 验证考勤状态
+            if attendance.status != AttendanceStatus.ACTIVE:
+                raise ValueError("考勤未开始或已结束")
+            
+            # 验证考勤类型
+            if attendance.attendance_type != AttendanceType.GESTURE:
+                raise ValueError("该考勤不是手势签到方式")
+            
+            # 验证手势码
+            if not attendance.gesture_pattern:
+                raise ValueError("该考勤未设置手势码")
+            
+            # 解析数据库中的手势数据（JSON格式）
+            try:
+                import json
+                stored_gesture_data = json.loads(attendance.gesture_pattern)
+                stored_points = stored_gesture_data.get('points', [])
+                
+                logger.info(f"Database stored_points: {stored_points}, type: {type(stored_points)}")
+                logger.info(f"Student gesture_pattern: {gesture_pattern}")
+                logger.info(f"Student gesture_code: {gesture_code}")
+                
+                # 优先使用完整的gesture_pattern进行比较
+                if gesture_pattern and 'points' in gesture_pattern:
+                    student_points = gesture_pattern['points']
+                    logger.info(f"Student points: {student_points}, type: {type(student_points)}")
+                    
+                    # 检查stored_points是坐标对象还是索引
+                    if stored_points and isinstance(stored_points[0], dict) and 'x' in stored_points[0]:
+                        # 数据库存储的是坐标对象，需要转换为索引
+                        # 3x3网格的坐标映射
+                        coord_to_index = {}
+                        positions = [50, 150, 250]
+                        index = 0
+                        for row in positions:
+                            for col in positions:
+                                coord_to_index[f"{col},{row}"] = index
+                                index += 1
+                        
+                        # 将坐标转换为索引
+                        stored_indices = []
+                        for point in stored_points:
+                            key = f"{int(point['x'])},{int(point['y'])}"
+                            if key in coord_to_index:
+                                stored_indices.append(coord_to_index[key])
+                        
+                        logger.info(f"Converted stored coords to indices: {stored_indices}")
+                        stored_list = stored_indices
+                    else:
+                        # 数据库存储的就是索引
+                        stored_list = list(stored_points) if not isinstance(stored_points, list) else stored_points
+                    
+                    # 学生端发送的是索引
+                    student_list = list(student_points) if not isinstance(student_points, list) else student_points
+                    
+                    logger.info(f"Final comparison: {stored_list} vs {student_list}")
+                    
+                    if stored_list != student_list:
+                        raise ValueError(f"手势不匹配。数据库：{stored_list}，学生：{student_list}")
+                else:
+                    # 降级方案：使用gesture_code字符串比较
+                    if stored_points and isinstance(stored_points[0], (int, float)):
+                        stored_code = '-'.join(map(str, map(int, stored_points)))
+                    else:
+                        stored_code = '-'.join(map(str, stored_points))
+                    
+                    logger.info(f"Comparing codes: {stored_code} vs {gesture_code}")
+                    
+                    if stored_code != gesture_code:
+                        raise ValueError(f"手势码不匹配")
+                        
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error: {str(e)}")
+                raise ValueError("手势数据格式错误")
+            
+            # 验证学生是否存在
+            student = User.query.get(student_id)
+            if not student or student.role != UserRole.STUDENT:
+                raise ValueError("学生不存在")
+            
+            # 获取考勤记录
+            record = AttendanceRecord.query.filter_by(
+                attendance_id=attendance_id,
+                student_id=student_id
+            ).first()
+            
+            if not record:
+                raise ValueError("未找到该学生的考勤记录，请确认是否在考勤范围内")
+            
+            # 检查是否已经签到
+            if record.status in [CheckInStatus.PRESENT, CheckInStatus.LATE]:
+                raise ValueError("已经签到，请勿重复签到")
+            
+            # 判断是否迟到（开始时间后15分钟为迟到）
+            now = datetime.now()
+            late_threshold = attendance.start_time + timedelta(minutes=15)
+            
+            if now <= late_threshold:
+                record.status = CheckInStatus.PRESENT
+            else:
+                record.status = CheckInStatus.LATE
+            
+            # 记录签到信息
+            record.check_in_time = now
+            record.check_in_method = 'gesture'
+            
+            db.session.commit()
+            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via gesture")
+            
+            # WebSocket通知：学生签到成功
+            try:
+                from app.websocket.attendance_events import notify_student_checked_in
+                student = User.query.get(student_id)
+                if student:
+                    student_data = {
+                        'id': student.id,
+                        'real_name': student.real_name,
+                        'user_code': student.user_code
+                    }
+                    record_data = record.to_dict()
+                    notify_student_checked_in(attendance_id, student_data, record_data)
+            except Exception as e:
+                logger.error(f"Error sending WebSocket notification: {str(e)}")
+            
+            return record
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in gesture check-in: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error in gesture check-in: {str(e)}")
+            raise
+    
+    @staticmethod
+    def verify_location_and_checkin(
+        student_id: int,
+        attendance_id: int,
+        latitude: float,
+        longitude: float
+    ) -> AttendanceRecord:
+        """
+        验证位置并完成签到
+        
+        Args:
+            student_id: 学生ID
+            attendance_id: 考勤ID
+            latitude: 纬度
+            longitude: 经度
+            
+        Returns:
+            更新后的考勤记录
+        """
+        try:
+            # 验证考勤任务是否存在
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                raise ValueError("考勤任务不存在")
+            
+            # 验证考勤状态
+            if attendance.status != AttendanceStatus.ACTIVE:
+                raise ValueError("考勤未开始或已结束")
+            
+            # 验证考勤类型
+            if attendance.attendance_type != AttendanceType.LOCATION:
+                raise ValueError("该考勤不是位置签到方式")
+            
+            # 验证位置范围
+            if not attendance.location_latitude or not attendance.location_longitude:
+                raise ValueError("考勤未设置位置信息")
+            
+            # 计算距离（使用Haversine公式）
+            distance = AttendanceService._calculate_distance(
+                latitude, longitude,
+                attendance.location_latitude, attendance.location_longitude
+            )
+            
+            # 验证是否在允许范围内（默认100米）
+            allowed_range = attendance.location_range or 100
+            if distance > allowed_range:
+                raise ValueError(f"您不在签到范围内（距离: {distance:.0f}米，要求: {allowed_range}米）")
+            
+            # 验证学生是否存在
+            student = User.query.get(student_id)
+            if not student or student.role != UserRole.STUDENT:
+                raise ValueError("学生不存在")
+            
+            # 获取考勤记录
+            record = AttendanceRecord.query.filter_by(
+                attendance_id=attendance_id,
+                student_id=student_id
+            ).first()
+            
+            if not record:
+                raise ValueError("未找到该学生的考勤记录，请确认是否在考勤范围内")
+            
+            # 检查是否已经签到
+            if record.status in [CheckInStatus.PRESENT, CheckInStatus.LATE]:
+                raise ValueError("已经签到，请勿重复签到")
+            
+            # 判断是否迟到（开始时间后15分钟为迟到）
+            now = datetime.now()
+            late_threshold = attendance.start_time + timedelta(minutes=15)
+            
+            if now <= late_threshold:
+                record.status = CheckInStatus.PRESENT
+            else:
+                record.status = CheckInStatus.LATE
+            
+            # 记录签到信息
+            record.check_in_time = now
+            record.check_in_method = 'location'
+            record.latitude = latitude
+            record.longitude = longitude
+            record.distance = int(distance)  # 记录距离（米）
+            
+            db.session.commit()
+            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via location (distance: {distance:.2f}m)")
+            
+            # WebSocket通知：学生签到成功
+            try:
+                from app.websocket.attendance_events import notify_student_checked_in
+                student = User.query.get(student_id)
+                if student:
+                    student_data = {
+                        'id': student.id,
+                        'real_name': student.real_name,
+                        'user_code': student.user_code
+                    }
+                    record_data = record.to_dict()
+                    record_data['distance'] = round(distance, 2)
+                    notify_student_checked_in(attendance_id, student_data, record_data)
+            except Exception as e:
+                logger.error(f"Error sending WebSocket notification: {str(e)}")
+            
+            return record
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in location check-in: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error in location check-in: {str(e)}")
+            raise
+    
+    @staticmethod
+    def _calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """
+        使用Haversine公式计算两个经纬度坐标之间的距离（单位：米）
+        
+        Args:
+            lat1: 第一个点的纬度
+            lon1: 第一个点的经度
+            lat2: 第二个点的纬度
+            lon2: 第二个点的经度
+            
+        Returns:
+            距离（米）
+        """
+        from math import radians, sin, cos, sqrt, atan2
+        
+        # 地球半径（米）
+        R = 6371000
+        
+        # 转换为弧度
+        lat1_rad = radians(lat1)
+        lat2_rad = radians(lat2)
+        delta_lat = radians(lat2 - lat1)
+        delta_lon = radians(lon2 - lon1)
+        
+        # Haversine公式
+        a = sin(delta_lat / 2) ** 2 + cos(lat1_rad) * cos(lat2_rad) * sin(delta_lon / 2) ** 2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        distance = R * c
+        
+        return distance

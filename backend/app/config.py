@@ -19,7 +19,8 @@ class Config:
     }
     
     # CORS配置
-    CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
+    # 开发环境允许所有来源（支持手机访问）
+    CORS_ORIGINS = '*'  # 允许所有来源
     
     # Session配置
     PERMANENT_SESSION_LIFETIME = 86400 * 7  # 7天

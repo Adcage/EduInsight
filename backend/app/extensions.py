@@ -11,3 +11,8 @@ def init_extensions(app):
     cors.init_app(app, 
                   supports_credentials=True, 
                   origins=app.config['CORS_ORIGINS'])
+    
+    # 初始化WebSocket
+    from app.websocket import init_socketio
+    socketio = init_socketio(app)
+    return socketio

@@ -126,6 +126,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// 配置 dayjs 使用本地时区
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { 
     BookOutlined, 
     UserOutlined, 
@@ -170,6 +176,27 @@ const currentCourseClassCount = computed(() => {
 
 const currentCourseTaskCount = computed(() => currentCourseTasks.value.length);
 
+// 根据时间计算任务状态
+const calculateTaskStatus = (startTime: string, endTime: string, backendStatus: string): AttendanceTask['status'] => {
+    const now = dayjs(); // 使用本地时间
+    const start = dayjs(startTime); // 解析为本地时间
+    const end = dayjs(endTime); // 解析为本地时间
+    
+    // 如果后端已经标记为已结束，则保持已结束状态
+    if (backendStatus === 'ended') {
+        return 'ended';
+    }
+    
+    // 根据当前时间判断状态
+    if (now.isBefore(start)) {
+        return 'pending'; // 未开始
+    } else if (now.isAfter(end)) {
+        return 'ended'; // 已结束
+    } else {
+        return 'active'; // 进行中
+    }
+};
+
 // 加载课程考勤任务
 const loadCourseTasks = async (courseId: number) => {
     try {
@@ -182,23 +209,42 @@ const loadCourseTasks = async (courseId: number) => {
         if (res && res.attendances) {
             console.log('Attendances:', res.attendances);
             // 转换后端数据格式为前端格式
-            tasks.value = res.attendances.map((att: any) => ({
-                id: String(att.id),
-                courseId: String(att.course_id),
-                courseName: currentCourse.value?.name || '',
-                className: '', // 需要从班级信息获取
-                teacherId: String(att.teacher_id),
-                title: att.title,
-                type: att.attendance_type,
-                requireLocation: att.attendance_type === 'location',
-                status: att.status,
-                totalStudents: att.total_students || 0,
-                attendedCount: att.present_count || 0,
-                createTime: att.created_at,
-                startTime: att.start_time,
-                endTime: att.end_time
-            }));
-            console.log('Mapped tasks:', tasks.value);
+            tasks.value = res.attendances.map((att: any) => {
+                const startTime = att.start_time;
+                const endTime = att.end_time;
+                const backendStatus = att.status;
+                
+                // 使用本地时间计算实际状态
+                const actualStatus = calculateTaskStatus(startTime, endTime, backendStatus);
+                
+                return {
+                    id: String(att.id),
+                    courseId: String(att.course_id),
+                    courseName: currentCourse.value?.name || '',
+                    className: '', // 需要从班级信息获取
+                    teacherId: String(att.teacher_id),
+                    title: att.title,
+                    type: att.attendance_type,
+                    requireLocation: att.attendance_type === 'location',
+                    status: actualStatus, // 使用计算后的状态
+                    totalStudents: att.total_students || 0,
+                    attendedCount: att.present_count || 0,
+                    createTime: att.created_at,
+                    startTime: startTime,
+                    endTime: endTime,
+                    // 手势签到数据
+                    gesture_pattern: att.gesture_pattern,
+                    gesturePattern: att.gesture_pattern,
+                    // 位置签到数据
+                    location: att.location_name,
+                    latitude: att.location_latitude,
+                    longitude: att.location_longitude,
+                    radius: att.location_radius,
+                    // 二维码数据
+                    qrCode: att.qr_code
+                };
+            });
+            console.log('Mapped tasks with calculated status:', tasks.value);
         } else {
             console.warn('No attendances in response:', res);
         }

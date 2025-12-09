@@ -362,6 +362,51 @@
         </div>
       </div>
     </a-modal>
+
+    <!-- QR Code Modal -->
+    <a-modal
+      v-model:open="showQRCodeModal"
+      title="二维码签到"
+      :footer="null"
+      :maskClosable="false"
+      width="500px"
+    >
+      <div class="flex flex-col items-center py-6">
+        <p class="text-gray-500 mb-6 text-center">学生需要扫描此二维码完成签到</p>
+        
+        <!-- QR Code Display -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <canvas ref="qrcodeCanvas" class="mx-auto"></canvas>
+        </div>
+
+        <!-- QR Code Info -->
+        <div class="mt-6 w-full space-y-3 text-sm">
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+            <span class="text-gray-600">二维码状态:</span>
+            <span class="font-medium text-green-600">{{ qrCodeStatus }}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+            <span class="text-gray-600">有效期:</span>
+            <span class="font-medium text-gray-900">{{ qrCodeValidTime }}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+            <span class="text-gray-600">刷新倒计时:</span>
+            <span class="font-medium text-blue-600">{{ qrCodeCountdown }}秒</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 flex space-x-4 w-full">
+          <a-button block @click="refreshQRCode" :loading="qrCodeRefreshing">
+            <template #icon><ReloadOutlined /></template>
+            手动刷新
+          </a-button>
+          <a-button type="primary" block @click="confirmQRCode">
+            确认使用
+          </a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -382,8 +427,10 @@ import {
   EnvironmentOutlined,
   QrcodeOutlined,
   UserOutlined,
-  AimOutlined
+  AimOutlined,
+  ReloadOutlined
 } from '@ant-design/icons-vue';
+import QRCode from 'qrcode';
 
 // Mock Data Imports
 import { MOCK_CLASSES } from '../mock';
@@ -713,6 +760,101 @@ const confirmGesture = () => {
   message.success('手势密码设置成功');
 };
 
+// --- 6. QR Code Logic ---
+const showQRCodeModal = ref(false);
+const qrcodeCanvas = ref<HTMLCanvasElement | null>(null);
+const qrCodeData = ref('');
+const qrCodeStatus = ref('已生成');
+const qrCodeValidTime = ref('5分钟');
+const qrCodeCountdown = ref(300); // 5分钟倒计时
+const qrCodeRefreshing = ref(false);
+let qrCodeTimer: number | null = null;
+
+const generateQRCode = async () => {
+  try {
+    // 生成唯一的二维码数据
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    const qrData = {
+      type: 'attendance_qrcode',
+      timestamp,
+      token: randomStr,
+      courseId: props.courseId,
+      // 后续会在发布时替换为实际的考勤ID
+      attendanceId: 'pending'
+    };
+    
+    qrCodeData.value = JSON.stringify(qrData);
+    
+    // 等待canvas元素渲染
+    await nextTick();
+    
+    if (qrcodeCanvas.value) {
+      await QRCode.toCanvas(qrcodeCanvas.value, qrCodeData.value, {
+        width: 280,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      qrCodeStatus.value = '已生成';
+      startQRCodeCountdown();
+    }
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+    message.error('二维码生成失败');
+  }
+};
+
+const startQRCodeCountdown = () => {
+  // 清除之前的计时器
+  if (qrCodeTimer) {
+    clearInterval(qrCodeTimer);
+  }
+  
+  qrCodeCountdown.value = 300; // 重置为5分钟
+  
+  qrCodeTimer = window.setInterval(() => {
+    qrCodeCountdown.value--;
+    
+    if (qrCodeCountdown.value <= 0) {
+      // 自动刷新二维码
+      refreshQRCode();
+    }
+  }, 1000);
+};
+
+const refreshQRCode = async () => {
+  qrCodeRefreshing.value = true;
+  try {
+    await generateQRCode();
+    message.success('二维码已刷新');
+  } finally {
+    qrCodeRefreshing.value = false;
+  }
+};
+
+const confirmQRCode = () => {
+  showQRCodeModal.value = false;
+  message.success('二维码签到方式已确认');
+};
+
+// 清理定时器
+watch(showQRCodeModal, (val) => {
+  if (!val && qrCodeTimer) {
+    clearInterval(qrCodeTimer);
+    qrCodeTimer = null;
+  }
+});
+
+onUnmounted(() => {
+  if (qrCodeTimer) {
+    clearInterval(qrCodeTimer);
+  }
+});
+
 // --- 5. Location Selection Logic ---
 const showLocationModal = ref(false);
 const locationSearchKeyword = ref('');
@@ -753,11 +895,17 @@ const initMap = () => {
       city: '全国', // city code or name
     });
 
-    // Init Geolocation
+    // Init Geolocation - 高精度配置
     geolocation = new AMap.Geolocation({
-      enableHighAccuracy: true,
-      timeout: 10000,
-      zoomToAccuracy: true,
+      enableHighAccuracy: true,    // 启用高精度定位
+      timeout: 15000,               // 增加超时时间到15秒
+      maximumAge: 0,                // 不使用缓存位置
+      convert: true,                // 自动转换为高德坐标
+      noIpLocate: 0,                // 优先使用精确定位，IP定位作为备选
+      noGeoLocation: 0,             // 优先使用浏览器定位
+      GeoLocationFirst: true,       // 优先使用浏览器定位而非IP定位
+      zoomToAccuracy: true,         // 定位成功后调整地图视野到定位点
+      useNative: true,              // 优先使用浏览器原生定位
       position: 'RB'
     });
   })
@@ -893,6 +1041,9 @@ const selectAttendanceMethod = (method: any) => {
     resetGesture();
   } else if (method.id === 'location') {
     showLocationModal.value = true;
+  } else if (method.id === 'qrcode') {
+    showQRCodeModal.value = true;
+    generateQRCode();
   }
   
   attendanceMethods.value.forEach(m => m.selected = false);

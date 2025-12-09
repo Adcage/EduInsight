@@ -1,10 +1,55 @@
 from functools import wraps
 from flask import session, jsonify
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Dict, Any
 from app.models.user import UserRole
 import logging
+import jwt
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+def verify_token(token: str) -> Optional[Dict[str, Any]]:
+    """
+    验证JWT token并返回用户信息
+    
+    Args:
+        token: JWT token字符串
+        
+    Returns:
+        用户信息字典或None
+    """
+    try:
+        # 从环境变量或配置获取密钥
+        from flask import current_app
+        secret_key = current_app.config.get('SECRET_KEY', 'your-secret-key')
+        
+        # 解码token
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+        
+        # 检查是否过期
+        if 'exp' in payload:
+            exp_timestamp = payload['exp']
+            if datetime.utcnow().timestamp() > exp_timestamp:
+                logger.warning("Token expired")
+                return None
+        
+        # 返回用户信息
+        return {
+            'user_id': payload.get('user_id'),
+            'username': payload.get('username'),
+            'role': payload.get('role'),
+            'real_name': payload.get('real_name')
+        }
+        
+    except jwt.ExpiredSignatureError:
+        logger.warning("Token expired")
+        return None
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Invalid token: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Error verifying token: {str(e)}")
+        return None
 
 def login_required(f: Callable) -> Callable:
     """

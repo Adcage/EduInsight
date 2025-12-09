@@ -167,6 +167,26 @@ class AttendanceCheckInModel(CamelCaseModel):
     face_image: Optional[str] = Field(None, description="人脸照片Base64")
 
 
+class QRCodeGenerateRequestModel(CamelCaseModel):
+    """二维码生成请求模型"""
+    token: str = Field(..., description="前端生成的token", min_length=1)
+
+
+class QRCodeGenerateResponseModel(CamelCaseModel):
+    """二维码生成响应模型"""
+    qr_code_token: str = Field(..., description="二维码令牌")
+    qr_code_data: str = Field(..., description="二维码数据（JSON字符串）")
+    expires_at: str = Field(..., description="过期时间")
+    valid_duration: int = Field(..., description="有效时长（秒）")
+
+
+class QRCodeVerifyModel(CamelCaseModel):
+    """二维码验证模型"""
+    qr_code_token: str = Field(..., description="二维码令牌", min_length=1)
+    attendance_id: int = Field(..., description="考勤ID", ge=1)
+    student_number: Optional[str] = Field(None, description="学号（不登录时必填）", min_length=1)
+
+
 class AttendanceRecordCreateModel(CamelCaseModel):
     """考勤记录创建模型（教师手动签到）"""
     student_id: int = Field(..., description="学生ID", ge=1)

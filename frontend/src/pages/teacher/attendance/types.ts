@@ -1,7 +1,7 @@
 export type AttendanceStatus = 'pending' | 'active' | 'ended';
 export type CheckInStatus = 'present' | 'absent' | 'late' | 'leave';
 
-export type AttendanceType = 'qrcode' | 'manual' | 'face' | 'location';
+export type AttendanceType = 'qrcode' | 'gesture' | 'manual' | 'face' | 'location';
 
 export interface AttendanceTask {
   id: string;

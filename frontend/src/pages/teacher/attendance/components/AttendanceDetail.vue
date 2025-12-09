@@ -56,18 +56,35 @@
           
           <!-- 1. 二维码签到 -->
           <a-card v-if="task.type === 'qrcode'" title="扫码签到" class="info-card">
+            <template #extra>
+              <a-button type="link" size="small" @click="refreshQRCode" :loading="qrCodeRefreshing">
+                <ReloadOutlined /> 刷新
+              </a-button>
+            </template>
             <div class="card-content-wrapper center">
               <div class="qr-code-box">
-                <!-- 模拟二维码，实际可用 a-qrcode 或 qrcode.vue -->
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=EduInsightAttendance" alt="CheckIn QR" />
+                <canvas ref="qrcodeCanvas" class="mx-auto"></canvas>
               </div>
               <p class="hint">请学生扫描二维码签到</p>
-              <p class="code-text">签到码: {{ task.qrCode || '----' }}</p>
+              <div class="qr-info mt-4 space-y-2">
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-600">状态:</span>
+                  <span class="font-medium text-green-600">{{ qrCodeStatus }}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-600">有效期:</span>
+                  <span class="font-medium">{{ qrCodeValidTime }}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-600">刷新倒计时:</span>
+                  <span class="font-medium text-blue-600">{{ qrCodeCountdown }}秒</span>
+                </div>
+              </div>
             </div>
           </a-card>
 
           <!-- 2. 手势签到 -->
-          <a-card v-else-if="task.type === 'manual'" title="手势签到" class="info-card">
+          <a-card v-else-if="task.type === 'gesture'" title="手势签到" class="info-card">
             <div class="card-content-wrapper center">
               <div class="gesture-preview-box relative">
                 <svg class="absolute inset-0 w-full h-full pointer-events-none z-10">
@@ -151,14 +168,15 @@
 import { ref, onMounted, computed, nextTick, onUnmounted, watch } from 'vue';
 import { message } from 'ant-design-vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
+import QRCode from 'qrcode';
 import {
   UserOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  ReloadOutlined
 } from '@ant-design/icons-vue';
 import type { AttendanceTask, AttendanceRecord, CheckInStatus } from '../types';
-import { MOCK_RECORDS } from '../mock';
 import { getAttendanceRecords, updateAttendanceRecord } from '@/api/attendanceController';
 
 // Ensure Security Config
@@ -181,6 +199,15 @@ const emits = defineEmits<Emits>();
 const records = ref<AttendanceRecord[]>([]);
 let map: any = null;
 
+// QR Code related
+const qrcodeCanvas = ref<HTMLCanvasElement | null>(null);
+const qrCodeData = ref('');
+const qrCodeStatus = ref('已生成');
+const qrCodeValidTime = ref('5分钟');
+const qrCodeCountdown = ref(300);
+const qrCodeRefreshing = ref(false);
+let qrCodeTimer: number | null = null;
+
 // --- Statistics ---
 const presentCount = computed(() => records.value.filter(r => r.status === 'present').length);
 const lateCount = computed(() => records.value.filter(r => r.status === 'late').length);
@@ -188,12 +215,78 @@ const absentCount = computed(() => records.value.filter(r => r.status === 'absen
 
 const shouldShowLeftCol = computed(() => {
   if (props.task.status !== 'active') return false;
-  return ['qrcode', 'manual', 'location'].includes(props.task.type);
+  return ['qrcode', 'gesture', 'location'].includes(props.task.type);
 });
 
 // --- Gesture Logic ---
-// Mock gesture path if not in task
-const gesturePath = computed(() => (props.task as any).gesturePath || [0, 1, 2, 5, 8]); 
+// 从 task 中获取手势数据
+const gesturePath = computed(() => {
+  const task = props.task as any;
+  
+  console.log('Task type:', task.type);
+  console.log('Task gesture_pattern:', task.gesture_pattern);
+  console.log('Task gesturePattern:', task.gesturePattern);
+  
+  // 如果有 gesturePath 字段，直接使用
+  if (task.gesturePath && Array.isArray(task.gesturePath)) {
+    console.log('Using gesturePath:', task.gesturePath);
+    return task.gesturePath;
+  }
+  
+  // 如果有 gesture_pattern 字段，解析它
+  if (task.gesture_pattern || task.gesturePattern) {
+    const pattern = task.gesture_pattern || task.gesturePattern;
+    console.log('Pattern:', pattern);
+    
+    // 如果是字符串，尝试解析为 JSON
+    let gestureData = pattern;
+    if (typeof pattern === 'string') {
+      try {
+        gestureData = JSON.parse(pattern);
+      } catch (e) {
+        console.error('Failed to parse gesture pattern:', e);
+        return [0, 1, 2, 5, 8]; // 默认值
+      }
+    }
+    
+    // 如果有 points 数组，将坐标转换为索引
+    if (gestureData && gestureData.points && Array.isArray(gestureData.points)) {
+      return convertPointsToIndices(gestureData.points);
+    }
+    
+    // 如果直接是索引数组
+    if (Array.isArray(gestureData)) {
+      return gestureData;
+    }
+  }
+  
+  // 默认值
+  return [0, 1, 2, 5, 8];
+});
+
+// 将坐标点转换为 3x3 网格索引
+const convertPointsToIndices = (points: Array<{x: number, y: number}>): number[] => {
+  const indices: number[] = [];
+  const gridSize = 3;
+  const cellWidth = 100; // 假设画布宽度 300，每个格子 100
+  const cellHeight = 100;
+  
+  points.forEach(point => {
+    // 计算点所在的网格位置
+    const col = Math.floor(point.x / cellWidth);
+    const row = Math.floor(point.y / cellHeight);
+    
+    // 转换为索引 (0-8)
+    const index = row * gridSize + col;
+    
+    // 确保索引在有效范围内
+    if (index >= 0 && index < 9 && !indices.includes(index)) {
+      indices.push(index);
+    }
+  });
+  
+  return indices;
+}; 
 
 const gesturePoints = computed(() => {
   const points = [];
@@ -224,6 +317,77 @@ const gestureLines = computed(() => {
 });
 
 const isPointInPath = (index: number) => gesturePath.value.includes(index);
+
+// --- QR Code Logic ---
+const generateQRCode = async () => {
+  try {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    
+    // 调用后端API，将前端生成的token存储到数据库
+    const { generateQRCodeToken } = await import('@/api/attendanceController');
+    await generateQRCodeToken({
+      attendanceId: Number(props.task.id),
+      token: randomStr
+    });
+    
+    console.log('已将token同步到后端:', randomStr);
+    
+    const qrData = {
+      type: 'attendance_qrcode',
+      timestamp,
+      token: randomStr,
+      attendanceId: props.task.id
+    };
+    
+    qrCodeData.value = JSON.stringify(qrData);
+    
+    await nextTick();
+    
+    if (qrcodeCanvas.value) {
+      await QRCode.toCanvas(qrcodeCanvas.value, qrCodeData.value, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      qrCodeStatus.value = '已生成';
+      startQRCodeCountdown();
+    }
+  } catch (error) {
+    console.error('Failed to generate QR code:', error);
+    message.error('二维码生成失败');
+  }
+};
+
+const startQRCodeCountdown = () => {
+  if (qrCodeTimer) {
+    clearInterval(qrCodeTimer);
+  }
+  
+  qrCodeCountdown.value = 300;
+  
+  qrCodeTimer = window.setInterval(() => {
+    qrCodeCountdown.value--;
+    
+    if (qrCodeCountdown.value <= 0) {
+      refreshQRCode();
+    }
+  }, 1000);
+};
+
+const refreshQRCode = async () => {
+  qrCodeRefreshing.value = true;
+  try {
+    await generateQRCode();
+    message.success('二维码已刷新');
+  } finally {
+    qrCodeRefreshing.value = false;
+  }
+};
 
 // --- Map Logic ---
 const initMap = () => {
@@ -285,34 +449,41 @@ onMounted(async () => {
           taskId: String(record.attendance_id),
           studentId: String(record.student_id),
           studentName: record.student_name || '未知学生',
-          studentNumber: record.student_code || '',
-          studentCode: record.student_code || '',
-          studentAvatar: record.student_avatar || '',
-          status: record.status,
+          studentNumber: record.student_code || 'N/A',
+          studentCode: record.student_code || 'N/A',
+          avatar: record.student_avatar || '',
+          status: record.status as CheckInStatus,
           checkInTime: record.check_in_time || '',
           remark: record.remark || ''
         }));
         console.log('Mapped records:', records.value);
+      } else {
+        // 没有记录
+        records.value = [];
+        console.log('No records found');
       }
     } else {
-      // 如果ID不是数字，使用mock数据（兼容旧数据）
-      records.value = MOCK_RECORDS.filter(r => r.taskId === props.task.id || props.task.id !== 't1');
-      if (records.value.length === 0) {
-        records.value = MOCK_RECORDS;
-      }
+      // ID不是数字，清空记录
+      records.value = [];
+      console.warn('Invalid task ID:', props.task.id);
     }
   } catch (error) {
     console.error('获取考勤记录失败:', error);
-    // 失败时使用mock数据
-    records.value = MOCK_RECORDS.filter(r => r.taskId === props.task.id || props.task.id !== 't1');
-    if (records.value.length === 0) {
-      records.value = MOCK_RECORDS;
-    }
+    // 失败时清空记录，不使用mock数据
+    records.value = [];
+    message.error('获取考勤记录失败，请刷新重试');
   }
 
   if (shouldShowLeftCol.value && props.task.type === 'location') {
     nextTick(() => {
       initMap();
+    });
+  }
+  
+  // 如果是二维码签到，生成二维码
+  if (shouldShowLeftCol.value && props.task.type === 'qrcode') {
+    nextTick(() => {
+      generateQRCode();
     });
   }
 });
@@ -321,6 +492,11 @@ onUnmounted(() => {
   if (map) {
     map.destroy();
     map = null;
+  }
+  
+  if (qrCodeTimer) {
+    clearInterval(qrCodeTimer);
+    qrCodeTimer = null;
   }
 });
 
@@ -420,10 +596,15 @@ const toggleStatus = async (record: AttendanceRecord) => {
     }
     
     .qr-code-box {
-      img {
+      canvas {
         width: 200px;
         height: 200px;
       }
+    }
+    
+    .qr-info {
+      width: 100%;
+      max-width: 300px;
     }
 
     .gesture-preview-box {

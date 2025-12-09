@@ -6,6 +6,7 @@ from app.api.category_api import category_api_bp
 from app.api.tag_api import tag_api_bp
 from app.api.chunked_upload_api import chunked_upload_api_bp
 from app.api.attendance_api import attendance_api_bp
+from app.api.student_attendance_api import student_attendance_api_bp
 from app.api.course_api import course_api_bp
 from app.api.class_api import class_api_bp
 
@@ -18,6 +19,7 @@ __all__ = [
     'tag_api_bp',
     'chunked_upload_api_bp',
     'attendance_api_bp',
+    'student_attendance_api_bp',
     'course_api_bp',
     'class_api_bp',
 ]
@@ -31,6 +33,7 @@ api_blueprints = [
     tag_api_bp,
     chunked_upload_api_bp,
     attendance_api_bp,
+    student_attendance_api_bp,
     course_api_bp,
     class_api_bp,
 ]

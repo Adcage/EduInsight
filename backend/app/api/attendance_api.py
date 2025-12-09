@@ -6,13 +6,14 @@ from app.schemas.attendance_schemas import (
     AttendanceCreateModel, AttendanceUpdateModel, AttendanceResponseModel,
     AttendanceDetailResponseModel, AttendanceListResponseModel,
     AttendanceQueryModel, AttendancePathModel, AttendanceRecordListResponseModel,
-    AttendanceRecordUpdateModel, AttendanceRecordPathModel, AttendanceRecordResponseModel
+    AttendanceRecordUpdateModel, AttendanceRecordPathModel, AttendanceRecordResponseModel,
+    QRCodeGenerateRequestModel, QRCodeGenerateResponseModel, QRCodeVerifyModel
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.attendance_service import AttendanceService
 from app.utils.auth_decorators import (
     login_required, teacher_required, teacher_or_admin_required,
-    log_user_action, get_current_user_info
+    log_user_action, get_current_user_info, student_required
 )
 from app.models.attendance import AttendanceType
 import logging
@@ -553,5 +554,181 @@ class AttendanceAPI:
             logger.error(f"Error updating attendance record: {str(e)}")
             return {
                 'message': '更新考勤记录失败',
+                'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.post('/<int:attendance_id>/qrcode/generate',
+                           summary="生成二维码令牌",
+                           tags=[attendance_tag],
+                           responses={
+                               200: QRCodeGenerateResponseModel,
+                               400: MessageResponseModel,
+                               404: MessageResponseModel,
+                               401: MessageResponseModel,
+                               403: MessageResponseModel
+                           })
+    @teacher_required
+    @log_user_action("生成二维码")
+    def generate_qrcode(path: AttendancePathModel, body: QRCodeGenerateRequestModel):
+        """
+        生成二维码令牌
+        
+        为指定的考勤任务生成新的二维码令牌。
+        只有创建考勤的教师可以生成二维码。
+        接收前端生成的token并存储到数据库。
+        """
+        try:
+            AttendanceAPI.log_request(f"GENERATE_QRCODE: {path.attendance_id}, token={body.token}")
+            
+            # 获取当前用户信息
+            current_user = get_current_user_info()
+            teacher_id = current_user['user_id']
+            
+            # 生成二维码（使用前端传来的token）
+            result = AttendanceService.generate_qrcode_token(
+                attendance_id=path.attendance_id,
+                teacher_id=teacher_id,
+                token=body.token  # 使用前端生成的token
+            )
+            
+            return result, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e)
+            }, 400
+        except Exception as e:
+            logger.error(f"Error generating QR code: {str(e)}")
+            return {
+                'message': '生成二维码失败',
+                'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.post('/<int:attendance_id>/qrcode/refresh',
+                           summary="刷新二维码令牌",
+                           tags=[attendance_tag],
+                           responses={
+                               200: QRCodeGenerateResponseModel,
+                               400: MessageResponseModel,
+                               404: MessageResponseModel,
+                               401: MessageResponseModel,
+                               403: MessageResponseModel
+                           })
+    @teacher_required
+    @log_user_action("刷新二维码")
+    def refresh_qrcode(path: AttendancePathModel):
+        """
+        刷新二维码令牌
+        
+        使旧的二维码令牌失效，生成新的令牌。
+        只有创建考勤的教师可以刷新二维码。
+        """
+        try:
+            AttendanceAPI.log_request(f"REFRESH_QRCODE: {path.attendance_id}")
+            
+            # 获取当前用户信息
+            current_user = get_current_user_info()
+            teacher_id = current_user['user_id']
+            
+            # 刷新二维码
+            result = AttendanceService.refresh_qrcode_token(
+                attendance_id=path.attendance_id,
+                teacher_id=teacher_id
+            )
+            
+            return result, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e)
+            }, 400
+        except Exception as e:
+            logger.error(f"Error refreshing QR code: {str(e)}")
+            return {
+                'message': '刷新二维码失败',
+                'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.post('/qrcode/verify',
+                           summary="验证二维码并签到",
+                           tags=[attendance_tag],
+                           responses={
+                               200: AttendanceRecordResponseModel,
+                               400: MessageResponseModel,
+                               404: MessageResponseModel,
+                               401: MessageResponseModel
+                           })
+    @log_user_action("二维码签到")
+    def verify_qrcode_checkin(body: QRCodeVerifyModel):
+        """
+        验证二维码并完成签到
+        
+        学生扫描二维码后，验证二维码有效性并记录签到。
+        系统会自动判断是否迟到（开始时间后15分钟为迟到）。
+        支持两种方式：
+        1. 已登录用户：从登录信息获取学生ID
+        2. 未登录用户：通过student_number查找学生ID
+        """
+        try:
+            logger.info(f"=== 收到签到请求 ===")
+            logger.info(f"attendance_id: {body.attendance_id}")
+            logger.info(f"qr_code_token: {body.qr_code_token}")
+            logger.info(f"qr_code_token长度: {len(body.qr_code_token)}")
+            logger.info(f"student_number: {body.student_number}")
+            
+            AttendanceAPI.log_request(f"VERIFY_QRCODE_CHECKIN: attendance={body.attendance_id}, student_number={body.student_number}")
+            
+            # 获取学生ID
+            student_id = None
+            
+            # 方式1：尝试从登录信息获取
+            try:
+                current_user = get_current_user_info()
+                if current_user and current_user.get('user_id'):
+                    student_id = current_user['user_id']
+                    logger.info(f"从登录信息获取学生ID: {student_id}")
+            except:
+                pass
+            
+            # 方式2：如果没有登录，使用学号查找
+            if not student_id and body.student_number:
+                from app.models.user import User
+                # 注意：User模型中学号字段是 user_code，不是 student_number
+                student = User.query.filter_by(user_code=body.student_number).first()
+                if not student:
+                    raise ValueError(f"学号 {body.student_number} 不存在")
+                student_id = student.id
+                logger.info(f"通过学号 {body.student_number} 查找到学生ID: {student_id}")
+            
+            # 如果两种方式都没有获取到student_id
+            if not student_id:
+                raise ValueError("请提供学号或登录后再签到")
+            
+            # 验证二维码并签到
+            record = AttendanceService.verify_qrcode_and_checkin(
+                student_id=student_id,
+                attendance_id=body.attendance_id,
+                qr_code_token=body.qr_code_token
+            )
+            
+            return {
+                'message': '签到成功',
+                'data': record.to_dict()
+            }, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e)
+            }, 400
+        except Exception as e:
+            logger.error(f"Error in QR code check-in: {str(e)}")
+            return {
+                'message': '签到失败',
                 'error': str(e)
             }, 500
