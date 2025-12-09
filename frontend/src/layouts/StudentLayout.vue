@@ -1,0 +1,167 @@
+<template>
+  <a-layout class="student-layout">
+    <!-- 全局头部 -->
+    <GlobalHeader />
+
+    <a-layout class="main-layout">
+      <!-- 左侧菜单栏 -->
+      <LayoutSider
+        title="学生"
+        :menu-items="menuItems"
+        @collapse-change="handleCollapseChange"
+      />
+
+      <!-- 主内容区域 -->
+      <a-layout class="content-layout" :class="{ 'collapsed-layout': collapsed }">
+        <a-layout-content class="content">
+          <div class="content-wrapper">
+            <router-view v-slot="{ Component }">
+              <transition name="fade" mode="out-in">
+                <component :is="Component" />
+              </transition>
+            </router-view>
+          </div>
+        </a-layout-content>
+      </a-layout>
+    </a-layout>
+
+    <!-- 全局底部 -->
+    <GlobalFooter />
+  </a-layout>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  DashboardOutlined,
+  BookOutlined,
+  FolderOutlined,
+  CalendarOutlined,
+  BarChartOutlined,
+  MessageOutlined,
+} from '@ant-design/icons-vue'
+import GlobalHeader from '@/layouts/GlobalHeader.vue'
+import GlobalFooter from '@/layouts/GlobalFooter.vue'
+import LayoutSider from '@/components/layout/LayoutSider.vue'
+import type { MenuItem } from '@/components/layout/LayoutSider.vue'
+
+// 响应式数据
+const collapsed = ref(false)
+
+// 学生菜单配置（参考需求文档 4.2）
+const menuItems: MenuItem[] = [
+  {
+    key: 'dashboard',
+    label: '学生首页',
+    icon: DashboardOutlined,
+    path: '/student/dashboard',
+  },
+  {
+    key: 'courses',
+    label: '我的课程',
+    icon: BookOutlined,
+    path: '/student/courses',
+  },
+  {
+    key: 'materials',
+    label: '资料中心',
+    icon: FolderOutlined,
+    path: '/student/materials',
+  },
+  {
+    key: 'attendance',
+    label: '我的考勤',
+    icon: CalendarOutlined,
+    path: '/student/attendance',
+  },
+  {
+    key: 'grades',
+    label: '我的成绩',
+    icon: BarChartOutlined,
+    path: '/student/grades',
+  },
+  {
+    key: 'interaction',
+    label: '课堂互动',
+    icon: MessageOutlined,
+    path: '/student/interaction',
+  },
+]
+
+// 方法
+const handleCollapseChange = (isCollapsed: boolean) => {
+  collapsed.value = isCollapsed
+}
+</script>
+
+<style scoped>
+.student-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 主布局样式 */
+.main-layout {
+  flex: 1;
+  display: flex;
+  position: relative;
+  margin-top: 64px; /* GlobalHeader 的高度 */
+}
+
+/* 内容区域样式 */
+.content-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 240px; /* 侧边栏展开时的宽度 */
+  transition: margin-left 0.2s;
+}
+
+/* 侧边栏收起时调整内容区域左边距 */
+.content-layout.collapsed-layout {
+  margin-left: 80px; /* 侧边栏收起时的宽度 */
+}
+
+.content {
+  flex: 1;
+  background: var(--background-color, #f5f5f5);
+  padding: var(--spacing-lg, 24px);
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 600px;
+}
+
+/* 页面切换动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .content {
+    padding: var(--spacing-md, 16px);
+  }
+
+  .content-wrapper {
+    padding: var(--spacing-md, 16px);
+  }
+}
+</style>

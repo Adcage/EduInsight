@@ -35,7 +35,6 @@ import GlobalFooter from '@/layouts/GlobalFooter.vue'
   flex: 1;
   background-color: var(--background-color);
   padding: var(--spacing-lg);
-  margin-top: 64px;
 }
 
 .content-wrapper {

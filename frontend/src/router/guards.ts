@@ -16,18 +16,37 @@ export function setupRouterGuards(router: Router): void {
 
     // 检查路由是否需要认证
     const requiresAuth = to.meta.requiresAuth as boolean | undefined
+    const requiredRoles = to.meta.roles as string[] | undefined
 
     // 如果需要认证但未登录
     if (requiresAuth && !authStore.isLoggedIn) {
       // 保存目标路径用于登录后返回
       authStore.setRedirectPath(to.fullPath)
       
-      // 重定向到登录页，并在 query 中保存重定向路径
+      // 重定向到登录页,并在 query 中保存重定向路径
       next({
         path: '/login',
         query: { redirect: to.fullPath }
       })
       return
+    }
+
+    // 检查角色权限
+    if (requiresAuth && authStore.isLoggedIn && requiredRoles && requiredRoles.length > 0) {
+      const userRole = authStore.user?.role
+      
+      // 如果用户角色不在允许的角色列表中
+      if (!userRole || !requiredRoles.includes(userRole)) {
+        console.warn(`访问被拒绝: 用户角色 ${userRole} 无权访问 ${to.path}`)
+        
+        // 重定向到用户角色对应的默认主页
+        const defaultHome = getDefaultHomeByRole(userRole)
+        next({
+          path: defaultHome,
+          replace: true
+        })
+        return
+      }
     }
 
     // 如果已登录访问登录页

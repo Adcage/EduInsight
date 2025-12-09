@@ -3,15 +3,11 @@
     <div class="header-content">
       <div class="logo">
         <router-link to="/">
-          <h1>Learning Study</h1>
+          <h1>慧教通</h1>
         </router-link>
       </div>
 
-      <a-menu
-        v-model:selectedKeys="selectedKeys"
-        mode="horizontal"
-        class="header-menu"
-      >
+      <a-menu v-model:selectedKeys="selectedKeys" mode="horizontal" class="header-menu">
         <a-menu-item key="home">
           <router-link to="/">首页</router-link>
         </a-menu-item>
@@ -46,7 +42,7 @@ watch(
       selectedKeys.value = ['about']
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 </script>
 
@@ -61,11 +57,11 @@ watch(
   border-bottom: 1px solid var(--header-border);
   padding: 0 var(--spacing-xl);
   height: 64px;
-  line-height: 64px;
 }
 
 .header-content {
   max-width: 100%;
+  height: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -77,6 +73,7 @@ watch(
   font-size: var(--heading-4-size);
   color: var(--primary-color);
   font-weight: 600;
+  line-height: normal;
 }
 
 .logo a {
@@ -89,6 +86,22 @@ watch(
   margin: 0 var(--spacing-xl);
   border-bottom: none;
   background: transparent;
+  line-height: 64px;
+  height: 64px;
+}
+
+.header-menu :deep(.ant-menu-item) {
+  line-height: 64px;
+  height: 64px;
+  border-bottom: 2px solid transparent;
+}
+
+.header-menu :deep(.ant-menu-item-selected) {
+  border-bottom-color: var(--primary-color);
+}
+
+.header-menu :deep(.ant-menu-item::after) {
+  display: none;
 }
 
 .header-actions {

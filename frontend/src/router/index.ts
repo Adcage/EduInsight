@@ -30,4 +30,3 @@ const router = createRouter({
 setupRouterGuards(router)
 
 export default router
-
