@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 开发前端Vue页面时的代码规范
+description: 开发前端Vue页面时必须遵守的代码规范
 ---
 
 # 前端开发代码规范
