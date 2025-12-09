@@ -171,9 +171,9 @@ import {
   UploadOutlined,
   CheckOutlined
 } from '@ant-design/icons-vue'
-import { materialApiUploadPost } from '@/api/materialController'
-import { categoryApiGet } from '@/api/categoryController'
-import { tagApiGet } from '@/api/tagController'
+import { materialApiUploadPost } from '@/api/materialController.ts'
+import { categoryApiGet } from '@/api/categoryController.ts'
+import { tagApiGet } from '@/api/tagController.ts'
 import ClassificationPanel from '@/components/materials/ClassificationPanel.vue'
 import TagSuggestions from '@/components/materials/TagSuggestions.vue'
 
@@ -243,8 +243,11 @@ const rules = {
 const loadCategories = async () => {
   try {
     const response = await categoryApiGet()
-    if (response.code === 200 && response.data) {
-      categoryTree.value = buildCategoryTree(response.data)
+    // axios拦截器返回完整的response对象,需要通过response.data访问后端数据
+    // 后端返回的数据结构是 { code: 200, data: { categories: [...] } }
+    if (response.data?.code === 200 && response.data?.data) {
+      const categories = response.data.data.categories || []
+      categoryTree.value = buildCategoryTree(categories)
     }
   } catch (error: any) {
     console.error('加载分类失败:', error)
@@ -281,8 +284,10 @@ const buildCategoryTree = (categories: any[]): any[] => {
 const loadTags = async () => {
   try {
     const response = await tagApiGet()
-    if (response.code === 200 && response.data) {
-      existingTags.value = response.data || []
+    // axios拦截器返回完整的response对象,需要通过response.data访问后端数据
+    // 后端返回的数据结构是 { code: 200, data: { tags: [...], total, page, per_page, pages } }
+    if (response.data?.code === 200 && response.data?.data) {
+      existingTags.value = response.data.data.tags || []
     }
   } catch (error: any) {
     console.error('加载标签失败:', error)
@@ -375,8 +380,7 @@ const handleSubmit = async () => {
     uploading.value = false
 
     // 解析响应数据 - axios 返回 response.data，后端返回 { code, message, data }
-    const responseData = response.data || response
-    const materialData = responseData.data || responseData
+    const materialData = response.data?.data || response.data
     
     // 获取上传的资料ID，触发智能分类
     if (materialData?.id) {

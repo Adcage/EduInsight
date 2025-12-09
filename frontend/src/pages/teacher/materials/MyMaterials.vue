@@ -350,8 +350,8 @@ import {
   materialApiIntMaterialIdDownloadGet,
   materialApiIntMaterialIdDelete,
   materialApiIntMaterialIdPut
-} from '@/api/materialController'
-import { categoryApiGet } from '@/api/categoryController'
+} from '@/api/materialController.ts'
+import { categoryApiGet } from '@/api/categoryController.ts'
 
 const router = useRouter()
 

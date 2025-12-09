@@ -111,7 +111,7 @@ import MaterialCard from '@/components/materials/MaterialCard.vue'
 import {
   materialApiGet,
   materialApiIntMaterialIdDownloadGet
-} from '@/api/materialController'
+} from '@/api/materialController.ts'
 
 const router = useRouter()
 
@@ -297,10 +297,12 @@ onMounted(() => {
 <style scoped>
 .material-center-enhanced {
   min-height: 100vh;
+  padding: 0;
+  margin: 0;
 }
 
 .content-container {
-  padding: 16px;
+  padding: 0 16px 16px 16px;
 }
 
 .category-tree-wrapper {
