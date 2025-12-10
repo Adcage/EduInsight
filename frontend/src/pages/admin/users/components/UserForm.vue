@@ -1,18 +1,6 @@
 <template>
-  <a-modal
-    v-model:open="visible"
-    :title="isEdit ? '编辑用户' : '添加用户'"
-    :width="600"
-    @ok="handleSubmit"
-    @cancel="handleCancel"
-  >
-    <a-form
-      ref="formRef"
-      :model="formData"
-      :rules="rules"
-      :label-col="{ span: 6 }"
-      :wrapper-col="{ span: 16 }"
-    >
+  <a-modal v-model:open="visible" :title="isEdit ? '编辑用户' : '添加用户'" :width="600" @ok="handleSubmit" @cancel="handleCancel">
+    <a-form ref="formRef" :model="formData" :rules="rules" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
       <a-form-item label="用户名" name="username">
         <a-input v-model:value="formData.username" placeholder="请输入用户名" />
       </a-form-item>
@@ -31,9 +19,9 @@
 
       <a-form-item label="角色" name="role">
         <a-select v-model:value="formData.role" placeholder="请选择角色">
-          <a-select-option value="admin">管理员</a-select-option>
-          <a-select-option value="teacher">教师</a-select-option>
-          <a-select-option value="student">学生</a-select-option>
+          <a-select-option value="ADMIN">管理员</a-select-option>
+          <a-select-option value="TEACHER">教师</a-select-option>
+          <a-select-option value="STUDENT">学生</a-select-option>
         </a-select>
       </a-form-item>
 
@@ -41,24 +29,12 @@
         <a-input v-model:value="formData.phone" placeholder="请输入手机号(可选)" />
       </a-form-item>
 
-      <a-form-item
-        v-if="formData.role === 'student'"
-        label="班级ID"
-        name="classId"
-      >
-        <a-input-number
-          v-model:value="formData.classId"
-          placeholder="请输入班级ID"
-          :min="1"
-          style="width: 100%"
-        />
+      <a-form-item v-if="formData.role?.toLowerCase() === 'student'" label="班级ID" name="classId">
+        <a-input-number v-model:value="formData.classId" placeholder="请输入班级ID" :min="1" style="width: 100%" />
       </a-form-item>
 
       <a-form-item v-if="!isEdit" label="密码" name="password">
-        <a-input-password
-          v-model:value="formData.password"
-          placeholder="请输入密码(至少6位)"
-        />
+        <a-input-password v-model:value="formData.password" placeholder="请输入密码(至少6位)" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -92,7 +68,7 @@ const formData = reactive({
   userCode: '',
   realName: '',
   email: '',
-  role: 'student',
+  role: 'STUDENT',
   phone: '',
   classId: undefined as number | undefined,
   password: '',
@@ -104,26 +80,18 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 50, message: '用户名长度为3-50个字符', trigger: 'blur' },
   ],
-  userCode: [
-    { required: true, message: '请输入工号/学号', trigger: 'blur' },
-  ],
-  realName: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' },
-  ],
+  userCode: [{ required: true, message: '请输入工号/学号', trigger: 'blur' }],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
     { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' },
   ],
-  role: [
-    { required: true, message: '请选择角色', trigger: 'change' },
-  ],
-  phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号', trigger: 'blur' },
-  ],
+  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号', trigger: 'blur' }],
   classId: [
     {
       validator: (_rule: any, value: any) => {
-        if (formData.role === 'student' && !value) {
+        if (formData.role?.toLowerCase() === 'student' && !value) {
           return Promise.reject('学生角色必须指定班级ID')
         }
         return Promise.resolve()
@@ -174,7 +142,7 @@ const handleSubmit = async () => {
           email: formData.email,
           realName: formData.realName,
           phone: formData.phone || undefined,
-        }
+        },
       )
       message.success('用户更新成功')
     } else {
@@ -186,7 +154,7 @@ const handleSubmit = async () => {
         email: formData.email,
         role: formData.role,
         phone: formData.phone || undefined,
-        classId: formData.role === 'student' ? formData.classId : undefined,
+        classId: formData.role?.toLowerCase() === 'student' ? formData.classId : undefined,
         password: formData.password,
       })
       message.success('用户创建成功')
@@ -209,7 +177,6 @@ const handleCancel = () => {
   visible.value = false
 }
 
-
 // 监听用户数据变化
 watch(
   () => props.userData,
@@ -229,7 +196,7 @@ watch(
       resetForm()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 </script>
 

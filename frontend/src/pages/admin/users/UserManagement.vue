@@ -4,22 +4,11 @@
       <!-- 顶部操作栏 -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <a-input-search
-            v-model:value="searchKeyword"
-            placeholder="搜索用户名、姓名、邮箱或工号"
-            style="width: 300px"
-            @search="handleSearch"
-          />
-          <a-select
-            v-model:value="filterRole"
-            placeholder="角色筛选"
-            style="width: 120px; margin-left: 12px"
-            allow-clear
-            @change="handleSearch"
-          >
-            <a-select-option value="admin">管理员</a-select-option>
-            <a-select-option value="teacher">教师</a-select-option>
-            <a-select-option value="student">学生</a-select-option>
+          <a-input-search v-model:value="searchKeyword" placeholder="搜索用户名、姓名、邮箱或工号" style="width: 300px" @search="handleSearch" />
+          <a-select v-model:value="filterRole" placeholder="角色筛选" style="width: 120px; margin-left: 12px" allow-clear @change="handleSearch">
+            <a-select-option value="ADMIN">管理员</a-select-option>
+            <a-select-option value="TEACHER">教师</a-select-option>
+            <a-select-option value="STUDENT">学生</a-select-option>
           </a-select>
         </div>
         <div class="toolbar-right">
@@ -31,12 +20,7 @@
             <template #icon><UploadOutlined /></template>
             批量导入
           </a-button>
-          <a-button
-            danger
-            :disabled="selectedRowKeys.length === 0"
-            @click="handleBatchDelete"
-            style="margin-left: 8px"
-          >
+          <a-button danger :disabled="selectedRowKeys.length === 0" @click="handleBatchDelete" style="margin-left: 8px">
             <template #icon><DeleteOutlined /></template>
             批量删除
           </a-button>
@@ -61,10 +45,7 @@
             </a-tag>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-badge
-              :status="record.status ? 'success' : 'error'"
-              :text="record.status ? '正常' : '禁用'"
-            />
+            <a-badge :status="record.status ? 'success' : 'error'" :text="record.status ? '正常' : '禁用'" />
           </template>
           <template v-else-if="column.key === 'phone'">
             {{ record.phone || '未绑定' }}
@@ -74,15 +55,8 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <a-space>
-              <a-button type="link" size="small" @click="handleEdit(record)">
-                编辑
-              </a-button>
-              <a-popconfirm
-                title="确定要删除该用户吗?"
-                ok-text="确定"
-                cancel-text="取消"
-                @confirm="handleDelete(record.id)"
-              >
+              <a-button type="link" size="small" @click="handleEdit(record)"> 编辑 </a-button>
+              <a-popconfirm title="确定要删除该用户吗?" ok-text="确定" cancel-text="取消" @confirm="handleDelete(record.id)">
                 <a-button type="link" danger size="small">删除</a-button>
               </a-popconfirm>
             </a-space>
@@ -92,29 +66,17 @@
     </a-card>
 
     <!-- 添加/编辑用户弹窗 -->
-    <UserForm
-      v-model:visible="formVisible"
-      :user-data="currentUser"
-      :is-edit="isEdit"
-      @success="handleFormSuccess"
-    />
+    <UserForm v-model:visible="formVisible" :user-data="currentUser" :is-edit="isEdit" @success="handleFormSuccess" />
 
     <!-- Excel导入弹窗 -->
-    <ExcelImportModal
-      v-model:visible="importVisible"
-      @success="handleImportSuccess"
-    />
+    <ExcelImportModal v-model:visible="importVisible" @success="handleImportSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
-import {
-  PlusOutlined,
-  UploadOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons-vue'
+import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { userApiListGet, userApiIntUserIdDeactivatePost } from '@/api/userController'
 import UserForm from './components/UserForm.vue'
 import ExcelImportModal from './components/ExcelImportModal.vue'
@@ -231,7 +193,7 @@ const fetchUserList = async () => {
       role: filterRole.value,
       search: searchKeyword.value || undefined,
     })
-    console.log(response);
+    console.log(response)
     if (response) {
       userList.value = response.data?.users || []
       pagination.total = response.data?.total || 0
