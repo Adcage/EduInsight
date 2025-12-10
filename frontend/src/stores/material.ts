@@ -23,8 +23,18 @@ export interface Material {
     downloadCount: number
     viewCount: number
     keywords?: string
+    autoClassified: boolean
     createdAt: string
     updatedAt: string
+    // Response fields from backend (MaterialDetailResponseModel)
+    categoryName?: string
+    uploaderName?: string
+    tags?: Array<{
+        id: number
+        name: string
+        usageCount?: number
+    }>
+    // Legacy or alternative fields (kept for compatibility if needed)
     category?: {
         id: number
         name: string
@@ -33,10 +43,6 @@ export interface Material {
         id: number
         realName: string
     }
-    tags?: Array<{
-        id: number
-        name: string
-    }>
 }
 
 export interface MaterialListParams {

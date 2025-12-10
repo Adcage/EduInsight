@@ -278,7 +278,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {message, Modal} from 'ant-design-vue'
 import {
@@ -302,6 +302,15 @@ const router = useRouter()
 // Stores
 const materialStore = useMaterialStore()
 const categoryStore = useCategoryStore()
+
+// Debug: Log material data when it changes
+watch(() => materialStore.currentMaterial, (newVal) => {
+  if (newVal) {
+    console.log('Material Details Loaded:', newVal)
+    console.log('Category Name:', newVal.categoryName)
+    console.log('Tags:', newVal.tags)
+  }
+}, { immediate: true })
 
 // 状态
 const previewModalVisible = ref(false)
@@ -600,7 +609,7 @@ const handleEdit = () => {
     title: material.value.title,
     description: material.value.description || '',
     categoryId: material.value.categoryId || null,
-    tags: material.value.tags?.map((tag: any) => tag.name) || []
+    tags: material.value.tags?.map((tag) => tag.name) || []
   }
 
   editModalVisible.value = true

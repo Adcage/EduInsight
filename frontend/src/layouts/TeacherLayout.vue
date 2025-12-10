@@ -65,12 +65,6 @@ const menuItems: MenuItem[] = [
     path: '/teacher/profile',
   },
   {
-    key: 'courses',
-    label: '课程管理',
-    icon: BookOutlined,
-    path: '/teacher/courses',
-  },
-  {
     key: 'materials',
     label: '资料管理',
     icon: FolderOutlined,

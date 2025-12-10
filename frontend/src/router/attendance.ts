@@ -53,10 +53,6 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false // 扫码后可能未登录，允许访问
     }
   },
-  {
-    path: '/',
-    redirect: '/attendance'
-  }
 ]
 
 export default routes
