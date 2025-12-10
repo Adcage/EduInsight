@@ -1,23 +1,23 @@
 <template>
   <a-layout class="admin-layout">
     <!-- 全局头部 -->
-    <GlobalHeader />
+    <GlobalHeader/>
 
     <a-layout class="main-layout">
       <!-- 左侧菜单栏 -->
       <LayoutSider
-        title="管理员"
-        :menu-items="menuItems"
-        @collapse-change="handleCollapseChange"
+          :menu-items="menuItems"
+          title="管理员"
+          @collapse-change="handleCollapseChange"
       />
 
       <!-- 主内容区域 -->
-      <a-layout class="content-layout" :class="{ 'collapsed-layout': collapsed }">
+      <a-layout :class="{ 'collapsed-layout': collapsed }" class="content-layout">
         <a-layout-content class="content">
           <div class="content-wrapper">
             <router-view v-slot="{ Component }">
-              <transition name="fade" mode="out-in">
-                <component :is="Component" />
+              <transition mode="out-in" name="fade">
+                <component :is="Component"/>
               </transition>
             </router-view>
           </div>
@@ -26,23 +26,17 @@
     </a-layout>
 
     <!-- 全局底部 -->
-    <GlobalFooter />
+    <GlobalFooter/>
   </a-layout>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import {
-  DashboardOutlined,
-  UserOutlined,
-  BookOutlined,
-  TeamOutlined,
-  SettingOutlined,
-} from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {ref} from 'vue'
+import {BookOutlined, DashboardOutlined, SettingOutlined, TeamOutlined, UserOutlined,} from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
+import type {MenuItem} from '@/components/layout/LayoutSider.vue'
 import LayoutSider from '@/components/layout/LayoutSider.vue'
-import type { MenuItem } from '@/components/layout/LayoutSider.vue'
 
 // 响应式数据
 const collapsed = ref(false)
@@ -50,10 +44,10 @@ const collapsed = ref(false)
 // 管理员菜单配置
 const menuItems: MenuItem[] = [
   {
-    key: 'dashboard',
-    label: '控制台',
+    key: 'profile',
+    label: '个人资料',
     icon: DashboardOutlined,
-    path: '/admin/dashboard',
+    path: '/admin/profile',
   },
   {
     key: 'users',
@@ -132,9 +126,8 @@ const handleCollapseChange = (isCollapsed: boolean) => {
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  transition: opacity 0.3s ease,
+  transform 0.3s ease;
 }
 
 .fade-enter-from {

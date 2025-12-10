@@ -1,29 +1,35 @@
 <template>
   <div class="question-page">
-    <a-page-header title="课堂提问" sub-title="发布问题、查看回答、采纳答案">
+    <a-page-header sub-title="发布问题、查看回答、采纳答案" title="课堂提问">
       <template #extra>
         <a-space>
           <a-select
-            v-model:value="courseId"
-            placeholder="选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
+              v-model:value="courseId"
+              placeholder="选择课程"
+              style="width: 200px"
+              @change="handleCourseChange"
           >
             <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
               {{ course.name }}
             </a-select-option>
           </a-select>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
-          <a-button type="primary" @click="showCreateModal" :disabled="!courseId">
-            <template #icon><PlusOutlined /></template>
+          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'"/>
+          <a-button :disabled="!courseId" type="primary" @click="showCreateModal">
+            <template #icon>
+              <PlusOutlined/>
+            </template>
             发布问题
           </a-button>
-          <a-button type="primary" @click="handleRandomCallOn" :disabled="!courseId" :loading="callOnLoading">
-            <template #icon><UserOutlined /></template>
+          <a-button :disabled="!courseId" :loading="callOnLoading" type="primary" @click="handleRandomCallOn">
+            <template #icon>
+              <UserOutlined/>
+            </template>
             随机点名
           </a-button>
-          <a-button @click="loadQuestions" :disabled="!courseId">
-            <template #icon><ReloadOutlined /></template>
+          <a-button :disabled="!courseId" @click="loadQuestions">
+            <template #icon>
+              <ReloadOutlined/>
+            </template>
             刷新
           </a-button>
         </a-space>
@@ -43,17 +49,17 @@
 
       <!-- 问题列表 -->
       <a-spin :spinning="loading">
-        <a-empty v-if="!courseId" description="请先选择课程" />
-        <a-empty v-else-if="filteredQuestions.length === 0 && !loading" description="暂无问题" />
+        <a-empty v-if="!courseId" description="请先选择课程"/>
+        <a-empty v-else-if="filteredQuestions.length === 0 && !loading" description="暂无问题"/>
 
         <a-row v-else :gutter="[16, 16]">
-          <a-col v-for="question in filteredQuestions" :key="question.id" :xs="24" :sm="24" :md="12" :lg="8">
+          <a-col v-for="question in filteredQuestions" :key="question.id" :lg="8" :md="12" :sm="24" :xs="24">
             <a-card :hoverable="true" class="question-card">
               <!-- 问题内容 -->
               <h3 class="question-content">{{ question.content }}</h3>
 
               <!-- 统计信息 -->
-              <a-space direction="vertical" :size="8" style="width: 100%; margin-top: 16px">
+              <a-space :size="8" direction="vertical" style="width: 100%; margin-top: 16px">
                 <div class="question-info">
                   <span class="info-label">回答数：</span>
                   <span class="info-value">{{ question.answer_count || 0 }}</span>
@@ -72,30 +78,33 @@
 
               <!-- 操作按钮 -->
               <div class="question-actions">
-                <a-space direction="vertical" style="width: 100%" :size="8">
+                <a-space :size="8" direction="vertical" style="width: 100%">
                   <a-space style="width: 100%">
-                    <a-button type="primary" size="small" @click="viewAnswers(question)">
-                      <EyeOutlined /> 查看回答
+                    <a-button size="small" type="primary" @click="viewAnswers(question)">
+                      <EyeOutlined/>
+                      查看回答
                     </a-button>
 
-                    <a-badge :count="getQuestionBarrageCount(question.id)" :overflow-count="99" :offset="[-5, 5]">
+                    <a-badge :count="getQuestionBarrageCount(question.id)" :offset="[-5, 5]" :overflow-count="99">
                       <a-button size="small" @click="viewQuestionBarrages(question)">
-                        <MessageOutlined /> 弹幕
+                        <MessageOutlined/>
+                        弹幕
                       </a-button>
                     </a-badge>
 
 
                   </a-space>
 
-                  <a-button 
-                    v-if="question.status === 'pending'" 
-                    type="link" 
-                    danger 
-                    size="small" 
-                    block
-                    @click="closeQuestion(question)"
+                  <a-button
+                      v-if="question.status === 'pending'"
+                      block
+                      danger
+                      size="small"
+                      type="link"
+                      @click="closeQuestion(question)"
                   >
-                    <StopOutlined /> 关闭问题
+                    <StopOutlined/>
+                    关闭问题
                   </a-button>
                 </a-space>
               </div>
@@ -107,47 +116,47 @@
 
     <!-- 发布问题对话框 -->
     <a-modal
-      v-model:open="createModalVisible"
-      title="发布问题"
-      width="600px"
-      :confirm-loading="createLoading"
-      @ok="handleCreateQuestion"
+        v-model:open="createModalVisible"
+        :confirm-loading="createLoading"
+        title="发布问题"
+        width="600px"
+        @ok="handleCreateQuestion"
     >
       <a-form ref="createFormRef" :model="questionForm" :rules="questionRules" layout="vertical">
         <a-form-item label="问题内容" name="content">
           <a-textarea
-            v-model:value="questionForm.content"
-            placeholder="请输入问题内容，例如：请分享你在本节课中学到的最重要的知识点"
-            :rows="4"
-            :maxlength="500"
-            show-count
+              v-model:value="questionForm.content"
+              :maxlength="500"
+              :rows="4"
+              placeholder="请输入问题内容，例如：请分享你在本节课中学到的最重要的知识点"
+              show-count
           />
         </a-form-item>
 
         <a-form-item>
-          <a-checkbox v-model:checked="questionForm.isAnonymous"> 匿名提问 </a-checkbox>
+          <a-checkbox v-model:checked="questionForm.isAnonymous"> 匿名提问</a-checkbox>
         </a-form-item>
 
         <a-alert
-          message="提示"
-          description="学生的回答将自动转换为弹幕，在大屏幕上实时展示"
-          type="info"
-          show-icon
+            description="学生的回答将自动转换为弹幕，在大屏幕上实时展示"
+            message="提示"
+            show-icon
+            type="info"
         />
       </a-form>
     </a-modal>
 
     <!-- 随机点名动画对话框 -->
     <a-modal
-      v-model:open="callOnModalVisible"
-      title="随机点名"
-      width="600px"
-      :footer="null"
-      :closable="!isRolling"
-      :maskClosable="false"
+        v-model:open="callOnModalVisible"
+        :closable="!isRolling"
+        :footer="null"
+        :maskClosable="false"
+        title="随机点名"
+        width="600px"
     >
       <div class="call-on-container">
-        <div class="student-display" :class="{ rolling: isRolling }">
+        <div :class="{ rolling: isRolling }" class="student-display">
           <div class="student-card">
             <a-avatar :size="120" :style="{ backgroundColor: '#1890ff', fontSize: '48px' }">
               {{ currentDisplayStudent?.real_name?.charAt(0) || '?' }}
@@ -164,28 +173,28 @@
 
         <div class="action-buttons">
           <a-button
-            v-if="!isRolling && !selectedStudent"
-            type="primary"
-            size="large"
-            @click="startRolling"
-            block
+              v-if="!isRolling && !selectedStudent"
+              block
+              size="large"
+              type="primary"
+              @click="startRolling"
           >
             开始抽取
           </a-button>
           <a-button
-            v-if="isRolling"
-            type="primary"
-            size="large"
-            @click="stopRolling"
-            block
+              v-if="isRolling"
+              block
+              size="large"
+              type="primary"
+              @click="stopRolling"
           >
             停止
           </a-button>
           <a-space v-if="selectedStudent && !isRolling" style="width: 100%">
-            <a-button size="large" @click="resetCallOn" block>
+            <a-button block size="large" @click="resetCallOn">
               重新抽取
             </a-button>
-            <a-button type="primary" size="large" @click="confirmCallOn" block>
+            <a-button block size="large" type="primary" @click="confirmCallOn">
               确认点名
             </a-button>
           </a-space>
@@ -194,17 +203,17 @@
     </a-modal>
 
     <!-- 回答列表对话框 -->
-    <a-modal v-model:open="answersModalVisible" title="学生回答" width="900px" :footer="null">
+    <a-modal v-model:open="answersModalVisible" :footer="null" title="学生回答" width="900px">
       <div v-if="currentQuestion">
         <a-alert
-          :message="`共收到 ${answers.length} 个回答`"
-          type="success"
-          show-icon
-          style="margin-bottom: 16px"
+            :message="`共收到 ${answers.length} 个回答`"
+            show-icon
+            style="margin-bottom: 16px"
+            type="success"
         />
 
         <a-spin :spinning="answersLoading">
-          <a-empty v-if="answers.length === 0 && !answersLoading" description="暂无回答" />
+          <a-empty v-if="answers.length === 0 && !answersLoading" description="暂无回答"/>
 
           <a-list v-else :data-source="answers" :pagination="false">
             <template #renderItem="{ item, index }">
@@ -220,10 +229,12 @@
                     <a-space>
                       <span>学生 {{ item.user_id }}</span>
                       <a-tag v-if="item.is_accepted" color="green">
-                        <CheckCircleOutlined /> 已采纳
+                        <CheckCircleOutlined/>
+                        已采纳
                       </a-tag>
                       <a-tag color="blue">
-                        <MessageOutlined /> 已转弹幕
+                        <MessageOutlined/>
+                        已转弹幕
                       </a-tag>
                     </a-space>
                   </template>
@@ -241,14 +252,17 @@
 
                 <template #actions>
                   <a @click="likeAnswer(item)">
-                    <LikeOutlined /> 点赞 ({{ item.like_count }})
+                    <LikeOutlined/>
+                    点赞 ({{ item.like_count }})
                   </a>
-                  <a v-if="!item.is_accepted" @click="acceptAnswer(item)" style="color: #52c41a">
-                    <CheckCircleOutlined /> 采纳
+                  <a v-if="!item.is_accepted" style="color: #52c41a" @click="acceptAnswer(item)">
+                    <CheckCircleOutlined/>
+                    采纳
                   </a>
                   <a-popconfirm title="确定删除这个回答吗？" @confirm="deleteAnswer(item)">
                     <a style="color: #ff4d4f">
-                      <DeleteOutlined /> 删除
+                      <DeleteOutlined/>
+                      删除
                     </a>
                   </a-popconfirm>
                 </template>
@@ -260,74 +274,72 @@
     </a-modal>
 
 
-
     <!-- 弹幕墙抽屉 -->
     <a-drawer
-      v-model:open="barrageDrawerVisible"
-      :title="currentQuestion ? `问题弹幕：${currentQuestion.content}` : '实时弹幕墙'"
-      placement="right"
-      :width="900"
-      :body-style="{ padding: '16px' }"
+        v-model:open="barrageDrawerVisible"
+        :body-style="{ padding: '16px' }"
+        :title="currentQuestion ? `问题弹幕：${currentQuestion.content}` : '实时弹幕墙'"
+        :width="900"
+        placement="right"
     >
       <template #extra>
-        <a-statistic 
-          v-if="currentQuestion"
-          title="弹幕数" 
-          :value="getQuestionBarrageCount(currentQuestion.id)" 
-          :value-style="{ color: '#52c41a', fontSize: '14px' }"
+        <a-statistic
+            v-if="currentQuestion"
+            :value="getQuestionBarrageCount(currentQuestion.id)"
+            :value-style="{ color: '#52c41a', fontSize: '14px' }"
+            title="弹幕数"
         />
       </template>
 
       <div class="barrage-drawer-content">
         <a-alert
-          v-if="currentQuestion"
-          :message="`问题：${currentQuestion.content}`"
-          description="以下是学生回答该问题产生的弹幕"
-          type="info"
-          show-icon
-          style="margin-bottom: 16px"
+            v-if="currentQuestion"
+            :message="`问题：${currentQuestion.content}`"
+            description="以下是学生回答该问题产生的弹幕"
+            show-icon
+            style="margin-bottom: 16px"
+            type="info"
         />
 
-        <BarrageWall 
-          ref="barrageWallRef" 
-          :course-id="courseId" 
-          :height="700" 
-          :show-answer-only-prop="true"
-          :total-count="currentQuestionBarrages.length"
+        <BarrageWall
+            ref="barrageWallRef"
+            :course-id="courseId"
+            :height="700"
+            :show-answer-only-prop="true"
+            :total-count="currentQuestionBarrages.length"
         />
       </div>
     </a-drawer>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onMounted, onUnmounted, reactive, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
 import {
+  CheckCircleOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  LikeOutlined,
+  MessageOutlined,
   PlusOutlined,
   ReloadOutlined,
-  EyeOutlined,
-  InfoCircleOutlined,
   StopOutlined,
-  CheckCircleOutlined,
-  MessageOutlined,
-  LikeOutlined,
-  DeleteOutlined,
   UserOutlined,
 } from '@ant-design/icons-vue'
 import {
-  questionApiPost,
+  barrageApiGet,
+  interactionCommonCourseStudentsGet,
+  interactionCommonTeacherCoursesGet,
   questionApiGet,
   questionApiIntQuestionIdAnswersGet,
   questionApiIntQuestionIdAnswersIntAnswerIdAcceptPut,
-  questionApiIntQuestionIdAnswersIntAnswerIdLikePost,
   questionApiIntQuestionIdAnswersIntAnswerIdDelete,
+  questionApiIntQuestionIdAnswersIntAnswerIdLikePost,
   questionApiIntQuestionIdPut,
-  barrageApiGet,
-  interactionCommonTeacherCoursesGet,
-  interactionCommonCourseStudentsGet,
+  questionApiPost,
 } from '@/api/interactionController'
-import { useQuestionSocket, useBarrageSocket } from '@/composables/useSocket'
+import {useBarrageSocket, useQuestionSocket} from '@/composables/useSocket'
 import socketService from '@/utils/socket'
 import BarrageWall from '@/components/interaction/BarrageWall.vue'
 import dayjs from 'dayjs'
@@ -346,7 +358,7 @@ const loadCurrentUser = () => {
       const user = JSON.parse(userStr)
       userId.value = user.id
       userName.value = user.real_name || user.username || '教师'
-      console.log('当前用户:', { id: userId.value, name: userName.value })
+      console.log('当前用户:', {id: userId.value, name: userName.value})
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)
@@ -365,9 +377,9 @@ const {
 } = useQuestionSocket(1, userId.value, userName.value)
 
 // WebSocket - 弹幕
-const { 
-  onNewBarrage, 
-  onBarrageRemoved, 
+const {
+  onNewBarrage,
+  onBarrageRemoved,
   notifyBarrageDeleted,
   joinCourse: joinBarrageCourse,
 } = useBarrageSocket(1, userId.value, userName.value)
@@ -411,8 +423,8 @@ const questionForm = reactive({
 
 const questionRules = {
   content: [
-    { required: true, message: '请输入问题内容', trigger: 'blur' },
-    { min: 10, message: '问题内容至少10个字符', trigger: 'blur' },
+    {required: true, message: '请输入问题内容', trigger: 'blur'},
+    {min: 10, message: '问题内容至少10个字符', trigger: 'blur'},
   ],
 }
 
@@ -428,21 +440,21 @@ const filteredQuestions = computed(() => {
 const barrageStats = computed(() => {
   const total = barrages.value.length
   const answer = barrages.value.filter((b) => b.question_id !== null).length
-  return { total, answer }
+  return {total, answer}
 })
 
 // 加载教师的课程列表
 const loadCourses = async () => {
   try {
     const response = await interactionCommonTeacherCoursesGet()
-    
+
     if (response.data && response.data.data) {
       courses.value = response.data.data.courses
-      
+
       // 默认选择第一个课程
       if (courses.value.length > 0) {
         courseId.value = courses.value[0].id
-        
+
         // 加载第一个课程的数据
         loadQuestions()
         loadBarrages()
@@ -463,7 +475,7 @@ const handleCourseChange = () => {
     joinQuestionCourse(courseId.value, userId.value, userName.value)
     joinBarrageCourse(courseId.value, userId.value, userName.value)
   }
-  
+
   // 切换课程时重新加载数据
   loadQuestions()
   loadBarrages()
@@ -472,7 +484,7 @@ const handleCourseChange = () => {
 // 加载问题列表
 const loadQuestions = async () => {
   if (!courseId.value) return
-  
+
   loading.value = true
   try {
     const response = await questionApiGet({
@@ -501,7 +513,7 @@ const loadQuestions = async () => {
 // 加载弹幕列表
 const loadBarrages = async () => {
   if (!courseId.value) return
-  
+
   try {
     // 直接使用 limit 参数，不使用分页
     const response = await barrageApiGet({
@@ -516,9 +528,6 @@ const loadBarrages = async () => {
     barrages.value = []
   }
 }
-
-
-
 
 
 // 获取问题的弹幕数量
@@ -537,29 +546,29 @@ const stopBarrageLoop = () => {
 // 开始弹幕循环
 const startBarrageLoop = (questionBarrages: any[]) => {
   if (questionBarrages.length === 0) return
-  
+
   // 清除之前的定时器
   stopBarrageLoop()
-  
+
   // 立即播放一次
   if (barrageWallRef.value) {
     barrageWallRef.value.clearBarrages()
     barrageWallRef.value.addBarrages(questionBarrages)
   }
-  
+
   // 设置循环播放
   // 计算一轮弹幕播放完需要的时间（基础速度15秒 / 速度等级）
   const baseSpeed = 15
   const speed = 2 // 正常速度
   const duration = (baseSpeed / speed) * 1000 // 转换为毫秒
-  
+
   // 每隔一定时间重新播放
   barrageLoopTimer.value = setInterval(() => {
     // 检查弹幕墙是否暂停，如果暂停则跳过本次循环
     if (barrageWallRef.value && barrageDrawerVisible.value) {
       // 获取弹幕墙的暂停状态
       const isPaused = barrageWallRef.value.isPaused
-      
+
       // 只有在未暂停状态下才循环播放
       if (!isPaused) {
         barrageWallRef.value.clearBarrages()
@@ -578,21 +587,21 @@ const startBarrageLoop = (questionBarrages: any[]) => {
 const viewQuestionBarrages = (question: any) => {
   currentQuestion.value = question
   barrageDrawerVisible.value = true
-  
+
   // 停止之前的循环
   stopBarrageLoop()
-  
+
   // 清空弹幕墙
   if (barrageWallRef.value) {
     barrageWallRef.value.clearBarrages()
   }
-  
+
   // 加载该问题的弹幕
   setTimeout(() => {
     const questionBarrages = barrages.value.filter((b) => b.question_id === question.id)
-    
+
     currentQuestionBarrages.value = questionBarrages
-    
+
     if (questionBarrages.length > 0) {
       message.success(`加载了 ${questionBarrages.length} 条弹幕，将循环播放`)
       startBarrageLoop(questionBarrages)
@@ -612,10 +621,10 @@ const showCreateModal = () => {
 // 加载课程学生列表
 const loadStudents = async () => {
   if (!courseId.value) return
-  
+
   studentsLoading.value = true
   try {
-    const response = await interactionCommonCourseStudentsGet({ courseId: courseId.value })
+    const response = await interactionCommonCourseStudentsGet({courseId: courseId.value})
     students.value = response.data.data.students
   } catch (error: any) {
     message.error(error.response?.data?.message || '加载学生列表失败')
@@ -631,23 +640,23 @@ const handleRandomCallOn = async () => {
     message.warning('请先选择课程')
     return
   }
-  
+
   callOnLoading.value = true
-  
+
   try {
     // 加载学生列表
     await loadStudents()
-    
+
     if (students.value.length === 0) {
       message.warning('该课程没有学生')
       return
     }
-    
+
     // 重置状态
     isRolling.value = false
     selectedStudent.value = null
     currentDisplayStudent.value = students.value[0]
-    
+
     // 打开对话框
     callOnModalVisible.value = true
   } catch (error: any) {
@@ -660,10 +669,10 @@ const handleRandomCallOn = async () => {
 // 开始滚动
 const startRolling = () => {
   if (students.value.length === 0) return
-  
+
   isRolling.value = true
   let currentIndex = 0
-  
+
   // 每100ms切换一次学生
   rollingInterval.value = setInterval(() => {
     currentIndex = (currentIndex + 1) % students.value.length
@@ -677,9 +686,9 @@ const stopRolling = () => {
     clearInterval(rollingInterval.value)
     rollingInterval.value = null
   }
-  
+
   isRolling.value = false
-  
+
   // 随机选择最终的学生
   const randomIndex = Math.floor(Math.random() * students.value.length)
   selectedStudent.value = students.value[randomIndex]
@@ -695,14 +704,14 @@ const resetCallOn = () => {
 // 确认点名
 const confirmCallOn = () => {
   if (!selectedStudent.value || !courseId.value) return
-  
+
   // 通过WebSocket发送点名通知
   socketService.emit('call_on_student', {
     course_id: courseId.value,
     student_id: selectedStudent.value.id,
     student_name: selectedStudent.value.real_name,
   })
-  
+
   message.success(`已点名：${selectedStudent.value.real_name} (${selectedStudent.value.class_name})`)
   callOnModalVisible.value = false
 }
@@ -735,7 +744,6 @@ const handleCreateQuestion = async () => {
     createLoading.value = false
   }
 }
-
 
 
 // 查看回答
@@ -815,8 +823,8 @@ const deleteAnswer = async (answer: any) => {
 const closeQuestion = async (question: any) => {
   try {
     await questionApiIntQuestionIdPut(
-      { questionId: question.id },
-      { status: 'closed' }
+        {questionId: question.id},
+        {status: 'closed'}
     )
 
     message.success('问题已关闭')
@@ -825,7 +833,6 @@ const closeQuestion = async (question: any) => {
     message.error(error.response?.data?.message || '关闭失败')
   }
 }
-
 
 
 // 获取状态颜色
@@ -857,10 +864,10 @@ const formatTime = (time: string) => {
 onMounted(() => {
   // 先加载当前用户信息
   loadCurrentUser()
-  
+
   // 然后加载课程列表
   loadCourses()
-  
+
   // 课程加载后会自动加载问题和弹幕
   // loadQuestions()
   // loadBarrages()
@@ -926,7 +933,7 @@ onMounted(() => {
 
     // 从弹幕墙移除
     barrageWallRef.value?.removeBarrage(data.barrage_id)
-    
+
     // 如果删除的是当前问题的弹幕，更新循环播放列表
     if (currentQuestion.value && data.barrage_id) {
       const barrageIndex = currentQuestionBarrages.value.findIndex((b) => b.id === data.barrage_id)
@@ -963,11 +970,10 @@ watch(isConnected, (connected) => {
 })
 
 
-
 // 组件卸载时清理
 onUnmounted(() => {
   stopBarrageLoop()
-  
+
   // 清理点名滚动定时器
   if (rollingInterval.value) {
     clearInterval(rollingInterval.value)
@@ -975,7 +981,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .question-page {
   min-height: 100vh;
   background: var(--bg-color);
@@ -1076,7 +1082,7 @@ onUnmounted(() => {
 .student-card {
   text-align: center;
   color: white;
-  
+
   .student-name {
     font-size: 36px;
     font-weight: bold;
@@ -1084,12 +1090,12 @@ onUnmounted(() => {
     color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-  
+
   .student-info {
     font-size: 18px;
     margin: 8px 0;
     color: rgba(255, 255, 255, 0.9);
-    
+
     span {
       background: rgba(255, 255, 255, 0.2);
       padding: 4px 12px;

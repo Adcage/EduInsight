@@ -2,7 +2,9 @@
   <div class="attendance-detail-page">
     <div class="page-header">
       <a-button type="text" @click="goBack">
-        <template #icon><ArrowLeftOutlined /></template>
+        <template #icon>
+          <ArrowLeftOutlined/>
+        </template>
         返回
       </a-button>
       <h1 class="page-title">签到详情</h1>
@@ -10,12 +12,12 @@
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
-      <a-spin size="large" tip="加载中..." />
+      <a-spin size="large" tip="加载中..."/>
     </div>
 
     <!-- 详情内容 -->
     <div v-else-if="attendance" class="detail-content">
-      <a-card title="考勤信息" class="info-card">
+      <a-card class="info-card" title="考勤信息">
         <div class="info-grid">
           <div class="info-item">
             <span class="label">考勤标题:</span>
@@ -49,7 +51,7 @@
       </a-card>
 
       <!-- 我的签到记录 -->
-      <a-card v-if="myRecord" title="我的签到记录" class="record-card">
+      <a-card v-if="myRecord" class="record-card" title="我的签到记录">
         <div class="record-info">
           <div class="record-item">
             <span class="label">签到状态:</span>
@@ -68,7 +70,7 @@
 
       <!-- 签到按钮 -->
       <div v-if="canCheckIn" class="action-section">
-        <a-button type="primary" size="large" block @click="handleCheckIn">
+        <a-button block size="large" type="primary" @click="handleCheckIn">
           立即签到
         </a-button>
       </div>
@@ -76,24 +78,24 @@
 
     <!-- 签到模态框 -->
     <CheckInModal
-      v-model:visible="checkInModalVisible"
-      :attendance="attendance"
-      @success="handleCheckInSuccess"
+        v-model:visible="checkInModalVisible"
+        :attendance="attendance"
+        @success="handleCheckInSuccess"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined } from '@ant-design/icons-vue'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {ArrowLeftOutlined} from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import CheckInModal from './components/CheckInModal.vue'
-import { 
-  getStudentAttendanceDetail, 
-  type StudentAttendanceNotification,
-  AttendanceStatus 
+import {
+  AttendanceStatus,
+  getStudentAttendanceDetail,
+  type StudentAttendanceNotification
 } from '@/api/attendanceController'
 
 const route = useRoute()
@@ -239,7 +241,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .attendance-detail-page {
   min-height: 100vh;
   background: var(--background-color, #f5f5f5);

@@ -1,30 +1,30 @@
 <template>
   <div class="profile-page">
-    <a-page-header title="个人资料" sub-title="查看和管理您的账户信息" />
+    <a-page-header sub-title="查看和管理您的账户信息" title="个人资料"/>
 
     <div class="content-container">
       <!-- 骨架屏加载状态 - Requirements 1.1 -->
       <a-card v-if="loading" class="profile-card">
         <div class="avatar-section">
-          <a-skeleton-avatar :size="120" shape="circle" />
+          <a-skeleton-avatar :size="120" shape="circle"/>
           <div class="user-basic-info">
-            <a-skeleton :loading="true" active :paragraph="{ rows: 1, width: '150px' }" :title="{ width: '200px' }" />
+            <a-skeleton :loading="true" :paragraph="{ rows: 1, width: '150px' }" :title="{ width: '200px' }" active/>
           </div>
         </div>
-        <a-divider />
-        <a-skeleton :loading="true" active :paragraph="{ rows: 6 }" />
-        <a-divider />
-        <a-skeleton :loading="true" active :paragraph="{ rows: 1 }" />
+        <a-divider/>
+        <a-skeleton :loading="true" :paragraph="{ rows: 6 }" active/>
+        <a-divider/>
+        <a-skeleton :loading="true" :paragraph="{ rows: 1 }" active/>
       </a-card>
 
       <a-card v-else class="profile-card">
         <!-- Avatar Section -->
         <div class="avatar-section">
           <AvatarUpload
-            :current-avatar="userInfo?.avatar"
-            :size="120"
-            @upload-success="handleAvatarUploadSuccess"
-            @upload-error="handleAvatarUploadError"
+              :current-avatar="userInfo?.avatar"
+              :size="120"
+              @upload-success="handleAvatarUploadSuccess"
+              @upload-error="handleAvatarUploadError"
           />
           <div class="user-basic-info">
             <h2 class="username">{{ userInfo?.realName || userInfo?.username }}</h2>
@@ -32,19 +32,21 @@
           </div>
         </div>
 
-        <a-divider />
+        <a-divider/>
 
         <!-- Profile Info Section -->
         <div class="profile-info-section">
           <div class="section-header">
             <h3>基本信息</h3>
-            <a-button v-if="!isEditing" type="primary" ghost @click="startEditing">
-              <template #icon><EditOutlined /></template>
+            <a-button v-if="!isEditing" ghost type="primary" @click="startEditing">
+              <template #icon>
+                <EditOutlined/>
+              </template>
               编辑
             </a-button>
             <a-space v-else>
               <a-button @click="cancelEditing">取消</a-button>
-              <a-button type="primary" :loading="saving" @click="saveProfile">保存</a-button>
+              <a-button :loading="saving" type="primary" @click="saveProfile">保存</a-button>
             </a-space>
           </div>
 
@@ -52,56 +54,59 @@
           <a-descriptions v-if="!isEditing" :column="2" bordered>
             <a-descriptions-item label="用户名">{{ userInfo?.username }}</a-descriptions-item>
             <a-descriptions-item label="工号/学号">{{ userInfo?.userCode }}</a-descriptions-item>
-            <a-descriptions-item label="真实姓名">{{ userInfo?.realName }}</a-descriptions-item>
+            <a-descriptions-item label="真实姓名">{{ userInfo?.realName ?? '未设置' }}</a-descriptions-item>
             <a-descriptions-item label="角色">{{ formatRoleDisplay(userInfo?.role || '') }}</a-descriptions-item>
             <a-descriptions-item label="邮箱">{{ userInfo?.email }}</a-descriptions-item>
             <a-descriptions-item label="手机号">{{ userInfo?.phone || '未设置' }}</a-descriptions-item>
             <a-descriptions-item label="注册时间">{{ formatDateTime(userInfo?.createdAt) }}</a-descriptions-item>
-            <a-descriptions-item label="最后登录">{{ formatDateTime(userInfo?.lastLoginTime) || '从未登录' }}</a-descriptions-item>
+            <a-descriptions-item label="最后登录">{{
+                formatDateTime(userInfo?.lastLoginTime) || '从未登录'
+              }}
+            </a-descriptions-item>
           </a-descriptions>
 
           <!-- Edit Mode -->
-          <a-form v-else ref="editFormRef" :model="editForm" :rules="editFormRules" layout="vertical" class="edit-form">
+          <a-form v-else ref="editFormRef" :model="editForm" :rules="editFormRules" class="edit-form" layout="vertical">
             <a-row :gutter="24">
               <a-col :span="12">
                 <a-form-item label="用户名">
-                  <a-input :value="userInfo?.username" disabled />
+                  <a-input :value="userInfo?.username" disabled/>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="工号/学号">
-                  <a-input :value="userInfo?.userCode" disabled />
+                  <a-input :value="userInfo?.userCode" disabled/>
                 </a-form-item>
               </a-col>
             </a-row>
             <a-row :gutter="24">
               <a-col :span="12">
                 <a-form-item label="真实姓名" name="realName">
-                  <a-input v-model:value="editForm.realName" placeholder="请输入真实姓名" />
+                  <a-input v-model:value="editForm.realName" placeholder="请输入真实姓名"/>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="角色">
-                  <a-input :value="formatRoleDisplay(userInfo?.role || '')" disabled />
+                  <a-input :value="formatRoleDisplay(userInfo?.role || '')" disabled/>
                 </a-form-item>
               </a-col>
             </a-row>
             <a-row :gutter="24">
               <a-col :span="12">
                 <a-form-item label="邮箱" name="email">
-                  <a-input v-model:value="editForm.email" placeholder="请输入邮箱地址" />
+                  <a-input v-model:value="editForm.email" placeholder="请输入邮箱地址"/>
                 </a-form-item>
               </a-col>
               <a-col :span="12">
                 <a-form-item label="手机号" name="phone">
-                  <a-input v-model:value="editForm.phone" placeholder="请输入手机号码" />
+                  <a-input v-model:value="editForm.phone" placeholder="请输入手机号码"/>
                 </a-form-item>
               </a-col>
             </a-row>
           </a-form>
         </div>
 
-        <a-divider />
+        <a-divider/>
 
         <!-- Security Section -->
         <div class="security-section">
@@ -109,7 +114,9 @@
             <h3>账户安全</h3>
           </div>
           <a-button type="default" @click="showPasswordModal">
-            <template #icon><LockOutlined /></template>
+            <template #icon>
+              <LockOutlined/>
+            </template>
             修改密码
           </a-button>
         </div>
@@ -117,26 +124,27 @@
     </div>
 
     <!-- Password Change Modal -->
-    <PasswordChangeForm v-model:visible="passwordModalVisible" @success="handlePasswordChangeSuccess" />
+    <PasswordChangeForm v-model:visible="passwordModalVisible" @success="handlePasswordChangeSuccess"/>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 /**
  * 个人资料页面
  * 功能：展示和管理用户个人信息，支持编辑、修改密码、上传头像
  * Requirements: 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1
  */
-import { ref, reactive, computed, onMounted } from 'vue'
-import { EditOutlined, LockOutlined } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
-import type { FormInstance, Rule } from 'ant-design-vue/es/form'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {EditOutlined, LockOutlined} from '@ant-design/icons-vue'
+import {message} from 'ant-design-vue'
+import type {FormInstance, Rule} from 'ant-design-vue/es/form'
 import dayjs from 'dayjs'
 import AvatarUpload from '@/components/profile/AvatarUpload.vue'
 import PasswordChangeForm from '@/components/profile/PasswordChangeForm.vue'
-import { useAuthStore } from '@/stores/auth'
-import { userApiIntUserIdPut } from '@/api/userController'
-import { validateEmail, validatePhone, formatRoleDisplay } from '@/utils/profileValidation'
+import {useAuthStore} from '@/stores/auth'
+import {userApiIntUserIdPut} from '@/api/userController'
+import {formatRoleDisplay, validateEmail, validatePhone} from '@/utils/profileValidation'
+import { log } from 'console'
 
 // Store
 const authStore = useAuthStore()
@@ -150,6 +158,7 @@ const editFormRef = ref<FormInstance>()
 
 // User info from store
 const userInfo = computed(() => authStore.user)
+console.log(userInfo.value);
 
 // Edit form state
 const editForm = reactive({
@@ -182,9 +191,9 @@ const roleTagColor = computed(() => {
 
 // Form validation rules
 const editFormRules: Record<string, Rule[]> = {
-  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
+  realName: [{required: true, message: '请输入真实姓名', trigger: 'blur'}],
   email: [
-    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    {required: true, message: '请输入邮箱地址', trigger: 'blur'},
     {
       validator: async (_rule: Rule, value: string) => {
         const result = validateEmail(value)
@@ -276,12 +285,12 @@ const saveProfile = async () => {
     saving.value = true
 
     await userApiIntUserIdPut(
-      { userId: userInfo.value.id },
-      {
-        realName: editForm.realName,
-        email: editForm.email,
-        phone: editForm.phone || null,
-      },
+        {userId: userInfo.value.id},
+        {
+          realName: editForm.realName,
+          email: editForm.email,
+          phone: editForm.phone || null,
+        },
     )
 
     // Refresh user info
@@ -321,7 +330,7 @@ const handleAvatarUploadSuccess = async (url: string) => {
   if (!userInfo.value?.id) return
 
   try {
-    await userApiIntUserIdPut({ userId: userInfo.value.id }, { avatar: url })
+    await userApiIntUserIdPut({userId: userInfo.value.id}, {avatar: url})
     await authStore.fetchCurrentUser()
     message.success('头像更新成功')
   } catch (error: any) {
@@ -347,7 +356,6 @@ onMounted(() => {
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  background-color: #f5f5f5;
 }
 
 .content-container {

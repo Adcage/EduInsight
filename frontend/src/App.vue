@@ -1,16 +1,16 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { ConfigProvider, theme } from 'ant-design-vue'
-import { BasicLayout } from '@/layouts'
+<script lang="ts" setup>
+import {computed} from 'vue'
+import {useRoute} from 'vue-router'
+import {ConfigProvider, theme} from 'ant-design-vue'
+import {BasicLayout} from '@/layouts'
 import CommonLayout from '@/layouts/CommonLayout.vue'
 import TeacherLayout from '@/layouts/TeacherLayout.vue'
 import StudentLayout from '@/layouts/StudentLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
-import { useTheme } from '@/composables/useTheme'
+import {useTheme} from '@/composables/useTheme'
 
 // 使用主题管理
-const { isDark } = useTheme()
+const {isDark} = useTheme()
 
 // 获取当前路由
 const route = useRoute()
@@ -22,10 +22,10 @@ const currentPath = computed(() => {
 
 // 判断是否为公共页面(登录/注册/404/403)
 const isPublicPage = computed(() => {
-  return currentPath.value.startsWith('/login') || 
-         currentPath.value.startsWith('/register') ||
-         currentPath.value === '/404' ||
-         currentPath.value === '/403'
+  return currentPath.value.startsWith('/login') ||
+      currentPath.value.startsWith('/register') ||
+      currentPath.value === '/404' ||
+      currentPath.value === '/403'
 })
 
 // 判断是否为教师页面
@@ -56,11 +56,11 @@ const antdTheme = computed(() => ({
 
 <template>
   <ConfigProvider :theme="antdTheme">
-    <CommonLayout v-if="isPublicPage ?? false" />
-    <TeacherLayout v-else-if="isTeacherPage ?? false" />
-    <StudentLayout v-else-if="isStudentPage ?? false" />
-    <AdminLayout v-else-if="isAdminPage ?? false" />
-    <BasicLayout v-else />
+    <CommonLayout v-if="isPublicPage ?? false"/>
+    <TeacherLayout v-else-if="isTeacherPage ?? false"/>
+    <StudentLayout v-else-if="isStudentPage ?? false"/>
+    <AdminLayout v-else-if="isAdminPage ?? false"/>
+    <BasicLayout v-else/>
   </ConfigProvider>
 </template>
 

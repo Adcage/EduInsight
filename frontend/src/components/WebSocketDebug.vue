@@ -6,7 +6,7 @@
       <span class="status-text">{{ statusText }}</span>
       <span class="toggle-icon">{{ expanded ? '▼' : '▶' }}</span>
     </div>
-    
+
     <div v-if="expanded" class="debug-content">
       <div class="debug-item">
         <strong>连接状态:</strong> {{ isConnected ? '已连接' : '未连接' }}
@@ -18,8 +18,8 @@
         <strong>接收事件数:</strong> {{ eventCount }}
       </div>
       <div class="debug-actions">
-        <button @click="reconnect" class="debug-btn">重新连接</button>
-        <button @click="clearLog" class="debug-btn">清空日志</button>
+        <button class="debug-btn" @click="reconnect">重新连接</button>
+        <button class="debug-btn" @click="clearLog">清空日志</button>
       </div>
       <div class="debug-log">
         <div v-for="(log, index) in logs" :key="index" class="log-item">
@@ -31,8 +31,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useWebSocketStore } from '@/stores/websocket'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {useWebSocketStore} from '@/stores/websocket'
 
 const wsStore = useWebSocketStore()
 const showDebug = ref(true)
@@ -79,7 +79,7 @@ const handleEvent = (eventName: string) => {
 
 onMounted(() => {
   addLog('调试组件已加载')
-  
+
   // 监听所有WebSocket事件
   wsStore.on('attendance_created', handleEvent('attendance_created'))
   wsStore.on('attendance_updated', handleEvent('attendance_updated'))
@@ -96,7 +96,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .websocket-debug {
   position: fixed;
   bottom: 20px;
@@ -133,7 +133,7 @@ onUnmounted(() => {
   height: 10px;
   border-radius: 50%;
   background: #ccc;
-  
+
   &.connected {
     background: #52c41a;
     animation: pulse 2s infinite;
@@ -141,8 +141,12 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-text {
@@ -165,7 +169,7 @@ onUnmounted(() => {
 .debug-item {
   margin-bottom: 8px;
   font-size: 13px;
-  
+
   strong {
     color: #333;
   }
@@ -185,7 +189,7 @@ onUnmounted(() => {
   background: white;
   cursor: pointer;
   font-size: 12px;
-  
+
   &:hover {
     border-color: #40a9ff;
     color: #40a9ff;
@@ -207,7 +211,7 @@ onUnmounted(() => {
   color: #666;
   padding: 2px 0;
   border-bottom: 1px solid #e8e8e8;
-  
+
   &:last-child {
     border-bottom: none;
   }

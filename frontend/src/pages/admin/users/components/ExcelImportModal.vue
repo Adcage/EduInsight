@@ -1,18 +1,18 @@
 <template>
   <a-modal
-    v-model:open="visible"
-    title="批量导入用户"
-    :width="700"
-    @ok="handleSubmit"
-    @cancel="handleCancel"
+      v-model:open="visible"
+      :width="700"
+      title="批量导入用户"
+      @cancel="handleCancel"
+      @ok="handleSubmit"
   >
     <div class="import-container">
       <!-- 说明信息 -->
       <a-alert
-        message="导入说明"
-        type="info"
-        show-icon
-        style="margin-bottom: 16px"
+          message="导入说明"
+          show-icon
+          style="margin-bottom: 16px"
+          type="info"
       >
         <template #description>
           <div>
@@ -35,22 +35,24 @@
       <!-- 下载模板 -->
       <div style="margin-bottom: 16px">
         <a-button @click="downloadTemplate">
-          <template #icon><DownloadOutlined /></template>
+          <template #icon>
+            <DownloadOutlined/>
+          </template>
           下载导入模板
         </a-button>
       </div>
 
       <!-- 文件上传 -->
       <a-upload-dragger
-        v-model:file-list="fileList"
-        name="file"
-        :before-upload="beforeUpload"
-        :max-count="1"
-        accept=".xlsx,.xls"
-        @remove="handleRemove"
+          v-model:file-list="fileList"
+          :before-upload="beforeUpload"
+          :max-count="1"
+          accept=".xlsx,.xls"
+          name="file"
+          @remove="handleRemove"
       >
         <p class="ant-upload-drag-icon">
-          <InboxOutlined />
+          <InboxOutlined/>
         </p>
         <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
         <p class="ant-upload-hint">支持 .xlsx 和 .xls 格式的Excel文件</p>
@@ -66,8 +68,8 @@
       <!-- 导入结果 -->
       <div v-if="importResult" style="margin-top: 16px">
         <a-result
-          :status="importResult.failedCount > 0 ? 'warning' : 'success'"
-          :title="importResult.message"
+            :status="importResult.failedCount > 0 ? 'warning' : 'success'"
+            :title="importResult.message"
         >
           <template #subTitle>
             <div>
@@ -82,9 +84,9 @@
                 <a-collapse-panel key="1" header="查看错误详情">
                   <ul style="text-align: left">
                     <li
-                      v-for="(error, index) in importResult.errors"
-                      :key="index"
-                      style="color: red"
+                        v-for="(error, index) in importResult.errors"
+                        :key="index"
+                        style="color: red"
                     >
                       {{ error }}
                     </li>
@@ -100,10 +102,10 @@
     <template #footer>
       <a-button @click="handleCancel">取消</a-button>
       <a-button
-        type="primary"
-        :loading="importing"
-        :disabled="fileList.length === 0"
-        @click="handleSubmit"
+          :disabled="fileList.length === 0"
+          :loading="importing"
+          type="primary"
+          @click="handleSubmit"
       >
         开始导入
       </a-button>
@@ -111,14 +113,11 @@
   </a-modal>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { message } from 'ant-design-vue'
-import {
-  InboxOutlined,
-  DownloadOutlined,
-} from '@ant-design/icons-vue'
-import type { UploadProps } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, ref} from 'vue'
+import type {UploadProps} from 'ant-design-vue'
+import {message} from 'ant-design-vue'
+import {DownloadOutlined, InboxOutlined,} from '@ant-design/icons-vue'
 import * as XLSX from 'xlsx'
 
 // Props
@@ -148,8 +147,8 @@ const visible = computed({
 // 上传前验证
 const beforeUpload: UploadProps['beforeUpload'] = (file) => {
   const isExcel =
-    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    file.type === 'application/vnd.ms-excel'
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel'
 
   if (!isExcel) {
     message.error('只能上传Excel文件!')
@@ -220,7 +219,7 @@ const handleSubmit = async () => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const { default: request } = await import('@/request')
+    const {default: request} = await import('@/request')
     const response = await request('/api/v1/users/batch-import', {
       method: 'POST',
       data: formData,

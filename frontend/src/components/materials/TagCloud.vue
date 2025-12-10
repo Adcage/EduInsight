@@ -2,8 +2,8 @@
   <div class="tag-cloud">
     <div class="cloud-header">
       <span class="header-title">热门标签</span>
-      <a-button v-if="showManage" type="link" size="small" @click="handleManage">
-        <SettingOutlined />
+      <a-button v-if="showManage" size="small" type="link" @click="handleManage">
+        <SettingOutlined/>
         管理
       </a-button>
     </div>
@@ -11,12 +11,12 @@
     <a-spin :spinning="loading">
       <div v-if="tags.length > 0" class="tag-list">
         <a-tag
-          v-for="tag in displayTags"
-          :key="tag.id"
-          :color="getTagColor(tag.usageCount)"
-          :class="{ 'tag-selected': selectedTags.includes(tag.id) }"
-          class="cloud-tag"
-          @click="handleTagClick(tag)"
+            v-for="tag in displayTags"
+            :key="tag.id"
+            :class="{ 'tag-selected': selectedTags.includes(tag.id) }"
+            :color="getTagColor(tag.usageCount)"
+            class="cloud-tag"
+            @click="handleTagClick(tag)"
         >
           {{ tag.name }}
           <span class="tag-count">({{ tag.usageCount }})</span>
@@ -24,49 +24,49 @@
       </div>
 
       <a-empty
-        v-else-if="!loading"
-        description="暂无标签"
-        :image="Empty.PRESENTED_IMAGE_SIMPLE"
+          v-else-if="!loading"
+          :image="Empty.PRESENTED_IMAGE_SIMPLE"
+          description="暂无标签"
       />
 
       <!-- 展开/收起按钮 -->
       <div v-if="tags.length > defaultShowCount" class="expand-btn">
-        <a-button type="link" size="small" @click="toggleExpand">
+        <a-button size="small" type="link" @click="toggleExpand">
           {{ expanded ? '收起' : `展开全部 (${tags.length})` }}
-          <component :is="expanded ? UpOutlined : DownOutlined" />
+          <component :is="expanded ? UpOutlined : DownOutlined"/>
         </a-button>
       </div>
     </a-spin>
 
     <!-- 标签管理对话框 -->
     <a-modal
-      v-model:open="manageModalVisible"
-      title="标签管理"
-      width="800px"
-      :footer="null"
+        v-model:open="manageModalVisible"
+        :footer="null"
+        title="标签管理"
+        width="800px"
     >
       <div class="tag-manage">
         <div class="manage-actions">
           <a-space>
             <a-input-search
-              v-model:value="searchKeyword"
-              placeholder="搜索标签..."
-              style="width: 300px"
-              @search="handleSearch"
+                v-model:value="searchKeyword"
+                placeholder="搜索标签..."
+                style="width: 300px"
+                @search="handleSearch"
             />
             <a-button type="primary" @click="handleAddTag">
-              <PlusOutlined />
+              <PlusOutlined/>
               添加标签
             </a-button>
           </a-space>
         </div>
 
         <a-table
-          :columns="columns"
-          :data-source="filteredTags"
-          :pagination="{ pageSize: 10 }"
-          :loading="loading"
-          row-key="id"
+            :columns="columns"
+            :data-source="filteredTags"
+            :loading="loading"
+            :pagination="{ pageSize: 10 }"
+            row-key="id"
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'name'">
@@ -76,10 +76,10 @@
             </template>
             <template v-else-if="column.key === 'actions'">
               <a-popconfirm
-                title="确定删除此标签吗？"
-                @confirm="handleDeleteTag(record.id)"
+                  title="确定删除此标签吗？"
+                  @confirm="handleDeleteTag(record.id)"
               >
-                <a-button type="link" danger size="small">
+                <a-button danger size="small" type="link">
                   删除
                 </a-button>
               </a-popconfirm>
@@ -91,30 +91,30 @@
 
     <!-- 添加标签对话框 -->
     <a-modal
-      v-model:open="addModalVisible"
-      title="添加标签"
-      :confirm-loading="addLoading"
-      @ok="handleSubmitTag"
-      @cancel="handleCancelAdd"
+        v-model:open="addModalVisible"
+        :confirm-loading="addLoading"
+        title="添加标签"
+        @cancel="handleCancelAdd"
+        @ok="handleSubmitTag"
     >
       <a-form
-        ref="addFormRef"
-        :model="addForm"
-        :label-col="{ span: 6 }"
-        :wrapper-col="{ span: 18 }"
+          ref="addFormRef"
+          :label-col="{ span: 6 }"
+          :model="addForm"
+          :wrapper-col="{ span: 18 }"
       >
         <a-form-item
-          label="标签名称"
-          name="name"
-          :rules="[
+            :rules="[
             { required: true, message: '请输入标签名称' },
             { max: 20, message: '标签名称不能超过20个字符' }
           ]"
+            label="标签名称"
+            name="name"
         >
           <a-input
-            v-model:value="addForm.name"
-            placeholder="请输入标签名称"
-            :maxlength="20"
+              v-model:value="addForm.name"
+              :maxlength="20"
+              placeholder="请输入标签名称"
           />
         </a-form-item>
       </a-form>
@@ -122,20 +122,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { message, Empty } from 'ant-design-vue'
-import {
-  SettingOutlined,
-  PlusOutlined,
-  UpOutlined,
-  DownOutlined
-} from '@ant-design/icons-vue'
-import {
-  tagApiGet,
-  tagApiPost,
-  tagApiIntTagIdDelete
-} from '@/api/tagController'
+<script lang="ts" setup>
+import {computed, onMounted, ref} from 'vue'
+import {Empty, message} from 'ant-design-vue'
+import {DownOutlined, PlusOutlined, SettingOutlined, UpOutlined} from '@ant-design/icons-vue'
+import {tagApiGet, tagApiIntTagIdDelete, tagApiPost} from '@/api/tagController'
 
 interface Tag {
   id: number
@@ -151,6 +142,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: number[]): void
+
   (e: 'select', tagIds: number[]): void
 }
 
@@ -177,9 +169,9 @@ const addForm = ref({
 
 // 表格列定义
 const columns = [
-  { title: '标签名称', dataIndex: 'name', key: 'name' },
-  { title: '使用次数', dataIndex: 'usageCount', key: 'usageCount', width: 120 },
-  { title: '操作', key: 'actions', width: 100 }
+  {title: '标签名称', dataIndex: 'name', key: 'name'},
+  {title: '使用次数', dataIndex: 'usageCount', key: 'usageCount', width: 120},
+  {title: '操作', key: 'actions', width: 100}
 ]
 
 // 显示的标签列表
@@ -193,12 +185,12 @@ const displayTags = computed(() => {
 // 过滤后的标签列表（用于管理对话框）
 const filteredTags = computed(() => {
   if (!Array.isArray(tags.value)) return []
-  
+
   if (!searchKeyword.value) {
     return tags.value
   }
   return tags.value.filter(tag =>
-    tag.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+      tag.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
 
@@ -210,9 +202,9 @@ const loadTags = async () => {
     const data = (response as any).data?.data || (response as any).data
     // 后端返回的是 { tags: [...] } 格式
     const tagList = data?.tags || []
-    tags.value = Array.isArray(tagList) 
-      ? tagList.sort((a: Tag, b: Tag) => b.usageCount - a.usageCount)
-      : []
+    tags.value = Array.isArray(tagList)
+        ? tagList.sort((a: Tag, b: Tag) => b.usageCount - a.usageCount)
+        : []
   } catch (error: any) {
     console.error('加载标签失败:', error)
     message.error(error.message || '加载标签失败')
@@ -240,7 +232,7 @@ const handleTagClick = (tag: Tag) => {
   } else {
     selectedTags.value.push(tag.id)
   }
-  
+
   emit('update:modelValue', selectedTags.value)
   emit('select', selectedTags.value)
 }
@@ -262,7 +254,7 @@ const handleSearch = () => {
 
 // 添加标签
 const handleAddTag = () => {
-  addForm.value = { name: '' }
+  addForm.value = {name: ''}
   addModalVisible.value = true
 }
 
@@ -270,12 +262,12 @@ const handleAddTag = () => {
 const handleSubmitTag = async () => {
   try {
     await addFormRef.value?.validate()
-    
+
     addLoading.value = true
-    
-    await tagApiPost({ name: addForm.value.name })
+
+    await tagApiPost({name: addForm.value.name})
     message.success('标签创建成功')
-    
+
     addModalVisible.value = false
     await loadTags()
   } catch (error: any) {
@@ -297,7 +289,7 @@ const handleCancelAdd = () => {
 // 删除标签
 const handleDeleteTag = async (tagId: number) => {
   try {
-    await tagApiIntTagIdDelete({ tagId })
+    await tagApiIntTagIdDelete({tagId})
     message.success('标签删除成功')
     await loadTags()
   } catch (error: any) {

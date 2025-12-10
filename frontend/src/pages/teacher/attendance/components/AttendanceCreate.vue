@@ -1,14 +1,14 @@
 <template>
   <div class="attendance-create">
     <a-form
-      :model="formState"
-      layout="vertical"
-      @finish="onFinish"
+        :model="formState"
+        layout="vertical"
+        @finish="onFinish"
     >
       <a-form-item
-        label="课程"
-        name="courseId"
-        :rules="[{ required: true, message: '请选择课程' }]"
+          :rules="[{ required: true, message: '请选择课程' }]"
+          label="课程"
+          name="courseId"
       >
         <a-select v-model:value="formState.courseId" placeholder="请选择课程">
           <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
@@ -18,9 +18,9 @@
       </a-form-item>
 
       <a-form-item
-        label="班级"
-        name="classId"
-        :rules="[{ required: true, message: '请选择班级' }]"
+          :rules="[{ required: true, message: '请选择班级' }]"
+          label="班级"
+          name="classId"
       >
         <a-select v-model:value="formState.classId" placeholder="请选择班级">
           <a-select-option v-for="cls in classes" :key="cls.id" :value="cls.id">
@@ -30,9 +30,9 @@
       </a-form-item>
 
       <a-form-item
-        label="考勤方式"
-        name="type"
-        :rules="[{ required: true, message: '请选择考勤方式' }]"
+          :rules="[{ required: true, message: '请选择考勤方式' }]"
+          label="考勤方式"
+          name="type"
       >
         <a-radio-group v-model:value="formState.type">
           <a-radio value="qrcode">二维码考勤</a-radio>
@@ -42,17 +42,17 @@
       </a-form-item>
 
       <a-form-item>
-        <a-button type="primary" html-type="submit" :loading="loading">发起考勤</a-button>
+        <a-button :loading="loading" html-type="submit" type="primary">发起考勤</a-button>
         <a-button style="margin-left: 10px" @click="$emit('cancel')">取消</a-button>
       </a-form-item>
     </a-form>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { message } from 'ant-design-vue';
-import { MOCK_COURSES, MOCK_CLASSES } from '../mock';
+<script lang="ts" setup>
+import {reactive, ref} from 'vue';
+import {message} from 'ant-design-vue';
+import {MOCK_CLASSES, MOCK_COURSES} from '../mock';
 
 interface FormState {
   courseId: string;
@@ -62,6 +62,7 @@ interface FormState {
 
 interface Emits {
   (e: 'success', data: any): void;
+
   (e: 'cancel'): void;
 }
 
@@ -97,7 +98,7 @@ const onFinish = (values: FormState) => {
 };
 </script>
 
-<style scoped lang="less">
+<style lang="less" scoped>
 .attendance-create {
   max-width: 600px;
   margin: 0 auto;

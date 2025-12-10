@@ -3,9 +3,9 @@
     <a-spin :spinning="loading" tip="加载文档中...">
       <div v-if="error" class="error-container">
         <a-result
-          status="error"
-          title="文档加载失败"
-          :sub-title="error"
+            :sub-title="error"
+            status="error"
+            title="文档加载失败"
         >
           <template #extra>
             <a-button type="primary" @click="reload">
@@ -20,10 +20,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { message } from 'ant-design-vue'
-import { renderAsync } from 'docx-preview'
+<script lang="ts" setup>
+import {onMounted, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
+import {renderAsync} from 'docx-preview'
 
 interface Props {
   url: string

@@ -1,59 +1,59 @@
 <template>
   <div class="my-warnings-page">
-    <a-card title="预警与通知" :bordered="false">
+    <a-card :bordered="false" title="预警与通知">
       <!-- 统计信息 -->
       <a-row :gutter="[16, 16]" class="statistics-cards">
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card stat-card-high">
             <a-statistic
-              title="高风险预警"
-              :value="statistics.highRisk"
-              :value-style="{ color: 'var(--error-color)' }"
+                :value="statistics.highRisk"
+                :value-style="{ color: 'var(--error-color)' }"
+                title="高风险预警"
             >
               <template #prefix>
-                <WarningOutlined />
+                <WarningOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card stat-card-medium">
             <a-statistic
-              title="中风险预警"
-              :value="statistics.mediumRisk"
-              :value-style="{ color: 'var(--warning-color)' }"
+                :value="statistics.mediumRisk"
+                :value-style="{ color: 'var(--warning-color)' }"
+                title="中风险预警"
             >
               <template #prefix>
-                <ExclamationCircleOutlined />
+                <ExclamationCircleOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card stat-card-low">
             <a-statistic
-              title="低风险预警"
-              :value="statistics.lowRisk"
-              :value-style="{ color: 'var(--primary-color)' }"
+                :value="statistics.lowRisk"
+                :value-style="{ color: 'var(--primary-color)' }"
+                title="低风险预警"
             >
               <template #prefix>
-                <InfoCircleOutlined />
+                <InfoCircleOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card stat-card-total">
             <a-statistic
-              title="总预警数"
-              :value="statistics.total"
-              :value-style="{ color: 'var(--text-color)' }"
+                :value="statistics.total"
+                :value-style="{ color: 'var(--text-color)' }"
+                title="总预警数"
             >
               <template #prefix>
-                <BellOutlined />
+                <BellOutlined/>
               </template>
             </a-statistic>
           </a-card>
@@ -62,13 +62,13 @@
 
       <!-- 预警列表 -->
       <a-list
-        :data-source="warnings"
-        :loading="loading"
-        class="warnings-list"
+          :data-source="warnings"
+          :loading="loading"
+          class="warnings-list"
       >
         <template #renderItem="{ item }">
           <a-list-item>
-            <a-card class="warning-card" :bordered="false">
+            <a-card :bordered="false" class="warning-card">
               <div class="warning-header">
                 <div class="course-info">
                   <h3>{{ item.courseName }}</h3>
@@ -76,19 +76,19 @@
                   <a-tag>{{ item.semester }}</a-tag>
                 </div>
                 <a-badge
-                  :count="item.warningCount"
-                  :number-style="{ backgroundColor: getRiskColor(item.latestWarning.riskLevel) }"
+                    :count="item.warningCount"
+                    :number-style="{ backgroundColor: getRiskColor(item.latestWarning.riskLevel) }"
                 />
               </div>
 
-              <a-divider />
+              <a-divider/>
 
               <div class="warning-content">
                 <a-row :gutter="16">
                   <a-col :span="8">
                     <div class="info-item">
                       <span class="label">预测分数:</span>
-                      <span class="value" :style="{ color: getScoreColor(item.latestWarning.predictedScore) }">
+                      <span :style="{ color: getScoreColor(item.latestWarning.predictedScore) }" class="value">
                         {{ item.latestWarning.predictedScore.toFixed(1) }} 分
                       </span>
                     </div>
@@ -120,7 +120,7 @@
                 </a-row>
               </div>
 
-              <a-divider />
+              <a-divider/>
 
               <div class="warning-actions">
                 <a-button type="primary" @click="showDetail(item.latestWarning.id)">
@@ -134,8 +134,10 @@
         <template #header>
           <div class="list-header">
             <h3>预警列表</h3>
-            <a-button @click="loadWarnings" :loading="loading">
-              <template #icon><ReloadOutlined /></template>
+            <a-button :loading="loading" @click="loadWarnings">
+              <template #icon>
+                <ReloadOutlined/>
+              </template>
               刷新
             </a-button>
           </div>
@@ -144,14 +146,14 @@
 
       <!-- 预警详情抽屉 -->
       <a-drawer
-        v-model:open="detailVisible"
-        title="预警详情"
-        width="600"
-        :body-style="{ paddingBottom: '80px' }"
+          v-model:open="detailVisible"
+          :body-style="{ paddingBottom: '80px' }"
+          title="预警详情"
+          width="600"
       >
         <div v-if="currentDetail" class="detail-content">
           <!-- 基本信息 -->
-          <a-descriptions title="基本信息" :column="1" bordered>
+          <a-descriptions :column="1" bordered title="基本信息">
             <a-descriptions-item label="课程名称">
               {{ currentDetail.courseName }}
             </a-descriptions-item>
@@ -184,9 +186,9 @@
           <a-divider>干预记录</a-divider>
           <a-timeline v-if="currentDetail.interventions && currentDetail.interventions.length > 0">
             <a-timeline-item
-              v-for="intervention in currentDetail.interventions"
-              :key="intervention.id"
-              :color="getInterventionColor(intervention.interventionType)"
+                v-for="intervention in currentDetail.interventions"
+                :key="intervention.id"
+                :color="getInterventionColor(intervention.interventionType)"
             >
               <div class="intervention-item">
                 <div class="intervention-header">
@@ -213,22 +215,22 @@
               </div>
             </a-timeline-item>
           </a-timeline>
-          <a-empty v-else description="暂无干预记录" />
+          <a-empty v-else description="暂无干预记录"/>
         </div>
       </a-drawer>
     </a-card>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onMounted, ref} from 'vue'
+import {message} from 'ant-design-vue'
 import {
-  WarningOutlined,
+  BellOutlined,
   ExclamationCircleOutlined,
   InfoCircleOutlined,
-  BellOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  WarningOutlined
 } from '@ant-design/icons-vue'
 import {
   predictionApiStudentMyWarningsGet,
@@ -398,7 +400,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .my-warnings-page {
   padding: 24px;
 

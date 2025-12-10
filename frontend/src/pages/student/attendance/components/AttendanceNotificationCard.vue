@@ -1,9 +1,9 @@
 <template>
-  <div class="attendance-card" :class="cardClass">
+  <div :class="cardClass" class="attendance-card">
     <div class="card-header">
       <div class="header-left">
-        <div class="attendance-icon" :class="iconClass">
-          <component :is="attendanceIcon" class="icon" />
+        <div :class="iconClass" class="attendance-icon">
+          <component :is="attendanceIcon" class="icon"/>
         </div>
         <div class="header-info">
           <h3 class="attendance-title">{{ attendance.title }}</h3>
@@ -19,28 +19,28 @@
 
     <div class="card-body">
       <div class="info-row">
-        <ClockCircleOutlined class="info-icon" />
+        <ClockCircleOutlined class="info-icon"/>
         <span class="info-label">考勤时间:</span>
         <span class="info-value">{{ formatTime(attendance.startTime || attendance.start_time) }}</span>
       </div>
 
       <div class="info-row">
-        <UserOutlined class="info-icon" />
+        <UserOutlined class="info-icon"/>
         <span class="info-label">发起教师:</span>
         <span class="info-value">{{ teacherName }}</span>
       </div>
 
       <div class="info-row">
-        <TagOutlined class="info-icon" />
+        <TagOutlined class="info-icon"/>
         <span class="info-label">签到方式:</span>
         <span class="info-value">{{ attendanceTypeText }}</span>
       </div>
 
       <div v-if="myRecord" class="info-row check-in-status">
-        <CheckCircleOutlined v-if="isCheckedIn" class="info-icon success" />
-        <CloseCircleOutlined v-else class="info-icon error" />
+        <CheckCircleOutlined v-if="isCheckedIn" class="info-icon success"/>
+        <CloseCircleOutlined v-else class="info-icon error"/>
         <span class="info-label">签到状态:</span>
-        <span class="info-value" :class="checkInStatusClass">
+        <span :class="checkInStatusClass" class="info-value">
           {{ checkInStatusText }}
         </span>
         <span v-if="myRecord.checkInTime || myRecord.check_in_time" class="check-in-time">
@@ -50,28 +50,28 @@
     </div>
 
     <div class="card-footer">
-      <a-button 
-        v-if="canCheckIn" 
-        type="primary" 
-        block 
-        size="large"
-        @click="handleCheckIn"
+      <a-button
+          v-if="canCheckIn"
+          block
+          size="large"
+          type="primary"
+          @click="handleCheckIn"
       >
         立即签到
       </a-button>
-      <a-button 
-        v-else-if="isCheckedIn" 
-        block 
-        size="large"
-        disabled
+      <a-button
+          v-else-if="isCheckedIn"
+          block
+          disabled
+          size="large"
       >
         已签到
       </a-button>
-      <a-button 
-        v-else 
-        block 
-        size="large"
-        @click="handleViewDetail"
+      <a-button
+          v-else
+          block
+          size="large"
+          @click="handleViewDetail"
       >
         查看详情
       </a-button>
@@ -80,21 +80,21 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { 
-  ClockCircleOutlined, 
-  UserOutlined, 
-  TagOutlined,
+import {computed} from 'vue'
+import {
   CheckCircleOutlined,
+  ClockCircleOutlined,
   CloseCircleOutlined,
-  QrcodeOutlined,
   EnvironmentOutlined,
   FormOutlined,
-  ScanOutlined
+  QrcodeOutlined,
+  ScanOutlined,
+  TagOutlined,
+  UserOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
-import type { StudentAttendanceNotification } from '@/api/attendanceController'
-import { AttendanceStatus } from '@/api/attendanceController'
+import type {StudentAttendanceNotification} from '@/api/attendanceController'
+import {AttendanceStatus} from '@/api/attendanceController'
 
 interface Props {
   attendance: StudentAttendanceNotification
@@ -102,6 +102,7 @@ interface Props {
 
 interface Emits {
   (e: 'checkIn', attendance: StudentAttendanceNotification): void
+
   (e: 'viewDetail', attendance: StudentAttendanceNotification): void
 }
 
@@ -251,7 +252,7 @@ const handleViewDetail = () => {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .attendance-card {
   background: white;
   border-radius: 12px;
@@ -306,6 +307,7 @@ const handleViewDetail = () => {
 
   &.icon-qrcode {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
     .icon {
       color: white;
     }
@@ -313,6 +315,7 @@ const handleViewDetail = () => {
 
   &.icon-gesture {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
     .icon {
       color: white;
     }
@@ -320,6 +323,7 @@ const handleViewDetail = () => {
 
   &.icon-location {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
     .icon {
       color: white;
     }
@@ -327,6 +331,7 @@ const handleViewDetail = () => {
 
   &.icon-face {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+
     .icon {
       color: white;
     }
@@ -334,6 +339,7 @@ const handleViewDetail = () => {
 
   &.icon-default {
     background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+
     .icon {
       color: #666;
     }

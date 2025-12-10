@@ -2,26 +2,26 @@
   <a-layout-header class="global-header">
     <div class="header-content">
       <div class="logo">
-          
-          <router-link :to="homePath" class="logo-link">
-              <img src="@/assets/logo48-48.ico" alt="网站Logo" class="site-logo" />
-              <h1>慧教通</h1>
-          </router-link>
+
+        <router-link :to="homePath" class="logo-link">
+          <img alt="网站Logo" class="site-logo" src="@/assets/logo48-48.ico"/>
+          <h1>慧教通</h1>
+        </router-link>
       </div>
 
       <div class="header-actions">
-        <ThemeToggle />
-        <UserAvatar />
+        <ThemeToggle/>
+        <UserAvatar/>
       </div>
     </div>
   </a-layout-header>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { getDefaultHomeByRole } from '@/utils/roleRoutes'
+<script lang="ts" setup>
+import {computed, ref, watch} from 'vue'
+import {useRoute} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {getDefaultHomeByRole} from '@/utils/roleRoutes'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import UserAvatar from '@/components/common/UserAvatar.vue'
 
@@ -34,15 +34,15 @@ const homePath = computed(() => {
 })
 
 watch(
-  () => route.path,
-  (newPath) => {
-    if (newPath === '/') {
-      selectedKeys.value = ['home']
-    } else if (newPath.startsWith('/about')) {
-      selectedKeys.value = ['about']
-    }
-  },
-  { immediate: true },
+    () => route.path,
+    (newPath) => {
+      if (newPath === '/') {
+        selectedKeys.value = ['home']
+      } else if (newPath.startsWith('/about')) {
+        selectedKeys.value = ['about']
+      }
+    },
+    {immediate: true},
 )
 </script>
 
@@ -67,7 +67,8 @@ watch(
   align-items: center;
   justify-content: space-between;
 }
-.logo-link{
+
+.logo-link {
   display: flex;
   align-items: center;
   justify-content: center;

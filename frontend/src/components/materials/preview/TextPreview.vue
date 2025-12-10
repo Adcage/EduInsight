@@ -3,9 +3,9 @@
     <a-spin :spinning="loading" tip="加载文本中...">
       <div v-if="error" class="error-container">
         <a-result
-          status="error"
-          title="文本加载失败"
-          :sub-title="error"
+            :sub-title="error"
+            status="error"
+            title="文本加载失败"
         >
           <template #extra>
             <a-button type="primary" @click="reload">
@@ -20,17 +20,17 @@
         <div class="text-toolbar">
           <a-space>
             <a-switch
-              v-model:checked="enableHighlight"
-              checked-children="高亮"
-              un-checked-children="纯文本"
-              @change="handleHighlightChange"
+                v-model:checked="enableHighlight"
+                checked-children="高亮"
+                un-checked-children="纯文本"
+                @change="handleHighlightChange"
             />
             <a-select
-              v-if="enableHighlight"
-              v-model:value="selectedLanguage"
-              style="width: 150px"
-              placeholder="选择语言"
-              @change="handleLanguageChange"
+                v-if="enableHighlight"
+                v-model:value="selectedLanguage"
+                placeholder="选择语言"
+                style="width: 150px"
+                @change="handleLanguageChange"
             >
               <a-select-option value="auto">自动检测</a-select-option>
               <a-select-option value="javascript">JavaScript</a-select-option>
@@ -46,7 +46,9 @@
               <a-select-option value="markdown">Markdown</a-select-option>
             </a-select>
             <a-button @click="copyContent">
-              <template #icon><CopyOutlined /></template>
+              <template #icon>
+                <CopyOutlined/>
+              </template>
               复制
             </a-button>
           </a-space>
@@ -55,17 +57,17 @@
         <!-- 文本内容 -->
         <div class="text-content">
           <pre v-if="!enableHighlight" class="plain-text">{{ content }}</pre>
-          <pre v-else v-html="highlightedContent" class="highlighted-text"></pre>
+          <pre v-else class="highlighted-text" v-html="highlightedContent"></pre>
         </div>
       </div>
     </a-spin>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { message } from 'ant-design-vue'
-import { CopyOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {computed, onMounted, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
+import {CopyOutlined} from '@ant-design/icons-vue'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 
@@ -93,7 +95,7 @@ const highlightedContent = computed(() => {
       const result = hljs.highlightAuto(content.value)
       return result.value
     } else {
-      const result = hljs.highlight(content.value, { language: selectedLanguage.value })
+      const result = hljs.highlight(content.value, {language: selectedLanguage.value})
       return result.value
     }
   } catch (err) {

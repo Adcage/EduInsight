@@ -1,10 +1,10 @@
 <template>
   <div class="attendance-list">
-    <a-table 
-      :columns="columns" 
-      :data-source="tasks" 
-      row-key="id"
-      :pagination="{ pageSize: 10 }"
+    <a-table
+        :columns="columns"
+        :data-source="tasks"
+        :pagination="{ pageSize: 10 }"
+        row-key="id"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'status'">
@@ -13,10 +13,10 @@
           </a-tag>
         </template>
         <template v-else-if="column.key === 'progress'">
-          <a-progress 
-            :percent="Math.round((record.attendedCount / record.totalStudents) * 100)" 
-            size="small" 
-            :status="record.status === 'active' ? 'active' : 'normal'"
+          <a-progress
+              :percent="Math.round((record.attendedCount / record.totalStudents) * 100)"
+              :status="record.status === 'active' ? 'active' : 'normal'"
+              size="small"
           />
         </template>
         <template v-else-if="column.key === 'action'">
@@ -27,9 +27,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import type { AttendanceTask } from '../types';
+<script lang="ts" setup>
+import type {AttendanceTask} from '../types';
 
 interface Props {
   tasks: AttendanceTask[];
@@ -83,19 +82,27 @@ const columns = [
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'active': return 'processing';
-    case 'ended': return 'default';
-    case 'pending': return 'warning';
-    default: return 'default';
+    case 'active':
+      return 'processing';
+    case 'ended':
+      return 'default';
+    case 'pending':
+      return 'warning';
+    default:
+      return 'default';
   }
 };
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'active': return '进行中';
-    case 'ended': return '已结束';
-    case 'pending': return '未开始';
-    default: return status;
+    case 'active':
+      return '进行中';
+    case 'ended':
+      return '已结束';
+    case 'pending':
+      return '未开始';
+    default:
+      return status;
   }
 };
 
@@ -104,7 +111,7 @@ const viewDetail = (task: AttendanceTask) => {
 };
 </script>
 
-<style scoped lang="less">
+<style lang="less" scoped>
 .attendance-list {
   background-color: var(--background-color-container);
   padding: 24px;

@@ -1,23 +1,23 @@
 <template>
-  <a-card hoverable class="material-card" @click="handleClick">
+  <a-card class="material-card" hoverable @click="handleClick">
     <template #cover>
       <div class="file-icon-container">
-        <component :is="fileIcon" class="file-icon" />
+        <component :is="fileIcon" class="file-icon"/>
       </div>
     </template>
-    
+
     <template #actions>
       <a-tooltip title="预览">
-        <EyeOutlined key="preview" @click.stop="handlePreview" />
+        <EyeOutlined key="preview" @click.stop="handlePreview"/>
       </a-tooltip>
       <a-tooltip title="下载">
-        <DownloadOutlined key="download" @click.stop="handleDownload" />
+        <DownloadOutlined key="download" @click.stop="handleDownload"/>
       </a-tooltip>
       <a-tooltip title="更多">
-        <EllipsisOutlined key="more" @click.stop="handleMore" />
+        <EllipsisOutlined key="more" @click.stop="handleMore"/>
       </a-tooltip>
     </template>
-    
+
     <a-card-meta>
       <template #title>
         <a-tooltip :title="material.title">
@@ -36,11 +36,11 @@
           <div class="card-footer">
             <a-space :size="16">
               <span>
-                <EyeOutlined />
+                <EyeOutlined/>
                 {{ material.viewCount || 0 }}
               </span>
               <span>
-                <DownloadOutlined />
+                <DownloadOutlined/>
                 {{ material.downloadCount || 0 }}
               </span>
             </a-space>
@@ -52,22 +52,21 @@
   </a-card>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
+<script lang="ts" setup>
+import {computed} from 'vue'
 import {
-  EyeOutlined,
   DownloadOutlined,
   EllipsisOutlined,
-  FilePdfOutlined,
-  FileWordOutlined,
-  FilePptOutlined,
+  EyeOutlined,
   FileExcelOutlined,
-  FileTextOutlined,
   FileImageOutlined,
-  FileZipOutlined,
-  FileOutlined
+  FileOutlined,
+  FilePdfOutlined,
+  FilePptOutlined,
+  FileTextOutlined,
+  FileWordOutlined,
+  FileZipOutlined
 } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 
 interface Material {
@@ -80,6 +79,7 @@ interface Material {
   viewCount?: number
   downloadCount?: number
   createdAt?: string
+
   [key: string]: any
 }
 
@@ -134,16 +134,16 @@ const fileTypeText = computed(() => {
 // 格式化文件大小
 const formatFileSize = (bytes: number): string => {
   if (!bytes) return '0 B'
-  
+
   const units = ['B', 'KB', 'MB', 'GB']
   let size = bytes
   let unitIndex = 0
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024
     unitIndex++
   }
-  
+
   return `${size.toFixed(2)} ${units[unitIndex]}`
 }
 

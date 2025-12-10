@@ -4,60 +4,60 @@
 
 :root,
 [data-theme='light'] {
-  /* 主题色 */
-  --primary-color: #1890ff;
-  --primary-hover: #40a9ff;
-  --primary-active: #096dd9;
-  --primary-light: #e6f7ff;
+    /* 主题色 */
+    --primary-color: #1890ff;
+    --primary-hover: #40a9ff;
+    --primary-active: #096dd9;
+    --primary-light: #e6f7ff;
 
-  /* 状态色 */
-  --success-color: #52c41a;
-  --success-hover: #73d13d;
-  --success-light: #f6ffed;
+    /* 状态色 */
+    --success-color: #52c41a;
+    --success-hover: #73d13d;
+    --success-light: #f6ffed;
 
-  --warning-color: #faad14;
-  --warning-hover: #ffc53d;
-  --warning-light: #fffbe6;
+    --warning-color: #faad14;
+    --warning-hover: #ffc53d;
+    --warning-light: #fffbe6;
 
-  --error-color: #f5222d;
-  --error-hover: #ff4d4f;
-  --error-light: #fff1f0;
+    --error-color: #f5222d;
+    --error-hover: #ff4d4f;
+    --error-light: #fff1f0;
 
-  --info-color: #1890ff;
-  --info-hover: #40a9ff;
-  --info-light: #e6f7ff;
+    --info-color: #1890ff;
+    --info-hover: #40a9ff;
+    --info-light: #e6f7ff;
 
-  /* 文本色 */
-  --text-color: rgba(0, 0, 0, 0.85);
-  --text-color-secondary: rgba(0, 0, 0, 0.65);
-  --text-color-tertiary: rgba(0, 0, 0, 0.45);
-  --text-color-disabled: rgba(0, 0, 0, 0.25);
-  --text-color-inverse: #ffffff;
+    /* 文本色 */
+    --text-color: rgba(0, 0, 0, 0.85);
+    --text-color-secondary: rgba(0, 0, 0, 0.65);
+    --text-color-tertiary: rgba(0, 0, 0, 0.45);
+    --text-color-disabled: rgba(0, 0, 0, 0.25);
+    --text-color-inverse: #ffffff;
 
-  /* 边框色 */
-  --border-color-base: #d9d9d9;
-  --border-color-split: #f0f0f0;
-  --border-color-light: #e8e8e8;
+    /* 边框色 */
+    --border-color-base: #d9d9d9;
+    --border-color-split: #f0f0f0;
+    --border-color-light: #e8e8e8;
 
-  /* 背景色 */
-  --background-color: #f0f2f5;
-  --background-color-light: #fafafa;
-  --background-color-base: #ffffff;
-  --background-color-container: #ffffff;
+    /* 背景色 */
+    --background-color: #f0f2f5;
+    --background-color-light: #fafafa;
+    --background-color-base: #ffffff;
+    --background-color-container: #ffffff;
 
-  /* 阴影色 */
-  --shadow-color: rgba(0, 0, 0, 0.15);
-  --shadow-color-light: rgba(0, 0, 0, 0.08);
+    /* 阴影色 */
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --shadow-color-light: rgba(0, 0, 0, 0.08);
 
-  /* 头部背景 */
-  --header-bg: #ffffff;
-  --header-border: #f0f0f0;
+    /* 头部背景 */
+    --header-bg: #ffffff;
+    --header-border: #f0f0f0;
 
-  /* 侧边栏背景 */
-  --sider-bg: #001529;
-  --sider-light-bg: #ffffff;
+    /* 侧边栏背景 */
+    --sider-bg: #001529;
+    --sider-light-bg: #ffffff;
 
-  /* 卡片背景 */
-  --card-bg: #ffffff;
-  --card-hover-bg: #fafafa;
+    /* 卡片背景 */
+    --card-bg: #ffffff;
+    --card-hover-bg: #fafafa;
 }

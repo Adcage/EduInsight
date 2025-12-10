@@ -6,14 +6,14 @@
     </a-button>
 
     <!-- 已登录状态 -->
-    <a-dropdown v-else :trigger="['click']" v-model:open="dropdownVisible">
+    <a-dropdown v-else v-model:open="dropdownVisible" :trigger="['click']">
       <div class="user-info-trigger">
         <!-- 用户头像 -->
-        <a-avatar v-if="user?.avatar" :src="user.avatar" :size="size" class="user-avatar" />
+        <a-avatar v-if="user?.avatar" :size="size" :src="user.avatar" class="user-avatar"/>
         <!-- 默认头像 -->
         <a-avatar v-else :size="size" class="user-avatar default-avatar">
           <template #icon>
-            <UserOutlined />
+            <UserOutlined/>
           </template>
           {{ defaultAvatar }}
         </a-avatar>
@@ -23,12 +23,12 @@
       <template #overlay>
         <a-menu class="user-dropdown-menu">
           <a-menu-item key="profile" @click="handleProfileClick">
-            <UserOutlined class="menu-icon" />
+            <UserOutlined class="menu-icon"/>
             个人信息
           </a-menu-item>
-          <a-menu-divider />
-          <a-menu-item key="logout" @click="handleLogout" :loading="logoutLoading">
-            <LogoutOutlined class="menu-icon" />
+          <a-menu-divider/>
+          <a-menu-item key="logout" :loading="logoutLoading" @click="handleLogout">
+            <LogoutOutlined class="menu-icon"/>
             退出登录
           </a-menu-item>
         </a-menu>
@@ -37,12 +37,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { UserOutlined, DownOutlined, LogoutOutlined } from '@ant-design/icons-vue'
-import { useAuth } from '@/composables/useAuth'
-import { log } from 'console'
+<script lang="ts" setup>
+import {computed, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {LogoutOutlined, UserOutlined} from '@ant-design/icons-vue'
+import {useAuth} from '@/composables/useAuth'
 
 // Props
 interface Props {
@@ -60,7 +59,7 @@ const dropdownVisible = ref(false)
 const logoutLoading = ref(false)
 
 // 使用 useAuth 组合式函数
-const { user, isLoggedIn, userDisplayName, logout } = useAuth()
+const {user, isLoggedIn, userDisplayName, logout} = useAuth()
 const router = useRouter()
 
 // 计算默认头像
@@ -97,7 +96,12 @@ const handleLogout = async () => {
  */
 const handleProfileClick = () => {
   dropdownVisible.value = false
-  router.push('/profile')
+  const role = user.value?.role?.toLowerCase()
+  if (role) {
+    router.push(`/${role}/profile`)
+  } else {
+    router.push('/')
+  }
 }
 </script>
 

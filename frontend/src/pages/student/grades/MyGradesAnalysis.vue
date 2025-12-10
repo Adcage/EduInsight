@@ -1,62 +1,62 @@
 <template>
   <div class="my-grades-analysis-page">
-    <a-card title="个人成绩分析" :bordered="false">
+    <a-card :bordered="false" title="个人成绩分析">
       <!-- 总体统计卡片 -->
       <a-row :gutter="[16, 16]" class="statistics-cards">
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card">
             <a-statistic
-              title="总课程数"
-              :value="statistics.totalCourses"
-              :value-style="{ color: 'var(--primary-color)' }"
+                :value="statistics.totalCourses"
+                :value-style="{ color: 'var(--primary-color)' }"
+                title="总课程数"
             >
               <template #prefix>
-                <BookOutlined />
+                <BookOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card">
             <a-statistic
-              title="总成绩数"
-              :value="statistics.totalGrades"
-              :value-style="{ color: 'var(--primary-color)' }"
+                :value="statistics.totalGrades"
+                :value-style="{ color: 'var(--primary-color)' }"
+                title="总成绩数"
             >
               <template #prefix>
-                <FileTextOutlined />
+                <FileTextOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card">
             <a-statistic
-              title="平均分"
-              :value="statistics.averageScore"
-              :precision="2"
-              :value-style="{ color: getScoreColor(statistics.averageScore) }"
+                :precision="2"
+                :value="statistics.averageScore"
+                :value-style="{ color: getScoreColor(statistics.averageScore) }"
+                title="平均分"
             >
               <template #prefix>
-                <TrophyOutlined />
+                <TrophyOutlined/>
               </template>
             </a-statistic>
           </a-card>
         </a-col>
 
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-card class="stat-card">
             <a-statistic
-              title="及格率"
-              :value="statistics.passRate"
-              suffix="%"
-              :precision="1"
-              :value-style="{ color: statistics.passRate >= 60 ? 'var(--success-color)' : 'var(--error-color)' }"
+                :precision="1"
+                :value="statistics.passRate"
+                :value-style="{ color: statistics.passRate >= 60 ? 'var(--success-color)' : 'var(--error-color)' }"
+                suffix="%"
+                title="及格率"
             >
               <template #prefix>
-                <CheckCircleOutlined />
+                <CheckCircleOutlined/>
               </template>
             </a-statistic>
           </a-card>
@@ -64,37 +64,33 @@
       </a-row>
 
       <!-- 课程成绩对比图 -->
-      <a-card title="课程成绩对比" class="chart-card" :bordered="false">
+      <a-card :bordered="false" class="chart-card" title="课程成绩对比">
         <div ref="courseChartRef" style="width: 100%; height: 400px"></div>
       </a-card>
 
       <!-- 成绩趋势图 -->
-      <a-card title="成绩趋势分析" class="chart-card" :bordered="false">
+      <a-card :bordered="false" class="chart-card" title="成绩趋势分析">
         <div ref="trendChartRef" style="width: 100%; height: 400px"></div>
       </a-card>
 
       <!-- 分数段分布图 -->
-      <a-card title="分数段分布" class="chart-card" :bordered="false">
+      <a-card :bordered="false" class="chart-card" title="分数段分布">
         <div ref="distributionChartRef" style="width: 100%; height: 400px"></div>
       </a-card>
     </a-card>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
-import { message } from 'ant-design-vue'
-import {
-  BookOutlined,
-  FileTextOutlined,
-  TrophyOutlined,
-  CheckCircleOutlined
-} from '@ant-design/icons-vue'
+<script lang="ts" setup>
+// 清理
+import {nextTick, onMounted, onUnmounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {BookOutlined, CheckCircleOutlined, FileTextOutlined, TrophyOutlined} from '@ant-design/icons-vue'
 import * as echarts from 'echarts'
 import {
   gradeApiStudentCoursesGet,
-  gradeApiStudentStatisticsGet,
-  gradeApiStudentMyGradesGet
+  gradeApiStudentMyGradesGet,
+  gradeApiStudentStatisticsGet
 } from '@/api/gradeController'
 
 // 统计数据
@@ -301,7 +297,7 @@ const initTrendChart = () => {
 
   // 按日期排序
   const sortedGrades = [...allGrades.value].sort(
-    (a, b) => new Date(a.examDate).getTime() - new Date(b.examDate).getTime()
+      (a, b) => new Date(a.examDate).getTime() - new Date(b.examDate).getTime()
   )
 
   const dates = sortedGrades.map((g) => g.examDate)
@@ -350,8 +346,8 @@ const initTrendChart = () => {
         },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(24, 144, 255, 0.3)' },
-            { offset: 1, color: 'rgba(24, 144, 255, 0.1)' }
+            {offset: 0, color: 'rgba(24, 144, 255, 0.3)'},
+            {offset: 1, color: 'rgba(24, 144, 255, 0.1)'}
           ])
         }
       }
@@ -400,11 +396,11 @@ const initDistributionChart = () => {
         type: 'pie',
         radius: '50%',
         data: [
-          { value: distribution.excellent, name: '优秀(90-100)', itemStyle: { color: '#52c41a' } },
-          { value: distribution.good, name: '良好(80-89)', itemStyle: { color: '#1890ff' } },
-          { value: distribution.medium, name: '中等(70-79)', itemStyle: { color: '#faad14' } },
-          { value: distribution.pass, name: '及格(60-69)', itemStyle: { color: '#fa8c16' } },
-          { value: distribution.fail, name: '不及格(0-59)', itemStyle: { color: '#ff4d4f' } }
+          {value: distribution.excellent, name: '优秀(90-100)', itemStyle: {color: '#52c41a'}},
+          {value: distribution.good, name: '良好(80-89)', itemStyle: {color: '#1890ff'}},
+          {value: distribution.medium, name: '中等(70-79)', itemStyle: {color: '#faad14'}},
+          {value: distribution.pass, name: '及格(60-69)', itemStyle: {color: '#fa8c16'}},
+          {value: distribution.fail, name: '不及格(0-59)', itemStyle: {color: '#ff4d4f'}}
         ],
         emphasis: {
           itemStyle: {
@@ -443,8 +439,6 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
 })
 
-// 清理
-import { onUnmounted } from 'vue'
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   courseChart?.dispose()
@@ -453,7 +447,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .my-grades-analysis-page {
   padding: 24px;
 

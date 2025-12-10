@@ -1,23 +1,23 @@
 <template>
   <a-layout class="teacher-layout">
     <!-- 全局头部 -->
-    <GlobalHeader />
+    <GlobalHeader/>
 
     <a-layout class="main-layout">
       <!-- 左侧菜单栏 -->
       <LayoutSider
-        title="教师"
-        :menu-items="menuItems"
-        @collapse-change="handleCollapseChange"
+          :menu-items="menuItems"
+          title="教师"
+          @collapse-change="handleCollapseChange"
       />
 
       <!-- 主内容区域 -->
-      <a-layout class="content-layout" :class="{ 'collapsed-layout': collapsed }">
+      <a-layout :class="{ 'collapsed-layout': collapsed }" class="content-layout">
         <a-layout-content class="content">
           <div class="content-wrapper">
             <router-view v-slot="{ Component }">
-              <transition name="fade" mode="out-in">
-                <component :is="Component" />
+              <transition mode="out-in" name="fade">
+                <component :is="Component"/>
               </transition>
             </router-view>
           </div>
@@ -26,27 +26,27 @@
     </a-layout>
 
     <!-- 全局底部 -->
-    <GlobalFooter />
+    <GlobalFooter/>
   </a-layout>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
+<script lang="ts" setup>
+import {ref} from 'vue'
 import {
-  DashboardOutlined,
-  BookOutlined,
-  FolderOutlined,
-  CalendarOutlined,
   BarChartOutlined,
-  MessageOutlined,
-  LineChartOutlined,
+  BookOutlined,
+  CalendarOutlined,
+  DashboardOutlined,
   FileAddOutlined,
   FileDoneOutlined,
+  FolderOutlined,
+  LineChartOutlined,
+  MessageOutlined,
 } from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
+import type {MenuItem} from '@/components/layout/LayoutSider.vue'
 import LayoutSider from '@/components/layout/LayoutSider.vue'
-import type { MenuItem } from '@/components/layout/LayoutSider.vue'
 
 // 响应式数据
 const collapsed = ref(false)
@@ -167,9 +167,8 @@ const handleCollapseChange = (isCollapsed: boolean) => {
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  transition: opacity 0.3s ease,
+  transform 0.3s ease;
 }
 
 .fade-enter-from {

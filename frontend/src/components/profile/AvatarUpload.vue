@@ -2,32 +2,34 @@
   <div class="avatar-upload-container">
     <div class="avatar-wrapper" @click="triggerFileInput">
       <!-- Current avatar display -->
-      <a-avatar v-if="previewUrl || currentAvatar" :src="previewUrl || currentAvatar" :size="size" class="avatar-image" />
+      <a-avatar v-if="previewUrl || currentAvatar" :size="size" :src="previewUrl || currentAvatar"
+                class="avatar-image"/>
       <!-- Default avatar placeholder -->
       <a-avatar v-else :size="size" class="avatar-placeholder">
         <template #icon>
-          <UserOutlined />
+          <UserOutlined/>
         </template>
       </a-avatar>
 
       <!-- Upload overlay -->
       <div class="upload-overlay">
-        <CameraOutlined class="camera-icon" />
+        <CameraOutlined class="camera-icon"/>
         <span class="upload-text">更换头像</span>
       </div>
     </div>
 
     <!-- Hidden file input -->
-    <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/gif" class="hidden-input" @change="handleFileSelect" />
+    <input ref="fileInputRef" accept="image/jpeg,image/png,image/gif" class="hidden-input" type="file"
+           @change="handleFileSelect"/>
 
     <!-- Preview modal -->
-    <a-modal v-model:open="previewModalVisible" title="预览头像" :footer="null" @cancel="handleCancelPreview">
+    <a-modal v-model:open="previewModalVisible" :footer="null" title="预览头像" @cancel="handleCancelPreview">
       <div class="preview-content">
-        <img v-if="previewUrl" :src="previewUrl" alt="头像预览" class="preview-image" />
+        <img v-if="previewUrl" :src="previewUrl" alt="头像预览" class="preview-image"/>
         <div class="preview-actions">
           <a-space>
             <a-button @click="handleCancelPreview">取消</a-button>
-            <a-button type="primary" :loading="uploading" @click="handleConfirmUpload"> 确认上传 </a-button>
+            <a-button :loading="uploading" type="primary" @click="handleConfirmUpload"> 确认上传</a-button>
           </a-space>
         </div>
       </div>
@@ -35,11 +37,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { UserOutlined, CameraOutlined } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
-import { validateAvatarFile, type AvatarValidationResult } from '@/utils/avatarValidation'
+<script lang="ts" setup>
+import {ref} from 'vue'
+import {CameraOutlined, UserOutlined} from '@ant-design/icons-vue'
+import {message} from 'ant-design-vue'
+import {validateAvatarFile} from '@/utils/avatarValidation'
 
 interface Props {
   currentAvatar?: string | null

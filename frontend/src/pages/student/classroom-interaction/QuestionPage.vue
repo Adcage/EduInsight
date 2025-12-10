@@ -1,21 +1,23 @@
 <template>
   <div class="question-page">
-    <a-page-header title="课堂提问" sub-title="查看问题、提交回答">
+    <a-page-header sub-title="查看问题、提交回答" title="课堂提问">
       <template #extra>
         <a-space>
           <a-select
-            v-model:value="courseId"
-            placeholder="选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
+              v-model:value="courseId"
+              placeholder="选择课程"
+              style="width: 200px"
+              @change="handleCourseChange"
           >
             <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
               {{ course.name }}
             </a-select-option>
           </a-select>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
-          <a-button @click="loadQuestions" :disabled="!courseId">
-            <template #icon><ReloadOutlined /></template>
+          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'"/>
+          <a-button :disabled="!courseId" @click="loadQuestions">
+            <template #icon>
+              <ReloadOutlined/>
+            </template>
             刷新
           </a-button>
         </a-space>
@@ -35,8 +37,8 @@
 
       <!-- 问题列表 -->
       <a-spin :spinning="loading">
-        <a-empty v-if="!courseId" description="请先选择课程" />
-        <a-empty v-else-if="filteredQuestions.length === 0 && !loading" description="暂无问题" />
+        <a-empty v-if="!courseId" description="请先选择课程"/>
+        <a-empty v-else-if="filteredQuestions.length === 0 && !loading" description="暂无问题"/>
 
         <a-list v-else :data-source="filteredQuestions" :pagination="false">
           <template #renderItem="{ item }">
@@ -44,7 +46,7 @@
               <a-list-item-meta>
                 <template #avatar>
                   <a-avatar :style="{ backgroundColor: item.status === 'pending' ? '#faad14' : '#52c41a' }">
-                    <QuestionCircleOutlined />
+                    <QuestionCircleOutlined/>
                   </a-avatar>
                 </template>
 
@@ -55,7 +57,8 @@
                       {{ getQuestionStatusText(item) }}
                     </a-tag>
                     <a-tag v-if="item.has_answered" color="green">
-                      <CheckCircleOutlined /> 已回答
+                      <CheckCircleOutlined/>
+                      已回答
                     </a-tag>
                   </a-space>
                 </template>
@@ -71,23 +74,27 @@
 
               <template #actions>
                 <a-button
-                  v-if="item.status === 'pending' && !item.has_answered"
-                  type="primary"
-                  @click="answerQuestion(item)"
+                    v-if="item.status === 'pending' && !item.has_answered"
+                    type="primary"
+                    @click="answerQuestion(item)"
                 >
-                  <EditOutlined /> 回答问题
+                  <EditOutlined/>
+                  回答问题
                 </a-button>
 
                 <a-button v-else-if="item.has_answered" disabled>
-                  <CheckCircleOutlined /> 已回答
+                  <CheckCircleOutlined/>
+                  已回答
                 </a-button>
 
                 <a-button @click="viewAnswers(item)">
-                  <EyeOutlined /> 查看回答
+                  <EyeOutlined/>
+                  查看回答
                 </a-button>
 
                 <a-button @click="likeQuestion(item)">
-                  <LikeOutlined /> 点赞 ({{ item.like_count }})
+                  <LikeOutlined/>
+                  点赞 ({{ item.like_count }})
                 </a-button>
               </template>
             </a-list-item>
@@ -98,19 +105,19 @@
 
     <!-- 回答问题对话框 -->
     <a-modal
-      v-model:open="answerModalVisible"
-      title="提交回答"
-      width="700px"
-      :confirm-loading="answerLoading"
-      @ok="handleSubmitAnswer"
+        v-model:open="answerModalVisible"
+        :confirm-loading="answerLoading"
+        title="提交回答"
+        width="700px"
+        @ok="handleSubmitAnswer"
     >
       <div v-if="currentQuestion">
         <a-alert
-          message="重要提示"
-          description="你的回答将自动转换为弹幕，在大屏幕上实时展示给全班同学！"
-          type="info"
-          show-icon
-          style="margin-bottom: 16px"
+            description="你的回答将自动转换为弹幕，在大屏幕上实时展示给全班同学！"
+            message="重要提示"
+            show-icon
+            style="margin-bottom: 16px"
+            type="info"
         />
 
         <h3 style="font-size: 16px; margin-bottom: 8px">问题：</h3>
@@ -119,35 +126,35 @@
         <a-divider>请输入你的回答</a-divider>
 
         <a-textarea
-          v-model:value="answerContent"
-          :rows="6"
-          placeholder="请输入你的回答..."
-          :maxlength="200"
-          show-count
+            v-model:value="answerContent"
+            :maxlength="200"
+            :rows="6"
+            placeholder="请输入你的回答..."
+            show-count
         />
 
         <a-alert
-          message="提示"
-          description="回答将以弹幕形式展示，建议简洁明了，字数在50-200字之间"
-          type="warning"
-          show-icon
-          style="margin-top: 16px"
+            description="回答将以弹幕形式展示，建议简洁明了，字数在50-200字之间"
+            message="提示"
+            show-icon
+            style="margin-top: 16px"
+            type="warning"
         />
       </div>
     </a-modal>
 
     <!-- 回答列表对话框 -->
-    <a-modal v-model:open="answersModalVisible" title="我的回答" width="800px" :footer="null">
+    <a-modal v-model:open="answersModalVisible" :footer="null" title="我的回答" width="800px">
       <div v-if="currentQuestion">
         <a-alert
-          :message="answers.length > 0 ? `你已提交 ${answers.length} 个回答` : '你还没有回答这个问题'"
-          :type="answers.length > 0 ? 'success' : 'info'"
-          show-icon
-          style="margin-bottom: 16px"
+            :message="answers.length > 0 ? `你已提交 ${answers.length} 个回答` : '你还没有回答这个问题'"
+            :type="answers.length > 0 ? 'success' : 'info'"
+            show-icon
+            style="margin-bottom: 16px"
         />
 
         <a-spin :spinning="answersLoading">
-          <a-empty v-if="answers.length === 0 && !answersLoading" description="暂无回答" />
+          <a-empty v-if="answers.length === 0 && !answersLoading" description="暂无回答"/>
 
           <a-list v-else :data-source="answers">
             <template #renderItem="{ item, index }">
@@ -163,7 +170,8 @@
                     <a-space>
                       <span>{{ item.is_anonymous ? '匿名用户' : `学生 ${item.user_id}` }}</span>
                       <a-tag v-if="item.is_accepted" color="green">
-                        <CheckCircleOutlined /> 已采纳
+                        <CheckCircleOutlined/>
+                        已采纳
                       </a-tag>
                       <a-tag v-if="item.user_id === userId" color="blue">
                         我的回答
@@ -184,7 +192,8 @@
 
                 <template #actions>
                   <a @click="likeAnswer(item)">
-                    <LikeOutlined /> 点赞 ({{ item.like_count }})
+                    <LikeOutlined/>
+                    点赞 ({{ item.like_count }})
                   </a>
                 </template>
               </a-list-item>
@@ -196,26 +205,26 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onMounted, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
 import {
-  ReloadOutlined,
-  QuestionCircleOutlined,
   CheckCircleOutlined,
   EditOutlined,
   EyeOutlined,
   LikeOutlined,
+  QuestionCircleOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons-vue'
 import {
-  questionApiGet,
-  questionApiIntQuestionIdAnswersPost,
-  questionApiIntQuestionIdAnswersGet,
-  questionApiIntQuestionIdLikePost,
-  questionApiIntQuestionIdAnswersIntAnswerIdLikePost,
   interactionCommonStudentCoursesGet,
+  questionApiGet,
+  questionApiIntQuestionIdAnswersGet,
+  questionApiIntQuestionIdAnswersIntAnswerIdLikePost,
+  questionApiIntQuestionIdAnswersPost,
+  questionApiIntQuestionIdLikePost,
 } from '@/api/interactionController'
-import { useQuestionSocket } from '@/composables/useSocket'
+import {useQuestionSocket} from '@/composables/useSocket'
 import socketService from '@/utils/socket'
 import dayjs from 'dayjs'
 
@@ -233,7 +242,7 @@ const loadCurrentUser = () => {
       const user = JSON.parse(userStr)
       userId.value = user.id
       userName.value = user.real_name || user.username || '学生'
-      console.log('当前用户:', { id: userId.value, name: userName.value })
+      console.log('当前用户:', {id: userId.value, name: userName.value})
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)
@@ -280,15 +289,15 @@ const filteredQuestions = computed(() => {
 const loadCourses = async () => {
   try {
     const response = await interactionCommonStudentCoursesGet()
-    
+
     if (response.data && response.data.data) {
       courses.value = response.data.data.courses
-      
+
       // 默认选择第一个课程
       if (courses.value.length > 0) {
         courseId.value = courses.value[0].id
         previousCourseId.value = courseId.value // 记录初始课程ID
-        
+
         // 加载第一个课程的数据
         loadQuestions()
       } else {
@@ -313,7 +322,7 @@ const handleCourseChange = () => {
       console.log('离开旧课程房间:', previousCourseId.value)
       leaveQuestionCourse(previousCourseId.value, userId.value, userName.value)
     }
-    
+
     // 加入新课程房间
     if (courseId.value) {
       console.log('加入新课程房间:', courseId.value)
@@ -321,7 +330,7 @@ const handleCourseChange = () => {
       previousCourseId.value = courseId.value
     }
   }
-  
+
   // 切换课程时重新加载数据
   loadQuestions()
 }
@@ -329,7 +338,7 @@ const handleCourseChange = () => {
 // 加载问题列表
 const loadQuestions = async () => {
   if (!courseId.value) return
-  
+
   loading.value = true
   try {
     const response = await questionApiGet({
@@ -346,7 +355,7 @@ const loadQuestions = async () => {
     // 为了性能，我们并行发起所有请求
     const checkPromises = questionList.map(async (question: any) => {
       question.answer_count = question.answer_count || 0
-      
+
       try {
         const answersResponse = await questionApiIntQuestionIdAnswersGet({
           questionId: question.id,
@@ -357,10 +366,10 @@ const loadQuestions = async () => {
         console.error(`检查问题 ${question.id} 的回答状态失败:`, error)
         question.has_answered = false
       }
-      
+
       return question
     })
-    
+
     // 等待所有检查完成
     questions.value = await Promise.all(checkPromises)
   } catch (error: any) {
@@ -394,12 +403,12 @@ const handleSubmitAnswer = async () => {
   answerLoading.value = true
   try {
     const response = await questionApiIntQuestionIdAnswersPost(
-      { questionId: currentQuestion.value.id },
-      { content: answerContent.value }
+        {questionId: currentQuestion.value.id},
+        {content: answerContent.value}
     )
 
     // 返回的数据包含答案和弹幕
-    const { answer, barrage } = response.data.data
+    const {answer, barrage} = response.data.data
 
     console.log('答案:', answer)
     console.log('弹幕:', barrage) // 自动生成的弹幕
@@ -530,7 +539,7 @@ const formatTime = (time: string) => {
 onMounted(() => {
   // 先加载当前用户信息
   loadCurrentUser()
-  
+
   // 然后加载课程列表
   loadCourses()
 
@@ -554,7 +563,7 @@ onMounted(() => {
       question.answer_count = (question.answer_count || 0) + 1
       // 注意：不要修改 question.status，让它保持 'pending' 状态
       // 这样其他学生仍然可以回答
-      
+
       // 只有当回答是当前用户提交的时候，才标记为已回答
       // data.answer 包含回答信息，其中有 user_id
       if (data.answer && data.answer.user_id === userId.value) {
@@ -583,11 +592,11 @@ onMounted(() => {
       }
     }
   })
-  
+
   // 监听点名通知
   socketService.on('student_called_on', (data: any) => {
     console.log('收到点名通知:', data)
-    
+
     // 只有被点名的学生才显示通知
     if (data.student_id === userId.value) {
       message.success({
@@ -612,7 +621,7 @@ watch(isConnected, (connected) => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .question-page {
   min-height: 100vh;
   background: var(--bg-color);

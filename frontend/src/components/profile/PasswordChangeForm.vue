@@ -1,21 +1,22 @@
 <template>
-  <a-modal :open="visible" title="修改密码" :confirm-loading="loading" @cancel="handleCancel" @ok="handleSubmit">
-    <a-form ref="formRef" :model="formState" :rules="rules" layout="vertical" autocomplete="off">
+  <a-modal :confirm-loading="loading" :open="visible" title="修改密码" @cancel="handleCancel" @ok="handleSubmit">
+    <a-form ref="formRef" :model="formState" :rules="rules" autocomplete="off" layout="vertical">
       <a-form-item label="当前密码" name="currentPassword">
-        <a-input-password v-model:value="formState.currentPassword" placeholder="请输入当前密码" allow-clear />
+        <a-input-password v-model:value="formState.currentPassword" allow-clear placeholder="请输入当前密码"/>
       </a-form-item>
 
       <a-form-item label="新密码" name="newPassword">
-        <a-input-password v-model:value="formState.newPassword" placeholder="请输入新密码（至少6位）" allow-clear @input="updatePasswordStrength" />
+        <a-input-password v-model:value="formState.newPassword" allow-clear placeholder="请输入新密码（至少6位）"
+                          @input="updatePasswordStrength"/>
         <!-- Password strength indicator -->
         <div v-if="formState.newPassword" class="password-strength">
           <span class="strength-label">密码强度：</span>
           <a-progress
-            :percent="passwordStrength.percent"
-            :status="passwordStrength.status"
-            :show-info="false"
-            :stroke-color="passwordStrength.color"
-            size="small"
+              :percent="passwordStrength.percent"
+              :show-info="false"
+              :status="passwordStrength.status"
+              :stroke-color="passwordStrength.color"
+              size="small"
           />
           <span :style="{ color: passwordStrength.color }" class="strength-text">
             {{ passwordStrength.text }}
@@ -24,18 +25,18 @@
       </a-form-item>
 
       <a-form-item label="确认新密码" name="confirmPassword">
-        <a-input-password v-model:value="formState.confirmPassword" placeholder="请再次输入新密码" allow-clear />
+        <a-input-password v-model:value="formState.confirmPassword" allow-clear placeholder="请再次输入新密码"/>
       </a-form-item>
     </a-form>
   </a-modal>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import type { FormInstance, Rule } from 'ant-design-vue/es/form'
-import { message } from 'ant-design-vue'
-import { authApiChangePasswordPost } from '@/api/authController'
-import { validatePasswordMatch, calculatePasswordStrength, type PasswordStrengthResult } from '@/utils/passwordValidation'
+<script lang="ts" setup>
+import {reactive, ref, watch} from 'vue'
+import type {FormInstance, Rule} from 'ant-design-vue/es/form'
+import {message} from 'ant-design-vue'
+import {authApiChangePasswordPost} from '@/api/authController'
+import {calculatePasswordStrength, type PasswordStrengthResult, validatePasswordMatch} from '@/utils/passwordValidation'
 
 interface Props {
   visible: boolean
@@ -87,14 +88,14 @@ const validateConfirmPassword = async (_rule: Rule, value: string) => {
 
 // Form validation rules
 const rules: Record<string, Rule[]> = {
-  currentPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  currentPassword: [{required: true, message: '请输入当前密码', trigger: 'blur'}],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+    {required: true, message: '请输入新密码', trigger: 'blur'},
+    {min: 6, message: '密码长度不能少于6位', trigger: 'blur'},
   ],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' },
+    {required: true, message: '请确认新密码', trigger: 'blur'},
+    {validator: validateConfirmPassword, trigger: 'blur'},
   ],
 }
 
@@ -156,12 +157,12 @@ const handleSubmit = async () => {
 
 // Reset form when modal closes
 watch(
-  () => props.visible,
-  (newVal) => {
-    if (!newVal) {
-      resetForm()
-    }
-  },
+    () => props.visible,
+    (newVal) => {
+      if (!newVal) {
+        resetForm()
+      }
+    },
 )
 </script>
 

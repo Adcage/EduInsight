@@ -1,104 +1,100 @@
 <template>
   <div class="tag-suggestions">
-    <a-card 
-      :bordered="false" 
-      :loading="loading"
-      class="suggestions-card"
-      size="small"
+    <a-card
+        :bordered="false"
+        :loading="loading"
+        class="suggestions-card"
+        size="small"
     >
       <template #title>
         <div class="card-title">
-          <TagsOutlined />
+          <TagsOutlined/>
           <span>智能标签推荐</span>
         </div>
       </template>
-      
+
       <template #extra>
-        <a-button 
-          v-if="!loading" 
-          type="link" 
-          size="small"
-          @click="handleRefresh"
+        <a-button
+            v-if="!loading"
+            size="small"
+            type="link"
+            @click="handleRefresh"
         >
-          <template #icon><ReloadOutlined /></template>
+          <template #icon>
+            <ReloadOutlined/>
+          </template>
           刷新
         </a-button>
       </template>
 
       <!-- 加载中 -->
       <div v-if="loading" class="loading-state">
-        <a-spin size="small" />
+        <a-spin size="small"/>
         <span>正在获取推荐...</span>
       </div>
 
       <!-- 推荐结果 -->
       <div v-else-if="suggestions.length > 0" class="suggestions-content">
         <div class="suggestions-list">
-          <div 
-            v-for="(suggestion, index) in suggestions" 
-            :key="index"
-            class="suggestion-item"
-            :class="{ 
+          <div
+              v-for="(suggestion, index) in suggestions"
+              :key="index"
+              :class="{
               'is-selected': isSelected(suggestion.tagName),
-              'is-existing': suggestion.isExisting 
+              'is-existing': suggestion.isExisting
             }"
-            @click="handleToggle(suggestion)"
+              class="suggestion-item"
+              @click="handleToggle(suggestion)"
           >
-            <a-tag 
-              :color="isSelected(suggestion.tagName) ? 'blue' : (suggestion.isExisting ? 'green' : 'default')"
-              class="suggestion-tag"
+            <a-tag
+                :color="isSelected(suggestion.tagName) ? 'blue' : (suggestion.isExisting ? 'green' : 'default')"
+                class="suggestion-tag"
             >
               <template #icon>
-                <CheckCircleFilled v-if="isSelected(suggestion.tagName)" />
-                <TagOutlined v-else-if="suggestion.isExisting" />
-                <PlusOutlined v-else />
+                <CheckCircleFilled v-if="isSelected(suggestion.tagName)"/>
+                <TagOutlined v-else-if="suggestion.isExisting"/>
+                <PlusOutlined v-else/>
               </template>
               {{ suggestion.tagName }}
             </a-tag>
             <span class="relevance-indicator">
-              <a-progress 
-                :percent="Math.round(suggestion.relevance * 100)" 
-                :show-info="false"
-                size="small"
-                :stroke-color="getRelevanceColor(suggestion.relevance)"
-                style="width: 40px"
+              <a-progress
+                  :percent="Math.round(suggestion.relevance * 100)"
+                  :show-info="false"
+                  :stroke-color="getRelevanceColor(suggestion.relevance)"
+                  size="small"
+                  style="width: 40px"
               />
             </span>
           </div>
         </div>
-        
+
         <div class="legend">
           <span class="legend-item">
-            <a-tag color="green" size="small"><TagOutlined /> 现有</a-tag>
+            <a-tag color="green" size="small"><TagOutlined/> 现有</a-tag>
           </span>
           <span class="legend-item">
-            <a-tag size="small"><PlusOutlined /> 新建</a-tag>
+            <a-tag size="small"><PlusOutlined/> 新建</a-tag>
           </span>
         </div>
       </div>
 
       <!-- 无推荐 -->
       <div v-else class="empty-state">
-        <a-empty 
-          description="暂无标签推荐" 
-          :image="Empty.PRESENTED_IMAGE_SIMPLE"
+        <a-empty
+            :image="Empty.PRESENTED_IMAGE_SIMPLE"
+            description="暂无标签推荐"
         />
       </div>
     </a-card>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { message, Empty } from 'ant-design-vue'
-import {
-  TagsOutlined,
-  TagOutlined,
-  ReloadOutlined,
-  PlusOutlined,
-  CheckCircleFilled
-} from '@ant-design/icons-vue'
-import { materialApiIntMaterialIdSuggestTagsPost } from '@/api/classificationController'
+<script lang="ts" setup>
+import {computed, ref, watch} from 'vue'
+import {Empty, message} from 'ant-design-vue'
+import {CheckCircleFilled, PlusOutlined, ReloadOutlined, TagOutlined, TagsOutlined} from '@ant-design/icons-vue'
+import {materialApiIntMaterialIdSuggestTagsPost} from '@/api/classificationController'
 
 // Props
 const props = defineProps<{
@@ -129,14 +125,14 @@ const isSelected = (tagName: string): boolean => {
 // 加载推荐 - 必须在 watch 之前定义
 const loadSuggestions = async () => {
   if (!props.materialId) return
-  
+
   loading.value = true
   try {
-    const response: any = await materialApiIntMaterialIdSuggestTagsPost({ materialId: props.materialId })
-    
+    const response: any = await materialApiIntMaterialIdSuggestTagsPost({materialId: props.materialId})
+
     // 处理 axios 响应结构: response.data 是后端返回的 { code, message, data }
     const responseData = response.data || response
-    
+
     if (responseData.code === 200 && responseData.data) {
       suggestions.value = responseData.data
     } else {
@@ -155,7 +151,7 @@ watch(() => props.materialId, (newId) => {
   if (newId && props.autoLoad) {
     loadSuggestions()
   }
-}, { immediate: true })
+}, {immediate: true})
 
 // 刷新推荐
 const handleRefresh = () => {
@@ -165,7 +161,7 @@ const handleRefresh = () => {
 // 切换标签选中状态
 const handleToggle = (suggestion: API.TagSuggestionResponseModel) => {
   const tagName = suggestion.tagName
-  
+
   if (isSelected(tagName)) {
     // 取消选中
     emit('deselect', tagName)

@@ -1,11 +1,11 @@
 <template>
   <a-modal
-    :open="visible"
-    :title="modalTitle"
-    :footer="null"
-    :maskClosable="false"
-    width="500px"
-    @cancel="handleCancel"
+      :footer="null"
+      :maskClosable="false"
+      :open="visible"
+      :title="modalTitle"
+      width="500px"
+      @cancel="handleCancel"
   >
     <div v-if="attendance" class="check-in-modal-content">
       <!-- 考勤信息 -->
@@ -30,28 +30,28 @@
 
       <!-- 签到提示 -->
       <a-alert
-        :message="checkInTip"
-        type="info"
-        show-icon
-        class="check-in-tip"
+          :message="checkInTip"
+          class="check-in-tip"
+          show-icon
+          type="info"
       />
 
       <!-- 手势签到输入 -->
       <div v-if="isGestureType" class="gesture-input-section">
         <GestureInput
-          v-model="gestureCode"
-          hint="请连接与教师相同的点（至少4个点）"
-          :size="300"
-          :show-code="false"
-          :show-actions="false"
-          @gesture-data-change="handleGestureDataChange"
+            v-model="gestureCode"
+            :show-actions="false"
+            :show-code="false"
+            :size="300"
+            hint="请连接与教师相同的点（至少4个点）"
+            @gesture-data-change="handleGestureDataChange"
         />
       </div>
 
       <!-- 位置签到信息 -->
       <div v-if="isLocationType" class="location-info-section">
         <div class="location-tip">
-          <a-alert type="info" show-icon>
+          <a-alert show-icon type="info">
             <template #message>
               <div>
                 <div>点击"定位当前位置"按钮获取您的位置，系统将自动计算与签到点的距离</div>
@@ -62,17 +62,17 @@
             </template>
           </a-alert>
         </div>
-        
+
         <MapLocationPicker
-          v-model="locationData"
-          :target-location="targetLocation"
-          :default-radius="props.attendance?.locationRange || props.attendance?.location_range || 100"
-          :editable="true"
-          :show-radius="false"
-          :use-browser-fallback="false"
-          height="400px"
+            v-model="locationData"
+            :default-radius="props.attendance?.locationRange || props.attendance?.location_range || 100"
+            :editable="true"
+            :show-radius="false"
+            :target-location="targetLocation"
+            :use-browser-fallback="false"
+            height="400px"
         />
-        
+
         <div v-if="distance !== null" class="distance-display">
           <a-alert :type="isInRange ? 'success' : 'error'" show-icon>
             <template #message>
@@ -89,11 +89,11 @@
       <!-- 签到按钮 -->
       <div class="action-buttons">
         <a-button block @click="handleCancel">取消</a-button>
-        <a-button 
-          type="primary" 
-          block 
-          :loading="checking"
-          @click="handleCheckIn"
+        <a-button
+            :loading="checking"
+            block
+            type="primary"
+            @click="handleCheckIn"
         >
           {{ checkInButtonText }}
         </a-button>
@@ -103,11 +103,10 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
-import { message } from 'ant-design-vue'
+import {computed, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
 import dayjs from 'dayjs'
-import type { StudentAttendanceNotification } from '@/api/attendanceController'
-import { verifyQRCodeAndCheckIn } from '@/api/attendanceController'
+import type {StudentAttendanceNotification} from '@/api/attendanceController'
 import request from '@/request'
 import GestureInput from '@/components/GestureInput.vue'
 import MapLocationPicker from '@/components/MapLocationPicker.vue'
@@ -119,6 +118,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
+
   (e: 'success'): void
 }
 
@@ -225,10 +225,10 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 6371000 // 地球半径（米）
   const dLat = (lat2 - lat1) * Math.PI / 180
   const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
@@ -273,7 +273,7 @@ const handleLocationCheckIn = async () => {
   console.log('[CheckInModal] handleLocationCheckIn - targetLocation:', targetLocation.value)
   console.log('[CheckInModal] handleLocationCheckIn - distance:', distance.value)
   console.log('[CheckInModal] handleLocationCheckIn - isInRange:', isInRange.value)
-  
+
   if (!locationData.value) {
     message.warning('请先获取位置信息')
     return
@@ -292,7 +292,7 @@ const handleLocationCheckIn = async () => {
       longitude: locationData.value.lng
     }
     console.log('[CheckInModal] 发送签到请求:', requestData)
-    
+
     const response = await request.post('/api/v1/students/attendances/location/verify', requestData)
 
     if (response.data) {
@@ -337,10 +337,10 @@ watch(locationData, (newVal) => {
   console.log('[CheckInModal] locationData changed:', newVal)
   if (newVal && targetLocation.value) {
     const calculatedDistance = calculateDistance(
-      newVal.lat,
-      newVal.lng,
-      targetLocation.value.lat,
-      targetLocation.value.lng
+        newVal.lat,
+        newVal.lng,
+        targetLocation.value.lat,
+        targetLocation.value.lng
     )
     distance.value = calculatedDistance
     console.log('[CheckInModal] 计算距离:', calculatedDistance, '米')
@@ -352,7 +352,7 @@ watch(locationData, (newVal) => {
 watch(() => props.visible, (newVal, oldVal) => {
   console.log('[CheckInModal] visible changed from', oldVal, 'to', newVal)
   console.log('[CheckInModal] attendance:', props.attendance)
-  
+
   if (newVal) {
     // 如果是位置签到，设置目标位置
     if (isLocationType.value && props.attendance) {
@@ -380,7 +380,7 @@ watch(() => props.visible, (newVal, oldVal) => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .check-in-modal-content {
   padding: 8px 0;
 }
@@ -439,22 +439,22 @@ watch(() => props.visible, (newVal, oldVal) => {
 
 .distance-display {
   margin-top: 16px;
-  
+
   .distance-content {
     display: flex;
     align-items: center;
     gap: 8px;
-    
+
     .distance-label {
       font-weight: 600;
     }
-    
+
     .distance-value {
       font-family: monospace;
       font-size: 18px;
       font-weight: 700;
     }
-    
+
     .distance-status {
       margin-left: auto;
       font-weight: 600;

@@ -1,21 +1,21 @@
 <template>
   <div class="my-grades-page">
-    <a-card title="我的成绩" :bordered="false">
+    <a-card :bordered="false" title="我的成绩">
       <!-- 筛选区域 -->
       <div class="filter-section">
         <a-form layout="inline">
           <a-form-item label="课程">
             <a-select
-              v-model:value="filterForm.courseId"
-              placeholder="请选择课程"
-              style="width: 200px"
-              allow-clear
-              @change="handleCourseChange"
+                v-model:value="filterForm.courseId"
+                allow-clear
+                placeholder="请选择课程"
+                style="width: 200px"
+                @change="handleCourseChange"
             >
               <a-select-option
-                v-for="course in courses"
-                :key="course.courseId"
-                :value="course.courseId"
+                  v-for="course in courses"
+                  :key="course.courseId"
+                  :value="course.courseId"
               >
                 {{ course.courseName }}
               </a-select-option>
@@ -24,11 +24,11 @@
 
           <a-form-item label="考试类型">
             <a-select
-              v-model:value="filterForm.examType"
-              placeholder="请选择类型"
-              style="width: 150px"
-              allow-clear
-              @change="loadGrades"
+                v-model:value="filterForm.examType"
+                allow-clear
+                placeholder="请选择类型"
+                style="width: 150px"
+                @change="loadGrades"
             >
               <a-select-option value="daily">平时成绩</a-select-option>
               <a-select-option value="midterm">期中考试</a-select-option>
@@ -39,14 +39,18 @@
 
           <a-form-item>
             <a-button type="primary" @click="loadGrades">
-              <template #icon><SearchOutlined /></template>
+              <template #icon>
+                <SearchOutlined/>
+              </template>
               查询
             </a-button>
           </a-form-item>
 
           <a-form-item>
             <a-button @click="handleReset">
-              <template #icon><ReloadOutlined /></template>
+              <template #icon>
+                <ReloadOutlined/>
+              </template>
               重置
             </a-button>
           </a-form-item>
@@ -55,13 +59,13 @@
 
       <!-- 成绩列表 -->
       <a-table
-        :columns="columns"
-        :data-source="dataSource"
-        :loading="loading"
-        :pagination="pagination"
-        :row-key="(record) => record.id"
-        @change="handleTableChange"
-        class="grades-table"
+          :columns="columns"
+          :data-source="dataSource"
+          :loading="loading"
+          :pagination="pagination"
+          :row-key="(record) => record.id"
+          class="grades-table"
+          @change="handleTableChange"
       >
         <!-- 考试类型 -->
         <template #bodyCell="{ column, record }">
@@ -81,9 +85,9 @@
           <!-- 百分比 -->
           <template v-else-if="column.key === 'percentage'">
             <a-progress
-              :percent="record.percentage"
-              :status="record.isPass ? 'success' : 'exception'"
-              :stroke-color="record.isPass ? '#52c41a' : '#ff4d4f'"
+                :percent="record.percentage"
+                :status="record.isPass ? 'success' : 'exception'"
+                :stroke-color="record.isPass ? '#52c41a' : '#ff4d4f'"
             />
           </template>
 
@@ -99,11 +103,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import { SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
-import { gradeApiStudentMyGradesGet, gradeApiStudentCoursesGet } from '@/api/gradeController'
+<script lang="ts" setup>
+import {onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {ReloadOutlined, SearchOutlined} from '@ant-design/icons-vue'
+import {gradeApiStudentCoursesGet, gradeApiStudentMyGradesGet} from '@/api/gradeController'
 
 // 筛选表单
 const filterForm = reactive({
@@ -208,7 +212,7 @@ const loadCourses = async () => {
   try {
     const response = await gradeApiStudentCoursesGet()
     const data = response.data || response
-    
+
     // 转换字段名：后端下划线 -> 前端驼峰
     const courseList = (data || []).map((course: any) => ({
       courseId: course.course_id,
@@ -221,7 +225,7 @@ const loadCourses = async () => {
       lowestScore: course.lowest_score,
       passRate: course.pass_rate
     }))
-    
+
     courses.value = courseList
   } catch (error: any) {
     console.error('加载课程列表失败:', error)
@@ -307,7 +311,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .my-grades-page {
   padding: 24px;
 

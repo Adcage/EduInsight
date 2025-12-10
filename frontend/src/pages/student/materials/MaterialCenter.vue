@@ -1,28 +1,30 @@
 <template>
   <div class="student-material-center">
-    <a-page-header title="资料中心" sub-title="浏览和下载学习资料" />
+    <a-page-header sub-title="浏览和下载学习资料" title="资料中心"/>
 
     <div class="content-container">
       <a-row :gutter="16">
         <!-- 左侧：标签云和分类树 -->
-        <a-col :xs="24" :sm="24" :md="4" :lg="4">
+        <a-col :lg="4" :md="4" :sm="24" :xs="24">
           <!-- 标签云 -->
-          <TagCloud v-model="selectedTags" :show-manage="false" :default-show-count="15" @select="handleTagSelect" />
+          <TagCloud v-model="selectedTags" :default-show-count="15" :show-manage="false" @select="handleTagSelect"/>
 
           <!-- 分类树 -->
           <div class="category-tree-wrapper" style="margin-top: 16px">
-            <CategoryTree v-model="filters.categoryId" :show-manage="false" :show-count="true" @select="handleCategorySelect" />
+            <CategoryTree v-model="filters.categoryId" :show-count="true" :show-manage="false"
+                          @select="handleCategorySelect"/>
           </div>
         </a-col>
 
         <!-- 右侧：搜索、筛选和资料列表 -->
-        <a-col :xs="24" :sm="24" :md="20" :lg="20">
+        <a-col :lg="20" :md="20" :sm="24" :xs="24">
           <!-- 搜索栏 -->
-          <SearchBar v-model="searchKeyword" @search="handleSearch" />
+          <SearchBar v-model="searchKeyword" @search="handleSearch"/>
 
           <!-- 高级筛选 -->
           <div style="margin-top: 16px">
-            <AdvancedFilter :model-value="filters" @update:model-value="handleFilterUpdate" @change="handleFilterChange" />
+            <AdvancedFilter :model-value="filters" @change="handleFilterChange"
+                            @update:model-value="handleFilterUpdate"/>
           </div>
 
           <!-- 资料列表 -->
@@ -30,11 +32,11 @@
             <!-- 骨架屏加载状态 - Requirements 1.1 -->
             <div v-if="loading" class="skeleton-container">
               <a-row :gutter="[16, 16]">
-                <a-col v-for="n in pagination.pageSize" :key="n" :xs="24" :sm="12" :md="12" :lg="8" :xl="6">
+                <a-col v-for="n in pagination.pageSize" :key="n" :lg="8" :md="12" :sm="12" :xl="6" :xs="24">
                   <a-card class="skeleton-card">
-                    <a-skeleton :loading="true" active :paragraph="{ rows: 3 }">
+                    <a-skeleton :loading="true" :paragraph="{ rows: 3 }" active>
                       <template #avatar>
-                        <a-skeleton-avatar :size="48" shape="square" />
+                        <a-skeleton-avatar :size="48" shape="square"/>
                       </template>
                     </a-skeleton>
                   </a-card>
@@ -46,15 +48,24 @@
             <div v-else-if="materials.length === 0" class="empty-state">
               <a-empty :description="emptyStateDescription">
                 <template #image>
-                  <FolderOpenOutlined class="empty-icon" />
+                  <FolderOpenOutlined class="empty-icon"/>
                 </template>
                 <div class="empty-suggestions">
                   <p v-if="hasActiveFilters" class="suggestion-text">当前筛选条件下没有找到资料，您可以：</p>
                   <p v-else class="suggestion-text">暂时没有可用的学习资料，您可以：</p>
                   <div class="suggestion-actions">
-                    <a-button v-if="hasActiveFilters" type="link" @click="clearAllFilters"> <ClearOutlined /> 清除所有筛选条件 </a-button>
-                    <a-button v-if="searchKeyword" type="link" @click="clearSearch"> <SearchOutlined /> 清除搜索关键词 </a-button>
-                    <a-button type="link" @click="loadMaterials"> <ReloadOutlined /> 刷新列表 </a-button>
+                    <a-button v-if="hasActiveFilters" type="link" @click="clearAllFilters">
+                      <ClearOutlined/>
+                      清除所有筛选条件
+                    </a-button>
+                    <a-button v-if="searchKeyword" type="link" @click="clearSearch">
+                      <SearchOutlined/>
+                      清除搜索关键词
+                    </a-button>
+                    <a-button type="link" @click="loadMaterials">
+                      <ReloadOutlined/>
+                      刷新列表
+                    </a-button>
                   </div>
                   <div v-if="searchKeyword" class="search-suggestions">
                     <p class="suggestion-title">搜索建议：</p>
@@ -70,22 +81,23 @@
 
             <!-- 资料列表 -->
             <a-row v-else :gutter="[16, 16]">
-              <a-col v-for="material in materials" :key="material.id" :xs="24" :sm="12" :md="12" :lg="8" :xl="6">
-                <MaterialCard :material="material" @click="handleViewDetail" @preview="handlePreview" @download="handleDownload" @more="handleMore" />
+              <a-col v-for="material in materials" :key="material.id" :lg="8" :md="12" :sm="12" :xl="6" :xs="24">
+                <MaterialCard :material="material" @click="handleViewDetail" @download="handleDownload"
+                              @more="handleMore" @preview="handlePreview"/>
               </a-col>
             </a-row>
 
             <!-- 分页 -->
             <div v-if="total > 0 && !loading" class="pagination-container">
               <a-pagination
-                v-model:current="pagination.page"
-                v-model:page-size="pagination.pageSize"
-                :total="total"
-                :show-total="(total: number) => `共 ${total} 条`"
-                :show-size-changer="true"
-                :page-size-options="['12', '24', '36', '48']"
-                @change="handlePageChange"
-                @show-size-change="handlePageSizeChange"
+                  v-model:current="pagination.page"
+                  v-model:page-size="pagination.pageSize"
+                  :page-size-options="['12', '24', '36', '48']"
+                  :show-size-changer="true"
+                  :show-total="(total: number) => `共 ${total} 条`"
+                  :total="total"
+                  @change="handlePageChange"
+                  @show-size-change="handlePageSizeChange"
               />
             </div>
           </a-card>
@@ -95,28 +107,29 @@
 
     <!-- 预览弹窗 -->
     <a-modal
-      v-model:open="previewModalVisible"
-      :title="previewMaterial?.title || '文件预览'"
-      :width="900"
-      :footer="null"
-      :destroy-on-close="true"
-      class="preview-modal"
+        v-model:open="previewModalVisible"
+        :destroy-on-close="true"
+        :footer="null"
+        :title="previewMaterial?.title || '文件预览'"
+        :width="900"
+        class="preview-modal"
     >
       <div class="preview-container">
         <FilePreview
-          v-if="previewMaterial && previewUrl"
-          :file-url="previewUrl"
-          :file-type="previewMaterial.fileType"
-          :file-name="previewMaterial.fileName"
-          @download="handleDownload(previewMaterial)"
-          @back="previewModalVisible = false"
+            v-if="previewMaterial && previewUrl"
+            :file-name="previewMaterial.fileName"
+            :file-type="previewMaterial.fileType"
+            :file-url="previewUrl"
+            @back="previewModalVisible = false"
+            @download="handleDownload(previewMaterial)"
         />
         <div v-else-if="!isPreviewSupported(previewMaterial?.fileType)" class="unsupported-preview">
-          <a-result status="info" title="该文件类型暂不支持在线预览" :sub-title="`文件类型: ${previewMaterial?.fileType || '未知'}，建议下载后查看`">
+          <a-result :sub-title="`文件类型: ${previewMaterial?.fileType || '未知'}，建议下载后查看`" status="info"
+                    title="该文件类型暂不支持在线预览">
             <template #extra>
               <a-space>
-                <a-button type="primary" @click="handleDownload(previewMaterial)"> 下载文件 </a-button>
-                <a-button @click="previewModalVisible = false"> 关闭 </a-button>
+                <a-button type="primary" @click="handleDownload(previewMaterial)"> 下载文件</a-button>
+                <a-button @click="previewModalVisible = false"> 关闭</a-button>
               </a-space>
             </template>
           </a-result>
@@ -126,23 +139,27 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 /**
  * 学生端资料中心页面
  * 功能：资料列表展示、分类筛选、搜索、下载、预览
  * Requirements: 1.1, 1.5
  */
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { FolderOpenOutlined, ClearOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons-vue'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {ClearOutlined, FolderOpenOutlined, ReloadOutlined, SearchOutlined} from '@ant-design/icons-vue'
 import SearchBar from '@/components/materials/SearchBar.vue'
 import CategoryTree from '@/components/materials/CategoryTree.vue'
 import TagCloud from '@/components/materials/TagCloud.vue'
 import AdvancedFilter from '@/components/materials/AdvancedFilter.vue'
 import MaterialCard from '@/components/materials/MaterialCard.vue'
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
-import { materialApiGet, materialApiIntMaterialIdDownloadGet, materialApiIntMaterialIdPreviewGet } from '@/api/materialController'
+import {
+  materialApiGet,
+  materialApiIntMaterialIdDownloadGet,
+  materialApiIntMaterialIdPreviewGet
+} from '@/api/materialController'
 
 const router = useRouter()
 
@@ -182,12 +199,12 @@ const previewSupportedTypes = ['pdf', 'image', 'jpg', 'jpeg', 'png', 'gif', 'bmp
 // 是否有激活的筛选条件
 const hasActiveFilters = computed(() => {
   return (
-    filters.categoryId !== null ||
-    filters.fileType !== null ||
-    filters.courseId !== null ||
-    filters.dateRange !== null ||
-    selectedTags.value.length > 0 ||
-    searchKeyword.value !== ''
+      filters.categoryId !== null ||
+      filters.fileType !== null ||
+      filters.courseId !== null ||
+      filters.dateRange !== null ||
+      selectedTags.value.length > 0 ||
+      searchKeyword.value !== ''
   )
 })
 
@@ -353,7 +370,7 @@ const handlePreview = async (material: any) => {
     })
 
     // 创建blob URL用于预览
-    const blob = new Blob([response.data], { type: getContentType(material.fileType) })
+    const blob = new Blob([response.data], {type: getContentType(material.fileType)})
     previewUrl.value = window.URL.createObjectURL(blob)
     previewModalVisible.value = true
   } catch (error: any) {

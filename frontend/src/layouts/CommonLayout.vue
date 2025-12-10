@@ -1,10 +1,10 @@
 <template>
   <div class="common-layout">
-    <router-view />
+    <router-view/>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 // 公共布局组件,用于登录、注册等不需要头部和侧边栏的页面
 </script>
 

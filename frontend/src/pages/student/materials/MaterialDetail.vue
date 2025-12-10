@@ -4,11 +4,15 @@
       <template #extra>
         <a-space>
           <a-button v-if="canPreview" type="primary" @click="togglePreview">
-            <template #icon><EyeOutlined /></template>
+            <template #icon>
+              <EyeOutlined/>
+            </template>
             预览
           </a-button>
           <a-button @click="handleDownload">
-            <template #icon><DownloadOutlined /></template>
+            <template #icon>
+              <DownloadOutlined/>
+            </template>
             下载
           </a-button>
         </a-space>
@@ -19,17 +23,17 @@
       <!-- 骨架屏加载状态 - Requirements 1.1 -->
       <div v-if="loading" class="skeleton-container">
         <a-card :bordered="false" class="info-card">
-          <a-skeleton active :paragraph="{ rows: 8 }" />
+          <a-skeleton :paragraph="{ rows: 8 }" active/>
         </a-card>
         <a-card :bordered="false" class="info-card" style="margin-top: 16px">
-          <a-skeleton active :paragraph="{ rows: 4 }" />
+          <a-skeleton :paragraph="{ rows: 4 }" active/>
         </a-card>
       </div>
 
       <template v-else>
         <!-- 资料信息卡片 -->
         <a-card :bordered="false" class="info-card">
-          <a-descriptions title="资料信息" :column="2" bordered>
+          <a-descriptions :column="2" bordered title="资料信息">
             <a-descriptions-item label="文件名">
               {{ material?.fileName }}
             </a-descriptions-item>
@@ -62,7 +66,7 @@
             <a-descriptions-item label="下载次数">
               <a-statistic :value="material?.downloadCount || 0" :value-style="{ fontSize: '14px' }">
                 <template #prefix>
-                  <DownloadOutlined />
+                  <DownloadOutlined/>
                 </template>
               </a-statistic>
             </a-descriptions-item>
@@ -70,12 +74,12 @@
             <a-descriptions-item label="浏览次数">
               <a-statistic :value="material?.viewCount || 0" :value-style="{ fontSize: '14px' }">
                 <template #prefix>
-                  <EyeOutlined />
+                  <EyeOutlined/>
                 </template>
               </a-statistic>
             </a-descriptions-item>
 
-            <a-descriptions-item label="标签" :span="2">
+            <a-descriptions-item :span="2" label="标签">
               <a-space v-if="material?.tags && material.tags.length > 0">
                 <a-tag v-for="tag in material.tags" :key="tag.id" color="blue">
                   {{ tag.name }}
@@ -84,7 +88,7 @@
               <span v-else class="text-muted">暂无标签</span>
             </a-descriptions-item>
 
-            <a-descriptions-item label="描述" :span="2">
+            <a-descriptions-item :span="2" label="描述">
               <div class="description-content">
                 {{ material?.description || '暂无描述' }}
               </div>
@@ -96,7 +100,7 @@
         <a-card :bordered="false" class="info-card" style="margin-top: 16px">
           <template #title>
             <div style="display: flex; align-items: center; gap: 8px">
-              <AppstoreOutlined />
+              <AppstoreOutlined/>
               <span>相关资料</span>
             </div>
           </template>
@@ -104,21 +108,22 @@
           <!-- 相关资料骨架屏 -->
           <div v-if="relatedLoading" class="related-skeleton">
             <a-row :gutter="[16, 16]">
-              <a-col v-for="n in 4" :key="n" :xs="24" :sm="12" :md="8" :lg="6">
+              <a-col v-for="n in 4" :key="n" :lg="6" :md="8" :sm="12" :xs="24">
                 <a-card class="skeleton-card">
-                  <a-skeleton :loading="true" active :paragraph="{ rows: 2 }" />
+                  <a-skeleton :loading="true" :paragraph="{ rows: 2 }" active/>
                 </a-card>
               </a-col>
             </a-row>
           </div>
-          <a-empty v-else-if="relatedMaterials.length === 0" description="暂无相关资料" />
+          <a-empty v-else-if="relatedMaterials.length === 0" description="暂无相关资料"/>
           <a-row v-else :gutter="[16, 16]">
-            <a-col v-for="relatedMaterial in relatedMaterials" :key="relatedMaterial.id" :xs="24" :sm="12" :md="8" :lg="6">
+            <a-col v-for="relatedMaterial in relatedMaterials" :key="relatedMaterial.id" :lg="6" :md="8" :sm="12"
+                   :xs="24">
               <MaterialCard
-                :material="relatedMaterial"
-                @click="handleViewRelated"
-                @preview="handlePreviewRelated"
-                @download="handleDownloadRelated"
+                  :material="relatedMaterial"
+                  @click="handleViewRelated"
+                  @download="handleDownloadRelated"
+                  @preview="handlePreviewRelated"
               />
             </a-col>
           </a-row>
@@ -128,40 +133,40 @@
 
     <!-- 预览模态框 -->
     <a-modal
-      v-model:open="previewModalVisible"
-      :title="`预览 - ${material?.fileName}`"
-      width="85%"
-      :footer="null"
-      :destroyOnClose="true"
-      centered
-      :bodyStyle="{ height: '70vh', padding: 0, maxHeight: '70vh' }"
-      :wrapStyle="{ maxHeight: '90vh' }"
+        v-model:open="previewModalVisible"
+        :bodyStyle="{ height: '70vh', padding: 0, maxHeight: '70vh' }"
+        :destroyOnClose="true"
+        :footer="null"
+        :title="`预览 - ${material?.fileName}`"
+        :wrapStyle="{ maxHeight: '90vh' }"
+        centered
+        width="85%"
     >
       <FilePreview
-        v-if="previewUrl"
-        :file-url="previewUrl"
-        :file-type="material?.fileType"
-        :file-name="material?.fileName"
-        @download="handleDownload"
-        @back="previewModalVisible = false"
+          v-if="previewUrl"
+          :file-name="material?.fileName"
+          :file-type="material?.fileType"
+          :file-url="previewUrl"
+          @back="previewModalVisible = false"
+          @download="handleDownload"
       />
     </a-modal>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 /**
  * 学生端资料详情页面
  * 功能：展示资料详细信息，提供预览和下载功能，显示相关资料
  * Requirements: 4.1, 4.2, 4.3
  */
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { DownloadOutlined, EyeOutlined, AppstoreOutlined } from '@ant-design/icons-vue'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {AppstoreOutlined, DownloadOutlined, EyeOutlined} from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
-import { materialApiIntMaterialIdDownloadGet, materialApiGet } from '@/api/materialController'
-import { useMaterialStore } from '@/stores/material'
+import {materialApiGet, materialApiIntMaterialIdDownloadGet} from '@/api/materialController'
+import {useMaterialStore} from '@/stores/material'
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
 import MaterialCard from '@/components/materials/MaterialCard.vue'
 

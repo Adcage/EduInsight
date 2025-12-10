@@ -15,15 +15,15 @@ import * as userController from './userController'
 import * as interactionController from './interactionController'
 
 export default {
-  authController,
-  chunkedUploadController,
-  gradeController,
-  categoryController,
-  tagController,
-  materialController,
-  classificationController,
-  predictionController,
-  statisticsController,
-  userController,
-  interactionController,
+    authController,
+    chunkedUploadController,
+    gradeController,
+    categoryController,
+    tagController,
+    materialController,
+    classificationController,
+    predictionController,
+    statisticsController,
+    userController,
+    interactionController,
 }

@@ -1,80 +1,86 @@
 <template>
   <div class="gesture-input-container">
     <p v-if="hint" class="gesture-hint-text">{{ hint }}</p>
-    
-    <div 
-      class="gesture-box"
-      :style="{ width: size + 'px', height: size + 'px' }"
-      @mouseleave="endGesture"
-      @mouseup="endGesture"
+
+    <div
+        :style="{ width: size + 'px', height: size + 'px' }"
+        class="gesture-box"
+        @mouseleave="endGesture"
+        @mouseup="endGesture"
     >
       <!-- Lines -->
       <svg class="gesture-svg">
-        <line 
-          v-for="(line, idx) in gestureLines" 
-          :key="idx"
-          :x1="line.start.x" 
-          :y1="line.start.y" 
-          :x2="line.end.x" 
-          :y2="line.end.y"
-          stroke="#1890ff" 
-          stroke-width="4" 
-          stroke-linecap="round" 
+        <line
+            v-for="(line, idx) in gestureLines"
+            :key="idx"
+            :x1="line.start.x"
+            :x2="line.end.x"
+            :y1="line.start.y"
+            :y2="line.end.y"
+            stroke="#1890ff"
+            stroke-linecap="round"
+            stroke-width="4"
         />
-        <line 
-          v-if="currentLine"
-          :x1="currentLine.start.x" 
-          :y1="currentLine.start.y" 
-          :x2="currentLine.end.x" 
-          :y2="currentLine.end.y"
-          stroke="#1890ff" 
-          stroke-width="4" 
-          stroke-linecap="round" 
-          opacity="0.5"
+        <line
+            v-if="currentLine"
+            :x1="currentLine.start.x"
+            :x2="currentLine.end.x"
+            :y1="currentLine.start.y"
+            :y2="currentLine.end.y"
+            opacity="0.5"
+            stroke="#1890ff"
+            stroke-linecap="round"
+            stroke-width="4"
         />
       </svg>
 
       <!-- Points -->
-      <div 
-        v-for="(point, index) in gesturePoints" 
-        :key="index"
-        class="gesture-point"
-        :class="isPointSelected(index) ? 'point-selected' : ''"
-        :style="{
+      <div
+          v-for="(point, index) in gesturePoints"
+          :key="index"
+          :class="isPointSelected(index) ? 'point-selected' : ''"
+          :style="{
           left: point.x - 30 + 'px',
           top: point.y - 30 + 'px',
         }"
-        @mousedown.prevent="startGesture(index)"
-        @mouseenter="enterPoint(index)"
+          class="gesture-point"
+          @mouseenter="enterPoint(index)"
+          @mousedown.prevent="startGesture(index)"
       >
-        <div class="point-inner" :class="isPointSelected(index) ? 'inner-selected' : ''"></div>
+        <div :class="isPointSelected(index) ? 'inner-selected' : ''" class="point-inner"></div>
       </div>
     </div>
 
     <div v-if="showActions" class="gesture-actions">
       <a-button @click="resetGesture">
-        <template #icon><ClearOutlined /></template>
+        <template #icon>
+          <ClearOutlined/>
+        </template>
         重置
       </a-button>
-      <a-button 
-        v-if="showCode" 
-        type="primary" 
-        @click="confirmGesture" 
-        :disabled="gesturePath.length < 4"
+      <a-button
+          v-if="showCode"
+          :disabled="gesturePath.length < 4"
+          type="primary"
+          @click="confirmGesture"
       >
-        <template #icon><KeyOutlined /></template>
+        <template #icon>
+          <KeyOutlined/>
+        </template>
         确认使用
       </a-button>
     </div>
 
     <div v-if="gestureCode && showCode" class="gesture-code-display">
-      <a-alert type="success" show-icon>
+      <a-alert show-icon type="success">
         <template #message>
           <div class="code-content">
             <span class="code-label">手势码：</span>
             <span class="code-value">{{ gestureCode }}</span>
             <a-button size="small" type="link" @click="copyCode">
-              <template #icon><CopyOutlined /></template>
+              <template #icon>
+                <CopyOutlined/>
+              </template>
               复制
             </a-button>
           </div>
@@ -88,9 +94,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, computed } from 'vue'
-import { message } from 'ant-design-vue'
-import { ClearOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons-vue'
+import {computed, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
+import {ClearOutlined, CopyOutlined, KeyOutlined} from '@ant-design/icons-vue'
 
 interface Point {
   x: number
@@ -114,7 +120,9 @@ interface GestureData {
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
+
   (e: 'gestureChange', points: number[]): void
+
   (e: 'gestureDataChange', data: GestureData): void
 }
 
@@ -140,7 +148,7 @@ const gesturePoints = computed(() => {
   const positions = [50 * ratio, 150 * ratio, 250 * ratio]
   for (let r of positions) {
     for (let c of positions) {
-      points.push({ x: c, y: r })
+      points.push({x: c, y: r})
     }
   }
   return points // 0-8
@@ -181,7 +189,7 @@ const endGesture = () => {
     isDrawing.value = false
     currentLine.value = null
     emits('gestureChange', gesturePath.value)
-    
+
     // 发送完整的手势数据
     const gestureData: GestureData = {
       points: gesturePath.value,
@@ -189,7 +197,7 @@ const endGesture = () => {
       height: props.size
     }
     emits('gestureDataChange', gestureData)
-    
+
     // 如果不显示手势码生成，自动生成手势码
     if (!props.showCode && gesturePath.value.length >= 4) {
       confirmGesture()
@@ -211,12 +219,12 @@ const confirmGesture = () => {
     message.warning('手势密码至少连接4个点')
     return
   }
-  
+
   // 将点的索引转换为手势码
   const code = gesturePath.value.join('-')
   gestureCode.value = code
   emits('update:modelValue', code)
-  
+
   if (props.showCode) {
     message.success('手势码已生成')
   }
@@ -243,7 +251,7 @@ watch(() => props.modelValue, (newVal) => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .gesture-input-container {
   width: 100%;
 }
@@ -262,7 +270,7 @@ watch(() => props.modelValue, (newVal) => {
   border-radius: 8px;
   user-select: none;
   margin: 0 auto;
-  
+
   &:hover {
     border-color: #1890ff;
   }
@@ -290,7 +298,7 @@ watch(() => props.modelValue, (newVal) => {
   transition: all 0.2s ease;
   z-index: 20;
   cursor: pointer;
-  
+
   &.point-selected {
     border-color: #1890ff;
     background: #e6f7ff;
@@ -303,7 +311,7 @@ watch(() => props.modelValue, (newVal) => {
   border-radius: 50%;
   background: #d9d9d9;
   transition: all 0.2s ease;
-  
+
   &.inner-selected {
     background: #1890ff;
   }
@@ -317,16 +325,16 @@ watch(() => props.modelValue, (newVal) => {
 
 .gesture-code-display {
   margin-bottom: 16px;
-  
+
   .code-content {
     display: flex;
     align-items: center;
     gap: 8px;
-    
+
     .code-label {
       font-weight: 600;
     }
-    
+
     .code-value {
       font-family: monospace;
       font-size: 18px;

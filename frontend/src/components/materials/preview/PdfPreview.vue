@@ -3,9 +3,9 @@
     <a-spin :spinning="loading" tip="加载PDF中...">
       <div v-if="error" class="error-container">
         <a-result
-          status="error"
-          title="PDF加载失败"
-          :sub-title="error"
+            :sub-title="error"
+            status="error"
+            title="PDF加载失败"
         >
           <template #extra>
             <a-button type="primary" @click="reload">
@@ -20,50 +20,62 @@
         <div class="pdf-toolbar">
           <a-space>
             <a-button-group>
-              <a-button @click="prevPage" :disabled="currentPage <= 1">
-                <template #icon><LeftOutlined /></template>
+              <a-button :disabled="currentPage <= 1" @click="prevPage">
+                <template #icon>
+                  <LeftOutlined/>
+                </template>
                 上一页
               </a-button>
               <a-button disabled>
                 {{ currentPage }} / {{ totalPages }}
               </a-button>
-              <a-button @click="nextPage" :disabled="currentPage >= totalPages">
+              <a-button :disabled="currentPage >= totalPages" @click="nextPage">
                 下一页
-                <template #icon><RightOutlined /></template>
+                <template #icon>
+                  <RightOutlined/>
+                </template>
               </a-button>
             </a-button-group>
 
-            <a-divider type="vertical" />
+            <a-divider type="vertical"/>
 
             <a-button-group>
-              <a-button @click="zoomOut" :disabled="scale <= 0.5">
-                <template #icon><ZoomOutOutlined /></template>
+              <a-button :disabled="scale <= 0.5" @click="zoomOut">
+                <template #icon>
+                  <ZoomOutOutlined/>
+                </template>
               </a-button>
               <a-button disabled>
                 {{ Math.round(scale * 100) }}%
               </a-button>
-              <a-button @click="zoomIn" :disabled="scale >= 3">
-                <template #icon><ZoomInOutlined /></template>
+              <a-button :disabled="scale >= 3" @click="zoomIn">
+                <template #icon>
+                  <ZoomInOutlined/>
+                </template>
               </a-button>
             </a-button-group>
 
             <a-button @click="resetZoom">
-              <template #icon><ReloadOutlined /></template>
+              <template #icon>
+                <ReloadOutlined/>
+              </template>
               重置
             </a-button>
 
             <a-button @click="rotate">
-              <template #icon><RotateRightOutlined /></template>
+              <template #icon>
+                <RotateRightOutlined/>
+              </template>
               旋转
             </a-button>
           </a-space>
         </div>
 
         <!-- PDF画布 -->
-        <div class="pdf-canvas-container" ref="containerRef">
+        <div ref="containerRef" class="pdf-canvas-container">
           <canvas
-            ref="canvasRef"
-            :style="{
+              ref="canvasRef"
+              :style="{
               transform: `rotate(${rotation}deg)`,
               transformOrigin: 'center center'
             }"
@@ -74,16 +86,16 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {onMounted, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
 import {
   LeftOutlined,
-  RightOutlined,
-  ZoomInOutlined,
-  ZoomOutOutlined,
   ReloadOutlined,
-  RotateRightOutlined
+  RightOutlined,
+  RotateRightOutlined,
+  ZoomInOutlined,
+  ZoomOutOutlined
 } from '@ant-design/icons-vue'
 import * as pdfjsLib from 'pdfjs-dist'
 
@@ -118,7 +130,7 @@ const loadPdf = async () => {
     const loadingTask = pdfjsLib.getDocument(props.url)
     pdfDoc = await loadingTask.promise
     totalPages.value = pdfDoc.numPages
-    
+
     // 渲染第一页
     await renderPage(1)
   } catch (err: any) {
@@ -138,11 +150,11 @@ const renderPage = async (num: number) => {
 
   try {
     const page = await pdfDoc.getPage(num)
-    const viewport = page.getViewport({ scale: scale.value })
-    
+    const viewport = page.getViewport({scale: scale.value})
+
     const canvas = canvasRef.value
     const context = canvas.getContext('2d')
-    
+
     if (!context) return
 
     canvas.height = viewport.height
@@ -154,7 +166,7 @@ const renderPage = async (num: number) => {
     }
 
     await page.render(renderContext).promise
-    
+
     pageRendering = false
 
     // 如果有待渲染的页面，渲染它

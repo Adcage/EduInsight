@@ -3,8 +3,8 @@
   <div class="qr-scanner-page">
     <!-- 顶部导航栏 -->
     <div class="scanner-header">
-      <a-button type="text" @click="goBack" class="back-btn">
-        <LeftOutlined />
+      <a-button class="back-btn" type="text" @click="goBack">
+        <LeftOutlined/>
       </a-button>
       <span class="header-title">扫描签到二维码</span>
       <div class="placeholder"></div>
@@ -13,7 +13,7 @@
     <!-- 扫描区域 -->
     <div class="scanner-container">
       <div id="qr-reader" class="qr-reader"></div>
-      
+
       <!-- 扫描框遮罩 -->
       <div class="scanner-overlay">
         <div class="scanner-frame">
@@ -28,14 +28,14 @@
       <div class="scanner-tips">
         <p class="tip-text">{{ scanStatusText }}</p>
         <p class="tip-subtext">{{ scanSubText }}</p>
-        <div class="scan-stats" v-if="scanAttempts > 0">
+        <div v-if="scanAttempts > 0" class="scan-stats">
           <span class="stats-item">扫描次数: {{ scanAttempts }}</span>
-          <span class="stats-item" v-if="lastScanTime">上次扫描: {{ lastScanTime }}</span>
+          <span v-if="lastScanTime" class="stats-item">上次扫描: {{ lastScanTime }}</span>
         </div>
       </div>
-      
+
       <!-- 扫描状态指示器 -->
-      <div class="scan-indicator" :class="scanIndicatorClass">
+      <div :class="scanIndicatorClass" class="scan-indicator">
         <div class="indicator-dot"></div>
         <span>{{ scanIndicatorText }}</span>
       </div>
@@ -43,34 +43,34 @@
 
     <!-- 底部操作区 -->
     <div class="scanner-footer">
-      <a-button 
-        type="primary" 
-        size="large" 
-        @click="toggleFlash"
-        v-if="flashAvailable"
-        class="flash-btn"
+      <a-button
+          v-if="flashAvailable"
+          class="flash-btn"
+          size="large"
+          type="primary"
+          @click="toggleFlash"
       >
-        <BulbOutlined />
+        <BulbOutlined/>
         {{ flashOn ? '关闭闪光灯' : '开启闪光灯' }}
       </a-button>
-      
+
       <div class="help-text">
-        <InfoCircleOutlined />
+        <InfoCircleOutlined/>
         <span>扫描教师展示的考勤二维码即可签到</span>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { LeftOutlined, BulbOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {BulbOutlined, InfoCircleOutlined, LeftOutlined} from '@ant-design/icons-vue'
 
 // 动态导入 html5-qrcode（需要先安装：npm install html5-qrcode）
 // @ts-ignore
-import { Html5Qrcode } from 'html5-qrcode'
+import {Html5Qrcode} from 'html5-qrcode'
 
 interface CameraDevice {
   id: string
@@ -99,30 +99,34 @@ const onScanSuccess = (decodedText: string) => {
   if (scanDebounce) {
     clearTimeout(scanDebounce)
   }
-  
+
   scanDebounce = setTimeout(() => {
     try {
       console.log('扫描到二维码:', decodedText)
-      
+
       // 更新状态
       scanStatus.value = 'detected'
       scanAttempts.value++
-      lastScanTime.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      lastScanTime.value = new Date().toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
       scanStatusText.value = '✓ 检测到二维码'
       scanSubText.value = '正在解析数据...'
-      
+
       // 解析二维码数据
       const qrData = JSON.parse(decodedText)
-      
+
       console.log('解析后的数据:', qrData)
-      
+
       // 验证二维码类型
       if (qrData.type !== 'attendance_qrcode') {
         scanStatus.value = 'error'
         scanStatusText.value = '✗ 二维码类型错误'
         scanSubText.value = '这不是考勤二维码，请扫描正确的二维码'
         message.error('这不是考勤二维码，请扫描正确的二维码')
-        
+
         // 3秒后恢复扫描状态
         setTimeout(() => {
           scanStatus.value = 'scanning'
@@ -131,14 +135,14 @@ const onScanSuccess = (decodedText: string) => {
         }, 3000)
         return
       }
-      
+
       // 验证必要字段
       if (!qrData.attendanceId && !qrData.attendance_id) {
         scanStatus.value = 'error'
         scanStatusText.value = '✗ 数据不完整'
         scanSubText.value = '二维码缺少考勤ID'
         message.error('二维码数据不完整')
-        
+
         setTimeout(() => {
           scanStatus.value = 'scanning'
           scanStatusText.value = '请将二维码放入框内'
@@ -146,13 +150,13 @@ const onScanSuccess = (decodedText: string) => {
         }, 3000)
         return
       }
-      
+
       if (!qrData.token) {
         scanStatus.value = 'error'
         scanStatusText.value = '✗ 数据不完整'
         scanSubText.value = '二维码缺少验证令牌'
         message.error('二维码数据不完整')
-        
+
         setTimeout(() => {
           scanStatus.value = 'scanning'
           scanStatusText.value = '请将二维码放入框内'
@@ -160,24 +164,24 @@ const onScanSuccess = (decodedText: string) => {
         }, 3000)
         return
       }
-      
+
       // 扫描成功
       scanStatus.value = 'success'
       scanStatusText.value = '✓ 识别成功！'
       scanSubText.value = '正在跳转到签到页面...'
-      
+
       // 停止扫描
       stopScanner()
-      
+
       // 跳转到签到页面，携带考勤信息
       const attendanceId = qrData.attendanceId || qrData.attendance_id
       const token = qrData.token
-      
+
       console.log('=== 准备跳转 ===')
       console.log('attendanceId:', attendanceId)
       console.log('token:', token)
       console.log('token长度:', token.length)
-      
+
       router.push({
         name: 'AttendanceMobile',
         query: {
@@ -185,16 +189,16 @@ const onScanSuccess = (decodedText: string) => {
           token: token  // Vue Router会自动进行URL编码
         }
       })
-      
+
       message.success('二维码识别成功，正在跳转...')
-      
+
     } catch (error) {
       console.error('二维码解析错误:', error)
       scanStatus.value = 'error'
       scanStatusText.value = '✗ 解析失败'
       scanSubText.value = '二维码格式错误，请扫描正确的考勤二维码'
       message.error('二维码格式错误，请扫描正确的考勤二维码')
-      
+
       // 3秒后恢复扫描状态
       setTimeout(() => {
         scanStatus.value = 'scanning'
@@ -213,7 +217,7 @@ const onScanError = (errorMessage: string) => {
   if (!errorMessage.includes('NotFoundException')) {
     console.warn('扫描警告:', errorMessage)
   }
-  
+
   // 更新扫描状态
   if (scanStatus.value === 'idle') {
     scanStatus.value = 'scanning'
@@ -228,34 +232,34 @@ const onScanError = (errorMessage: string) => {
 const startScanner = async () => {
   try {
     html5QrCode = new Html5Qrcode('qr-reader')
-    
+
     // 获取相机列表
     const devices = await Html5Qrcode.getCameras()
-    
+
     if (devices && devices.length > 0) {
       // 优先使用后置摄像头
-      const backCamera = devices.find((device: CameraDevice) => 
-        device.label.toLowerCase().includes('back') || 
-        device.label.toLowerCase().includes('rear')
+      const backCamera = devices.find((device: CameraDevice) =>
+          device.label.toLowerCase().includes('back') ||
+          device.label.toLowerCase().includes('rear')
       )
-      
+
       const cameraId = backCamera ? backCamera.id : devices[0].id
-      
+
       // 启动相机扫描
       await html5QrCode.start(
-        cameraId,
-        {
-          fps: 10,    // 每秒扫描10帧
-          qrbox: { width: 250, height: 250 }, // 扫描框大小
-          aspectRatio: 1.0
-        },
-        onScanSuccess,
-        onScanError
+          cameraId,
+          {
+            fps: 10,    // 每秒扫描10帧
+            qrbox: {width: 250, height: 250}, // 扫描框大小
+            aspectRatio: 1.0
+          },
+          onScanSuccess,
+          onScanError
       )
-      
+
       // 检查是否支持闪光灯
       checkFlashSupport()
-      
+
       scanStatus.value = 'scanning'
       scanStatusText.value = '相机已就绪'
       scanSubText.value = '请将二维码放入框内扫描'
@@ -288,17 +292,17 @@ const stopScanner = async () => {
  */
 const checkFlashSupport = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: 'environment' } 
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: 'environment'}
     })
     currentStream = stream
-    
+
     const tracks = stream.getVideoTracks()
     if (tracks.length === 0) return
-    
+
     const track = tracks[0]
     const capabilities = track.getCapabilities() as any
-    
+
     if (capabilities.torch) {
       flashAvailable.value = true
     }
@@ -313,15 +317,15 @@ const checkFlashSupport = async () => {
 const toggleFlash = async () => {
   try {
     if (!currentStream) return
-    
+
     const tracks = currentStream.getVideoTracks()
     if (tracks.length === 0) return
-    
+
     const track = tracks[0]
     await track.applyConstraints({
-      advanced: [{ torch: !flashOn.value } as any]
+      advanced: [{torch: !flashOn.value} as any]
     })
-    
+
     flashOn.value = !flashOn.value
     message.success(flashOn.value ? '闪光灯已开启' : '闪光灯已关闭')
   } catch (error) {
@@ -345,12 +349,12 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopScanner()
-  
+
   // 清理防抖定时器
   if (scanDebounce) {
     clearTimeout(scanDebounce)
   }
-  
+
   // 清理媒体流
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop())

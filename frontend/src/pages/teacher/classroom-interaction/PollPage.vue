@@ -4,22 +4,27 @@
       <template #extra>
         <a-space>
           <a-select
-            v-model:value="courseId"
-            placeholder="选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
+              v-model:value="courseId"
+              placeholder="选择课程"
+              style="width: 200px"
+              @change="handleCourseChange"
           >
             <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
               {{ course.name }}
             </a-select-option>
           </a-select>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? 'WebSocket已连接' : 'WebSocket未连接'" />
-          <a-button v-if="isTeacher" type="primary" @click="showCreateModal" :disabled="!courseId">
-            <template #icon><PlusOutlined /></template>
+          <a-badge :status="isConnected ? 'success' : 'error'"
+                   :text="isConnected ? 'WebSocket已连接' : 'WebSocket未连接'"/>
+          <a-button v-if="isTeacher" :disabled="!courseId" type="primary" @click="showCreateModal">
+            <template #icon>
+              <PlusOutlined/>
+            </template>
             创建投票
           </a-button>
-          <a-button @click="loadPolls" :disabled="!courseId">
-            <template #icon><ReloadOutlined /></template>
+          <a-button :disabled="!courseId" @click="loadPolls">
+            <template #icon>
+              <ReloadOutlined/>
+            </template>
             刷新
           </a-button>
         </a-space>
@@ -29,11 +34,11 @@
     <div class="content-container">
       <!-- 投票列表 -->
       <a-spin :spinning="loading">
-        <a-empty v-if="!courseId" description="请先选择课程" />
-        <a-empty v-else-if="polls.length === 0 && !loading" description="暂无投票" />
+        <a-empty v-if="!courseId" description="请先选择课程"/>
+        <a-empty v-else-if="polls.length === 0 && !loading" description="暂无投票"/>
 
         <a-row v-else :gutter="[16, 16]">
-          <a-col v-for="poll in polls" :key="poll.id" :xs="24" :sm="24" :md="12" :lg="8">
+          <a-col v-for="poll in polls" :key="poll.id" :lg="8" :md="12" :sm="24" :xs="24">
             <a-card :hoverable="true" class="poll-card">
               <!-- 投票状态标签 -->
               <template #extra>
@@ -47,7 +52,7 @@
               <p class="poll-description">{{ poll.description }}</p>
 
               <!-- 投票信息 -->
-              <a-space direction="vertical" :size="8" style="width: 100%; margin-top: 16px">
+              <a-space :size="8" direction="vertical" style="width: 100%; margin-top: 16px">
                 <div class="poll-info">
                   <span class="info-label">类型：</span>
                   <a-tag :color="poll.poll_type === 'single' ? 'blue' : 'purple'">
@@ -69,35 +74,40 @@
               <!-- 操作按钮 -->
               <div class="poll-actions">
                 <a-space>
-                  <a-button type="link" size="small" @click="viewPollDetail(poll)">
-                    <EyeOutlined /> 查看详情
+                  <a-button size="small" type="link" @click="viewPollDetail(poll)">
+                    <EyeOutlined/>
+                    查看详情
                   </a-button>
 
                   <a-button
-                    v-if="isStudent && poll.status === 'active' && !poll.has_voted"
-                    type="primary"
-                    size="small"
-                    @click="votePoll(poll)"
+                      v-if="isStudent && poll.status === 'active' && !poll.has_voted"
+                      size="small"
+                      type="primary"
+                      @click="votePoll(poll)"
                   >
-                    <CheckOutlined /> 参与投票
+                    <CheckOutlined/>
+                    参与投票
                   </a-button>
 
-                  <a-button v-if="isStudent && poll.has_voted" size="small" disabled>
-                    <CheckCircleOutlined /> 已投票
+                  <a-button v-if="isStudent && poll.has_voted" disabled size="small">
+                    <CheckCircleOutlined/>
+                    已投票
                   </a-button>
 
-                  <a-button v-if="isTeacher" type="link" size="small" @click="viewResults(poll)">
-                    <BarChartOutlined /> 查看结果
+                  <a-button v-if="isTeacher" size="small" type="link" @click="viewResults(poll)">
+                    <BarChartOutlined/>
+                    查看结果
                   </a-button>
 
                   <a-button
-                    v-if="isTeacher && poll.status === 'active'"
-                    type="link"
-                    danger
-                    size="small"
-                    @click="closePoll(poll)"
+                      v-if="isTeacher && poll.status === 'active'"
+                      danger
+                      size="small"
+                      type="link"
+                      @click="closePoll(poll)"
                   >
-                    <StopOutlined /> 关闭投票
+                    <StopOutlined/>
+                    关闭投票
                   </a-button>
                 </a-space>
               </div>
@@ -108,12 +118,12 @@
         <!-- 分页 -->
         <div v-if="pagination.total > 0" class="pagination-container">
           <a-pagination
-            v-model:current="pagination.current"
-            v-model:page-size="pagination.pageSize"
-            :total="pagination.total"
-            :show-size-changer="true"
-            :show-total="(total) => `共 ${total} 条`"
-            @change="handlePageChange"
+              v-model:current="pagination.current"
+              v-model:page-size="pagination.pageSize"
+              :show-size-changer="true"
+              :show-total="(total) => `共 ${total} 条`"
+              :total="pagination.total"
+              @change="handlePageChange"
           />
         </div>
       </a-spin>
@@ -121,24 +131,24 @@
 
     <!-- 创建投票对话框 -->
     <a-modal
-      v-model:open="createModalVisible"
-      title="创建投票"
-      width="700px"
-      :confirm-loading="createLoading"
-      @ok="handleCreatePoll"
+        v-model:open="createModalVisible"
+        :confirm-loading="createLoading"
+        title="创建投票"
+        width="700px"
+        @ok="handleCreatePoll"
     >
       <a-form ref="createFormRef" :model="pollForm" :rules="pollRules" layout="vertical">
         <a-form-item label="投票标题" name="title">
-          <a-input v-model:value="pollForm.title" placeholder="请输入投票标题" :maxlength="100" show-count />
+          <a-input v-model:value="pollForm.title" :maxlength="100" placeholder="请输入投票标题" show-count/>
         </a-form-item>
 
         <a-form-item label="投票描述" name="description">
           <a-textarea
-            v-model:value="pollForm.description"
-            placeholder="请输入投票描述（可选）"
-            :rows="3"
-            :maxlength="500"
-            show-count
+              v-model:value="pollForm.description"
+              :maxlength="500"
+              :rows="3"
+              placeholder="请输入投票描述（可选）"
+              show-count
           />
         </a-form-item>
 
@@ -152,17 +162,18 @@
         <a-form-item label="投票选项" required>
           <div v-for="(option, index) in pollForm.options" :key="index" class="option-item">
             <a-input
-              v-model:value="option.text"
-              :placeholder="`选项 ${index + 1}`"
-              style="flex: 1"
-              :maxlength="100"
+                v-model:value="option.text"
+                :maxlength="100"
+                :placeholder="`选项 ${index + 1}`"
+                style="flex: 1"
             />
-            <a-button type="text" danger :disabled="pollForm.options.length <= 2" @click="removeOption(index)">
-              <DeleteOutlined />
+            <a-button :disabled="pollForm.options.length <= 2" danger type="text" @click="removeOption(index)">
+              <DeleteOutlined/>
             </a-button>
           </div>
-          <a-button type="dashed" block @click="addOption" style="margin-top: 8px">
-            <PlusOutlined /> 添加选项
+          <a-button block style="margin-top: 8px" type="dashed" @click="addOption">
+            <PlusOutlined/>
+            添加选项
           </a-button>
         </a-form-item>
 
@@ -175,39 +186,39 @@
               <a-button size="small" @click="setEndTime(1440)">1天后</a-button>
             </a-space>
             <a-date-picker
-              v-model:value="pollForm.endTime"
-              show-time
-              format="YYYY-MM-DD HH:mm:ss"
-              placeholder="选择结束时间"
-              style="width: 100%"
-              :disabled-date="disabledDate"
-              :show-time="{ 
+                v-model:value="pollForm.endTime"
+                :disabled-date="disabledDate"
+                :show-time="{
                 defaultValue: dayjs().hour(23).minute(59).second(59),
                 format: 'HH:mm:ss'
               }"
-              @ok="handleEndTimeOk"
+                format="YYYY-MM-DD HH:mm:ss"
+                placeholder="选择结束时间"
+                show-time
+                style="width: 100%"
+                @ok="handleEndTimeOk"
             />
           </a-space>
         </a-form-item>
 
         <a-form-item name="isAnonymous">
-          <a-checkbox v-model:checked="pollForm.isAnonymous"> 匿名投票 </a-checkbox>
+          <a-checkbox v-model:checked="pollForm.isAnonymous"> 匿名投票</a-checkbox>
         </a-form-item>
       </a-form>
     </a-modal>
 
     <!-- 投票对话框 -->
-    <a-modal v-model:open="voteModalVisible" title="参与投票" :confirm-loading="voteLoading" @ok="handleVote">
+    <a-modal v-model:open="voteModalVisible" :confirm-loading="voteLoading" title="参与投票" @ok="handleVote">
       <div v-if="currentPoll">
         <h3>{{ currentPoll.title }}</h3>
         <p style="color: #666">{{ currentPoll.description }}</p>
 
-        <a-divider />
+        <a-divider/>
 
         <a-radio-group
-          v-if="currentPoll.poll_type === 'single'"
-          v-model:value="selectedOptions"
-          style="width: 100%"
+            v-if="currentPoll.poll_type === 'single'"
+            v-model:value="selectedOptions"
+            style="width: 100%"
         >
           <a-space direction="vertical" style="width: 100%">
             <a-radio v-for="option in currentPoll.options" :key="option.id" :value="option.id" style="display: block">
@@ -227,13 +238,13 @@
     </a-modal>
 
     <!-- 投票详情对话框 -->
-    <a-modal v-model:open="detailModalVisible" title="投票详情" width="800px" :footer="null">
+    <a-modal v-model:open="detailModalVisible" :footer="null" title="投票详情" width="800px">
       <div v-if="currentPoll">
         <a-descriptions :column="2" bordered>
-          <a-descriptions-item label="投票标题" :span="2">
+          <a-descriptions-item :span="2" label="投票标题">
             {{ currentPoll.title }}
           </a-descriptions-item>
-          <a-descriptions-item label="投票描述" :span="2">
+          <a-descriptions-item :span="2" label="投票描述">
             {{ currentPoll.description || '无' }}
           </a-descriptions-item>
           <a-descriptions-item label="投票类型">
@@ -273,11 +284,11 @@
         <a-divider>学生投票详情</a-divider>
 
         <a-table
-          :columns="responseColumns"
-          :data-source="pollResponses"
-          :pagination="{ pageSize: 10 }"
-          :scroll="{ x: 600 }"
-          bordered
+            :columns="responseColumns"
+            :data-source="pollResponses"
+            :pagination="{ pageSize: 10 }"
+            :scroll="{ x: 600 }"
+            bordered
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'selected_options'">
@@ -296,9 +307,9 @@
     </a-modal>
 
     <!-- 结果展示对话框 -->
-    <a-modal v-model:open="resultsModalVisible" title="投票结果" width="900px" :footer="null">
+    <a-modal v-model:open="resultsModalVisible" :footer="null" title="投票结果" width="900px">
       <div v-if="pollResults">
-        <a-statistic title="总投票数" :value="pollResults.total_votes" suffix="票" style="margin-bottom: 24px" />
+        <a-statistic :value="pollResults.total_votes" style="margin-bottom: 24px" suffix="票" title="总投票数"/>
 
         <a-divider>选项统计</a-divider>
 
@@ -309,7 +320,7 @@
         <a-table :columns="resultColumns" :data-source="pollResults.option_stats" :pagination="false" bordered>
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'percentage'">
-              <a-progress :percent="record.percentage" :status="record.percentage > 50 ? 'success' : 'normal'" />
+              <a-progress :percent="record.percentage" :status="record.percentage > 50 ? 'success' : 'normal'"/>
             </template>
           </template>
         </a-table>
@@ -318,29 +329,29 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onMounted, onUnmounted, reactive, ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
 import {
+  BarChartOutlined,
+  CheckCircleOutlined,
+  CheckOutlined,
+  DeleteOutlined,
+  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
-  EyeOutlined,
-  CheckOutlined,
-  CheckCircleOutlined,
-  BarChartOutlined,
   StopOutlined,
-  DeleteOutlined,
 } from '@ant-design/icons-vue'
 import {
-  pollApiPost,
+  interactionCommonTeacherCoursesGet,
   pollApiGet,
-  pollApiIntPollIdVotePost,
-  pollApiIntPollIdResultsGet,
   pollApiIntPollIdClosePut,
   pollApiIntPollIdResponsesGet,
-  interactionCommonTeacherCoursesGet,
+  pollApiIntPollIdResultsGet,
+  pollApiIntPollIdVotePost,
+  pollApiPost,
 } from '@/api/interactionController'
-import { usePollSocket } from '@/composables/useSocket'
+import {usePollSocket} from '@/composables/useSocket'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 
@@ -362,7 +373,7 @@ const loadCurrentUser = () => {
       const user = JSON.parse(userStr)
       userId.value = user.id
       userName.value = user.real_name || user.username || '教师'
-      console.log('当前用户:', { id: userId.value, name: userName.value })
+      console.log('当前用户:', {id: userId.value, name: userName.value})
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)
@@ -370,8 +381,17 @@ const loadCurrentUser = () => {
 }
 
 // WebSocket连接
-const { isConnected, onNewPoll, onPollResultsUpdated, onPollEnded, notifyPollCreated, notifyPollVoted, notifyPollClosed, joinCourse: joinPollCourse } =
-  usePollSocket(courseId.value, userId.value, userName.value)
+const {
+  isConnected,
+  onNewPoll,
+  onPollResultsUpdated,
+  onPollEnded,
+  notifyPollCreated,
+  notifyPollVoted,
+  notifyPollClosed,
+  joinCourse: joinPollCourse
+} =
+    usePollSocket(courseId.value, userId.value, userName.value)
 
 // 数据
 const loading = ref(false)
@@ -391,17 +411,17 @@ const pollForm = reactive({
   description: '',
   pollType: 'single' as 'single' | 'multiple',
   options: [
-    { id: 1, text: '' },
-    { id: 2, text: '' },
+    {id: 1, text: ''},
+    {id: 2, text: ''},
   ],
   endTime: null as any,
   isAnonymous: false,
 })
 
 const pollRules = {
-  title: [{ required: true, message: '请输入投票标题', trigger: 'blur' }],
-  pollType: [{ required: true, message: '请选择投票类型', trigger: 'change' }],
-  endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
+  title: [{required: true, message: '请输入投票标题', trigger: 'blur'}],
+  pollType: [{required: true, message: '请选择投票类型', trigger: 'change'}],
+  endTime: [{required: true, message: '请选择结束时间', trigger: 'change'}],
 }
 
 // 投票
@@ -419,36 +439,36 @@ const pollResults = ref<any>(null)
 const chartRef = ref<HTMLElement>()
 
 const resultColumns = [
-  { title: '选项', dataIndex: 'option_text', key: 'option_text' },
-  { title: '票数', dataIndex: 'count', key: 'count' },
-  { title: '百分比', dataIndex: 'percentage', key: 'percentage' },
+  {title: '选项', dataIndex: 'option_text', key: 'option_text'},
+  {title: '票数', dataIndex: 'count', key: 'count'},
+  {title: '百分比', dataIndex: 'percentage', key: 'percentage'},
 ]
 
 // 响应列表表格列定义
 const responseColumns = [
-  { title: '学生姓名', dataIndex: 'student_name', key: 'student_name', width: 120 },
-  { title: '学号/用户名', dataIndex: 'student_username', key: 'student_username', width: 150 },
-  { title: '选择的选项', dataIndex: 'selected_options', key: 'selected_options', width: 300 },
-  { title: '投票时间', dataIndex: 'created_at', key: 'created_at', width: 180 },
+  {title: '学生姓名', dataIndex: 'student_name', key: 'student_name', width: 120},
+  {title: '学号/用户名', dataIndex: 'student_username', key: 'student_username', width: 150},
+  {title: '选择的选项', dataIndex: 'selected_options', key: 'selected_options', width: 300},
+  {title: '投票时间', dataIndex: 'created_at', key: 'created_at', width: 180},
 ]
 
 // 加载教师的课程列表
 const loadCourses = async () => {
   try {
     const response = await interactionCommonTeacherCoursesGet()
-    
+
     if (response.data && response.data.data) {
       courses.value = response.data.data.courses
-      
+
       // 默认选择第一个课程
       if (courses.value.length > 0) {
         courseId.value = courses.value[0].id
-        
+
         // 加入WebSocket房间
         if (isConnected.value && courseId.value && userId.value) {
           joinPollCourse(courseId.value, userId.value, userName.value)
         }
-        
+
         // 加载第一个课程的数据
         loadPolls()
       } else {
@@ -470,7 +490,7 @@ const handleCourseChange = () => {
 // 加载投票列表
 const loadPolls = async () => {
   if (!courseId.value) return
-  
+
   loading.value = true
   try {
     const response = await pollApiGet({
@@ -508,8 +528,8 @@ const showCreateModal = () => {
   pollForm.description = ''
   pollForm.pollType = 'single'
   pollForm.options = [
-    { id: 1, text: '' },
-    { id: 2, text: '' },
+    {id: 1, text: ''},
+    {id: 2, text: ''},
   ]
   pollForm.endTime = null
   pollForm.isAnonymous = false
@@ -526,7 +546,7 @@ const handleEndTimeOk = (value: any) => {
     const selectedDate = dayjs(value)
     const today = dayjs().startOf('day')
     const selectedDay = selectedDate.startOf('day')
-    
+
     // 如果选择的日期不是今天，无条件设置为23:59:59
     if (!selectedDay.isSame(today, 'day')) {
       pollForm.endTime = selectedDate.hour(23).minute(59).second(59)
@@ -537,7 +557,7 @@ const handleEndTimeOk = (value: any) => {
 // 添加选项
 const addOption = () => {
   const newId = Math.max(...pollForm.options.map((o) => o.id)) + 1
-  pollForm.options.push({ id: newId, text: '' })
+  pollForm.options.push({id: newId, text: ''})
 }
 
 // 删除选项
@@ -630,10 +650,10 @@ const handleVote = async () => {
       selectedOptions: Array.isArray(selectedOptions.value) ? selectedOptions.value : [selectedOptions.value],
     }
 
-    await pollApiIntPollIdVotePost({ pollId: currentPoll.value.id }, data)
+    await pollApiIntPollIdVotePost({pollId: currentPoll.value.id}, data)
 
     // 获取最新结果并通知
-    const resultsResponse = await pollApiIntPollIdResultsGet({ pollId: currentPoll.value.id })
+    const resultsResponse = await pollApiIntPollIdResultsGet({pollId: currentPoll.value.id})
     notifyPollVoted(currentPoll.value.id, resultsResponse.data.data)
 
     message.success('投票成功')
@@ -663,7 +683,7 @@ const viewPollDetail = async (poll: any) => {
 
   // 加载最新结果
   try {
-    const response = await pollApiIntPollIdResultsGet({ pollId: poll.id })
+    const response = await pollApiIntPollIdResultsGet({pollId: poll.id})
     currentPoll.value.results = response.data.data
   } catch (error) {
     console.error('加载结果失败:', error)
@@ -671,7 +691,7 @@ const viewPollDetail = async (poll: any) => {
 
   // 加载投票响应列表
   try {
-    const responsesData = await pollApiIntPollIdResponsesGet({ pollId: poll.id })
+    const responsesData = await pollApiIntPollIdResponsesGet({pollId: poll.id})
     pollResponses.value = responsesData.data.data.responses
   } catch (error) {
     console.error('加载响应列表失败:', error)
@@ -682,7 +702,7 @@ const viewPollDetail = async (poll: any) => {
 // 查看结果
 const viewResults = async (poll: any) => {
   try {
-    const response = await pollApiIntPollIdResultsGet({ pollId: poll.id })
+    const response = await pollApiIntPollIdResultsGet({pollId: poll.id})
     pollResults.value = response.data.data
     resultsModalVisible.value = true
 
@@ -758,7 +778,7 @@ const renderChart = () => {
 // 关闭投票
 const closePoll = async (poll: any) => {
   try {
-    await pollApiIntPollIdClosePut({ pollId: poll.id })
+    await pollApiIntPollIdClosePut({pollId: poll.id})
 
     // 通知其他用户
     notifyPollClosed(poll.id)
@@ -786,7 +806,7 @@ const formatTime = (time: string) => {
 onMounted(() => {
   // 先加载当前用户信息
   loadCurrentUser()
-  
+
   // 然后加载课程列表
   loadCourses()
 
@@ -799,20 +819,20 @@ onMounted(() => {
   // 监听投票结果更新
   onPollResultsUpdated((data) => {
     console.log('投票结果更新:', data)
-    
+
     // 更新投票列表中的统计信息
     const poll = polls.value.find((p) => p.id === data.poll_id)
     if (poll) {
       poll.results = data.results
       console.log(`更新投票 ${data.poll_id} 的统计信息:`, data.results)
     }
-    
+
     // 如果正在查看结果对话框，也更新对话框中的数据
     if (resultsModalVisible.value && pollResults.value) {
       pollResults.value = data.results
       renderChart()
     }
-    
+
     // 如果正在查看详情对话框，也更新详情中的数据
     if (detailModalVisible.value && currentPoll.value && currentPoll.value.id === data.poll_id) {
       currentPoll.value.results = data.results
@@ -847,7 +867,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .poll-page {
   min-height: 100vh;
   background: var(--bg-color);

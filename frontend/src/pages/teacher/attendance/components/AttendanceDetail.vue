@@ -2,12 +2,12 @@
   <div class="attendance-detail">
     <div class="header">
       <a-page-header
-        :title="task.courseName"
-        :sub-title="task.className"
-        @back="$emit('back')"
+          :sub-title="task.className"
+          :title="task.courseName"
+          @back="$emit('back')"
       >
         <template #extra>
-          <a-button v-if="task.status === 'active'" type="primary" danger @click="endAttendance">结束考勤</a-button>
+          <a-button v-if="task.status === 'active'" danger type="primary" @click="endAttendance">结束考勤</a-button>
           <a-tag :color="task.status === 'active' ? 'green' : 'default'">
             {{ task.status === 'active' ? '进行中' : '已结束' }}
           </a-tag>
@@ -21,29 +21,37 @@
         <a-row :gutter="16">
           <a-col :span="6">
             <a-card :bordered="false" class="stat-card">
-              <a-statistic title="应到人数" :value="task.totalStudents" :value-style="{ color: '#1890ff' }">
-                <template #prefix><UserOutlined /></template>
+              <a-statistic :value="task.totalStudents" :value-style="{ color: '#1890ff' }" title="应到人数">
+                <template #prefix>
+                  <UserOutlined/>
+                </template>
               </a-statistic>
             </a-card>
           </a-col>
           <a-col :span="6">
             <a-card :bordered="false" class="stat-card">
-              <a-statistic title="实到人数" :value="presentCount" :value-style="{ color: '#52c41a' }">
-                <template #prefix><CheckCircleOutlined /></template>
+              <a-statistic :value="presentCount" :value-style="{ color: '#52c41a' }" title="实到人数">
+                <template #prefix>
+                  <CheckCircleOutlined/>
+                </template>
               </a-statistic>
             </a-card>
           </a-col>
           <a-col :span="6">
             <a-card :bordered="false" class="stat-card">
-              <a-statistic title="迟到人数" :value="lateCount" :value-style="{ color: '#faad14' }">
-                <template #prefix><ClockCircleOutlined /></template>
+              <a-statistic :value="lateCount" :value-style="{ color: '#faad14' }" title="迟到人数">
+                <template #prefix>
+                  <ClockCircleOutlined/>
+                </template>
               </a-statistic>
             </a-card>
           </a-col>
           <a-col :span="6">
             <a-card :bordered="false" class="stat-card">
-              <a-statistic title="缺勤人数" :value="absentCount" :value-style="{ color: '#ff4d4f' }">
-                <template #prefix><CloseCircleOutlined /></template>
+              <a-statistic :value="absentCount" :value-style="{ color: '#ff4d4f' }" title="缺勤人数">
+                <template #prefix>
+                  <CloseCircleOutlined/>
+                </template>
               </a-statistic>
             </a-card>
           </a-col>
@@ -52,13 +60,14 @@
 
       <a-row :gutter="24">
         <!-- 左侧：根据类型展示 -->
-        <a-col :span="8" v-if="shouldShowLeftCol">
-          
+        <a-col v-if="shouldShowLeftCol" :span="8">
+
           <!-- 1. 二维码签到 -->
-          <a-card v-if="task.type === 'qrcode'" title="扫码签到" class="info-card">
+          <a-card v-if="task.type === 'qrcode'" class="info-card" title="扫码签到">
             <template #extra>
-              <a-button type="link" size="small" @click="refreshQRCode" :loading="qrCodeRefreshing">
-                <ReloadOutlined /> 刷新
+              <a-button :loading="qrCodeRefreshing" size="small" type="link" @click="refreshQRCode">
+                <ReloadOutlined/>
+                刷新
               </a-button>
             </template>
             <div class="card-content-wrapper center">
@@ -84,37 +93,37 @@
           </a-card>
 
           <!-- 2. 手势签到 -->
-          <a-card v-else-if="task.type === 'gesture'" title="手势签到" class="info-card">
+          <a-card v-else-if="task.type === 'gesture'" class="info-card" title="手势签到">
             <div class="card-content-wrapper center">
               <div class="gesture-preview-box relative">
                 <svg class="absolute inset-0 w-full h-full pointer-events-none z-10">
-                  <line 
-                    v-for="(line, idx) in gestureLines" 
-                    :key="idx"
-                    :x1="line.start.x" 
-                    :y1="line.start.y" 
-                    :x2="line.end.x" 
-                    :y2="line.end.y"
-                    stroke="#1890ff" 
-                    stroke-width="4" 
-                    stroke-linecap="round" 
+                  <line
+                      v-for="(line, idx) in gestureLines"
+                      :key="idx"
+                      :x1="line.start.x"
+                      :x2="line.end.x"
+                      :y1="line.start.y"
+                      :y2="line.end.y"
+                      stroke="#1890ff"
+                      stroke-linecap="round"
+                      stroke-width="4"
                   />
                 </svg>
-                <div 
-                  v-for="(point, index) in gesturePoints" 
-                  :key="index"
-                  class="absolute rounded-full border-2 flex items-center justify-center z-20"
-                  :class="isPointInPath(index) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'"
-                  :style="{
+                <div
+                    v-for="(point, index) in gesturePoints"
+                    :key="index"
+                    :class="isPointInPath(index) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'"
+                    :style="{
                     width: '50px',
                     height: '50px',
                     left: point.x - 25 + 'px',
                     top: point.y - 25 + 'px'
                   }"
+                    class="absolute rounded-full border-2 flex items-center justify-center z-20"
                 >
-                  <div 
-                    class="w-3 h-3 rounded-full"
-                    :class="isPointInPath(index) ? 'bg-blue-500' : 'bg-gray-300'"
+                  <div
+                      :class="isPointInPath(index) ? 'bg-blue-500' : 'bg-gray-300'"
+                      class="w-3 h-3 rounded-full"
                   ></div>
                 </div>
               </div>
@@ -123,7 +132,7 @@
           </a-card>
 
           <!-- 3. 位置签到 -->
-          <a-card v-else-if="task.type === 'location'" title="位置签到" class="info-card">
+          <a-card v-else-if="task.type === 'location'" class="info-card" title="位置签到">
             <div class="card-content-wrapper">
               <div id="detail-map-container" class="map-box"></div>
               <div class="location-info mt-4">
@@ -134,15 +143,15 @@
           </a-card>
 
         </a-col>
-        
+
         <!-- 右侧：学生列表 -->
         <a-col :span="shouldShowLeftCol ? 16 : 24">
           <a-card title="签到名单">
-            <a-table 
-              :columns="columns" 
-              :data-source="records" 
-              :pagination="{ pageSize: 10 }"
-              size="small"
+            <a-table
+                :columns="columns"
+                :data-source="records"
+                :pagination="{ pageSize: 10 }"
+                size="small"
             >
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'status'">
@@ -151,7 +160,7 @@
                   </a-tag>
                 </template>
                 <template v-else-if="column.key === 'action'">
-                  <a-button type="link" size="small" @click="toggleStatus(record)">
+                  <a-button size="small" type="link" @click="toggleStatus(record)">
                     {{ record.status === 'present' ? '标记缺勤' : '标记已到' }}
                   </a-button>
                 </template>
@@ -164,20 +173,20 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, computed, nextTick, onUnmounted, watch } from 'vue';
-import { message } from 'ant-design-vue';
+<script lang="ts" setup>
+import {computed, nextTick, onMounted, onUnmounted, ref} from 'vue';
+import {message} from 'ant-design-vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
 import QRCode from 'qrcode';
 import {
-  UserOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  UserOutlined
 } from '@ant-design/icons-vue';
-import type { AttendanceTask, AttendanceRecord, CheckInStatus } from '../types';
-import { getAttendanceRecords, updateAttendanceRecord } from '@/api/attendanceController';
+import type {AttendanceRecord, AttendanceTask, CheckInStatus} from '../types';
+import {getAttendanceRecords, updateAttendanceRecord} from '@/api/attendanceController';
 
 // Ensure Security Config
 (window as any)._AMapSecurityConfig = {
@@ -190,6 +199,7 @@ interface Props {
 
 interface Emits {
   (e: 'back'): void;
+
   (e: 'update:task', task: AttendanceTask): void;
 }
 
@@ -222,22 +232,22 @@ const shouldShowLeftCol = computed(() => {
 // 从 task 中获取手势数据
 const gesturePath = computed(() => {
   const task = props.task as any;
-  
+
   console.log('Task type:', task.type);
   console.log('Task gesture_pattern:', task.gesture_pattern);
   console.log('Task gesturePattern:', task.gesturePattern);
-  
+
   // 如果有 gesturePath 字段，直接使用
   if (task.gesturePath && Array.isArray(task.gesturePath)) {
     console.log('Using gesturePath:', task.gesturePath);
     return task.gesturePath;
   }
-  
+
   // 如果有 gesture_pattern 字段，解析它
   if (task.gesture_pattern || task.gesturePattern) {
     const pattern = task.gesture_pattern || task.gesturePattern;
     console.log('Pattern:', pattern);
-    
+
     // 如果是字符串，尝试解析为 JSON
     let gestureData = pattern;
     if (typeof pattern === 'string') {
@@ -248,45 +258,45 @@ const gesturePath = computed(() => {
         return [0, 1, 2, 5, 8]; // 默认值
       }
     }
-    
+
     // 如果有 points 数组，将坐标转换为索引
     if (gestureData && gestureData.points && Array.isArray(gestureData.points)) {
       return convertPointsToIndices(gestureData.points);
     }
-    
+
     // 如果直接是索引数组
     if (Array.isArray(gestureData)) {
       return gestureData;
     }
   }
-  
+
   // 默认值
   return [0, 1, 2, 5, 8];
 });
 
 // 将坐标点转换为 3x3 网格索引
-const convertPointsToIndices = (points: Array<{x: number, y: number}>): number[] => {
+const convertPointsToIndices = (points: Array<{ x: number, y: number }>): number[] => {
   const indices: number[] = [];
   const gridSize = 3;
   const cellWidth = 100; // 假设画布宽度 300，每个格子 100
   const cellHeight = 100;
-  
+
   points.forEach(point => {
     // 计算点所在的网格位置
     const col = Math.floor(point.x / cellWidth);
     const row = Math.floor(point.y / cellHeight);
-    
+
     // 转换为索引 (0-8)
     const index = row * gridSize + col;
-    
+
     // 确保索引在有效范围内
     if (index >= 0 && index < 9 && !indices.includes(index)) {
       indices.push(index);
     }
   });
-  
+
   return indices;
-}; 
+};
 
 const gesturePoints = computed(() => {
   const points = [];
@@ -294,7 +304,7 @@ const gesturePoints = computed(() => {
   const positions = [40, 125, 210];
   for (let r of positions) {
     for (let c of positions) {
-      points.push({ x: c, y: r });
+      points.push({x: c, y: r});
     }
   }
   return points;
@@ -305,7 +315,7 @@ const gestureLines = computed(() => {
   const path = gesturePath.value;
   for (let i = 0; i < path.length - 1; i++) {
     const startIdx = path[i];
-    const endIdx = path[i+1];
+    const endIdx = path[i + 1];
     if (gesturePoints.value[startIdx] && gesturePoints.value[endIdx]) {
       lines.push({
         start: gesturePoints.value[startIdx],
@@ -323,27 +333,27 @@ const generateQRCode = async () => {
   try {
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 15);
-    
+
     // 调用后端API，将前端生成的token存储到数据库
-    const { generateQRCodeToken } = await import('@/api/attendanceController');
+    const {generateQRCodeToken} = await import('@/api/attendanceController');
     await generateQRCodeToken({
       attendanceId: Number(props.task.id),
       token: randomStr
     });
-    
+
     console.log('已将token同步到后端:', randomStr);
-    
+
     const qrData = {
       type: 'attendance_qrcode',
       timestamp,
       token: randomStr,
       attendanceId: props.task.id
     };
-    
+
     qrCodeData.value = JSON.stringify(qrData);
-    
+
     await nextTick();
-    
+
     if (qrcodeCanvas.value) {
       await QRCode.toCanvas(qrcodeCanvas.value, qrCodeData.value, {
         width: 200,
@@ -353,7 +363,7 @@ const generateQRCode = async () => {
           light: '#FFFFFF'
         }
       });
-      
+
       qrCodeStatus.value = '已生成';
       startQRCodeCountdown();
     }
@@ -367,12 +377,12 @@ const startQRCodeCountdown = () => {
   if (qrCodeTimer) {
     clearInterval(qrCodeTimer);
   }
-  
+
   qrCodeCountdown.value = 300;
-  
+
   qrCodeTimer = window.setInterval(() => {
     qrCodeCountdown.value--;
-    
+
     if (qrCodeCountdown.value <= 0) {
       refreshQRCode();
     }
@@ -398,39 +408,39 @@ const initMap = () => {
     version: '2.0',
     plugins: ['AMap.Circle', 'AMap.Marker'],
   })
-  .then((AMap) => {
-    // Mock location if missing (Beijing)
-    const center = (props.task as any).longitude && (props.task as any).latitude 
-      ? [(props.task as any).longitude, (props.task as any).latitude]
-      : [116.397428, 39.90923];
+      .then((AMap) => {
+        // Mock location if missing (Beijing)
+        const center = (props.task as any).longitude && (props.task as any).latitude
+            ? [(props.task as any).longitude, (props.task as any).latitude]
+            : [116.397428, 39.90923];
 
-    map = new AMap.Map('detail-map-container', {
-      zoom: 16,
-      center: center,
-      resizeEnable: true,
-      dragEnable: false, // Read only-ish
-      zoomEnable: true
-    });
+        map = new AMap.Map('detail-map-container', {
+          zoom: 16,
+          center: center,
+          resizeEnable: true,
+          dragEnable: false, // Read only-ish
+          zoomEnable: true
+        });
 
-    new AMap.Marker({
-      position: center,
-      map: map
-    });
+        new AMap.Marker({
+          position: center,
+          map: map
+        });
 
-    new AMap.Circle({
-      center: center,
-      radius: (props.task as any).radius || 200,
-      strokeColor: '#3366FF',
-      strokeOpacity: 0.2,
-      strokeWeight: 1,
-      fillColor: '#3366FF',
-      fillOpacity: 0.2,
-      map: map
-    });
-  })
-  .catch((e) => {
-    console.error(e);
-  });
+        new AMap.Circle({
+          center: center,
+          radius: (props.task as any).radius || 200,
+          strokeColor: '#3366FF',
+          strokeOpacity: 0.2,
+          strokeWeight: 1,
+          fillColor: '#3366FF',
+          fillOpacity: 0.2,
+          map: map
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
 };
 
 onMounted(async () => {
@@ -479,7 +489,7 @@ onMounted(async () => {
       initMap();
     });
   }
-  
+
   // 如果是二维码签到，生成二维码
   if (shouldShowLeftCol.value && props.task.type === 'qrcode') {
     nextTick(() => {
@@ -493,7 +503,7 @@ onUnmounted(() => {
     map.destroy();
     map = null;
   }
-  
+
   if (qrCodeTimer) {
     clearInterval(qrCodeTimer);
     qrCodeTimer = null;
@@ -502,20 +512,25 @@ onUnmounted(() => {
 
 // --- Table Columns & Helpers ---
 const columns = [
-  { title: '学号', dataIndex: 'studentNumber', key: 'studentNumber' },
-  { title: '姓名', dataIndex: 'studentName', key: 'studentName' },
-  { title: '签到时间', dataIndex: 'checkInTime', key: 'checkInTime' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
-  { title: '操作', key: 'action' },
+  {title: '学号', dataIndex: 'studentNumber', key: 'studentNumber'},
+  {title: '姓名', dataIndex: 'studentName', key: 'studentName'},
+  {title: '签到时间', dataIndex: 'checkInTime', key: 'checkInTime'},
+  {title: '状态', dataIndex: 'status', key: 'status'},
+  {title: '操作', key: 'action'},
 ];
 
 const getRecordStatusColor = (status: CheckInStatus) => {
   switch (status) {
-    case 'present': return 'success';
-    case 'absent': return 'error';
-    case 'late': return 'warning';
-    case 'leave': return 'processing'; // Changed default 'leave' color
-    default: return 'default';
+    case 'present':
+      return 'success';
+    case 'absent':
+      return 'error';
+    case 'late':
+      return 'warning';
+    case 'leave':
+      return 'processing'; // Changed default 'leave' color
+    default:
+      return 'default';
   }
 };
 
@@ -531,28 +546,28 @@ const getRecordStatusText = (status: CheckInStatus) => {
 
 const endAttendance = () => {
   message.success('考勤已结束');
-  const updatedTask = { ...props.task, status: 'ended' as const };
+  const updatedTask = {...props.task, status: 'ended' as const};
   emits('update:task', updatedTask);
 };
 
 const toggleStatus = async (record: AttendanceRecord) => {
   const newStatus = record.status === 'present' ? 'absent' : 'present';
-  
+
   try {
     const taskId = Number(props.task.id);
     const recordId = Number(record.id);
-    
+
     if (isNaN(taskId) || isNaN(recordId)) {
       message.error('无效的任务或记录ID');
       return;
     }
-    
+
     // 调用API更新状态
     await updateAttendanceRecord(taskId, recordId, {
       status: newStatus,
       remark: record.remark
     });
-    
+
     // 更新本地状态
     record.status = newStatus;
     message.success(`已标记 ${record.studentName} 为 ${getRecordStatusText(newStatus)}`);
@@ -563,17 +578,17 @@ const toggleStatus = async (record: AttendanceRecord) => {
 };
 </script>
 
-<style scoped lang="less">
+<style lang="less" scoped>
 .attendance-detail {
   background-color: var(--background-color-container);
   min-height: 100%;
-  
+
   .header {
     margin-bottom: 24px;
     background-color: #fff;
     padding: 16px;
     border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 
   .content {
@@ -584,7 +599,7 @@ const toggleStatus = async (record: AttendanceRecord) => {
 
   .info-card {
     min-height: 400px;
-    
+
     .card-content-wrapper {
       &.center {
         display: flex;
@@ -592,16 +607,17 @@ const toggleStatus = async (record: AttendanceRecord) => {
         align-items: center;
         justify-content: center;
       }
+
       min-height: 280px;
     }
-    
+
     .qr-code-box {
       canvas {
         width: 200px;
         height: 200px;
       }
     }
-    
+
     .qr-info {
       width: 100%;
       max-width: 300px;
@@ -626,7 +642,7 @@ const toggleStatus = async (record: AttendanceRecord) => {
       margin-top: 12px;
       color: #666;
     }
-    
+
     .code-text {
       font-size: 20px;
       font-weight: bold;

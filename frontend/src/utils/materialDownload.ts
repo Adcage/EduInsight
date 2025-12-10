@@ -4,21 +4,21 @@
  */
 
 export interface Material {
-  id: number
-  title: string
-  fileName: string
-  fileSize: number
-  fileType: string
+    id: number
+    title: string
+    fileName: string
+    fileSize: number
+    fileType: string
 }
 
 export interface DownloadRequest {
-  materialId: number
+    materialId: number
 }
 
 export interface DownloadResult {
-  success: boolean
-  fileName: string
-  materialId: number
+    success: boolean
+    fileName: string
+    materialId: number
 }
 
 /**
@@ -26,14 +26,14 @@ export interface DownloadResult {
  * Property 5: Download triggers correct API call
  * For any material, clicking the download button SHALL initiate a download request
  * with the correct material ID and the downloaded file SHALL have the original filename.
- * 
+ *
  * @param material - Material to download
  * @returns Download request parameters
  */
 export function createDownloadRequest(material: Material): DownloadRequest {
-  return {
-    materialId: material.id
-  }
+    return {
+        materialId: material.id
+    }
 }
 
 /**
@@ -42,7 +42,7 @@ export function createDownloadRequest(material: Material): DownloadRequest {
  * @returns The original filename to use for download
  */
 export function getDownloadFileName(material: Material): string {
-  return material.fileName
+    return material.fileName
 }
 
 /**
@@ -52,7 +52,7 @@ export function getDownloadFileName(material: Material): string {
  * @returns true if request has correct material ID
  */
 export function validateDownloadRequest(request: DownloadRequest, material: Material): boolean {
-  return request.materialId === material.id
+    return request.materialId === material.id
 }
 
 /**
@@ -62,7 +62,7 @@ export function validateDownloadRequest(request: DownloadRequest, material: Mate
  * @returns true if result has correct filename
  */
 export function validateDownloadResult(result: DownloadResult, material: Material): boolean {
-  return result.fileName === material.fileName && result.materialId === material.id
+    return result.fileName === material.fileName && result.materialId === material.id
 }
 
 /**
@@ -71,12 +71,12 @@ export function validateDownloadResult(result: DownloadResult, material: Materia
  * @returns Download result with filename and material ID
  */
 export function simulateDownload(material: Material): DownloadResult {
-  const request = createDownloadRequest(material)
-  const fileName = getDownloadFileName(material)
-  
-  return {
-    success: true,
-    fileName: fileName,
-    materialId: request.materialId
-  }
+    const request = createDownloadRequest(material)
+    const fileName = getDownloadFileName(material)
+
+    return {
+        success: true,
+        fileName: fileName,
+        materialId: request.materialId
+    }
 }

@@ -1,9 +1,9 @@
 <template>
   <div class="material-upload">
     <a-page-header
-      title="上传资料"
-      sub-title="上传教学资料文件"
-      @back="handleBack"
+        sub-title="上传教学资料文件"
+        title="上传资料"
+        @back="handleBack"
     />
 
     <div class="content-container">
@@ -12,24 +12,24 @@
         <a-col :span="uploadedMaterialId ? 16 : 24">
           <a-card :bordered="false">
             <a-form
-              ref="formRef"
-              :model="formData"
-              :rules="rules"
-              :label-col="{ span: 4 }"
-              :wrapper-col="{ span: 16 }"
+                ref="formRef"
+                :label-col="{ span: 4 }"
+                :model="formData"
+                :rules="rules"
+                :wrapper-col="{ span: 16 }"
             >
               <!-- 文件上传 -->
               <a-form-item label="上传文件" name="file" required>
                 <a-upload-dragger
-                  v-model:file-list="fileList"
-                  :before-upload="beforeUpload"
-                  :custom-request="customUpload"
-                  :max-count="1"
-                  :accept="acceptedFileTypes"
-                  :disabled="!!uploadedMaterialId"
+                    v-model:file-list="fileList"
+                    :accept="acceptedFileTypes"
+                    :before-upload="beforeUpload"
+                    :custom-request="customUpload"
+                    :disabled="!!uploadedMaterialId"
+                    :max-count="1"
                 >
                   <p class="ant-upload-drag-icon">
-                    <InboxOutlined />
+                    <InboxOutlined/>
                   </p>
                   <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
                   <p class="ant-upload-hint">
@@ -41,49 +41,49 @@
               <!-- 资料标题 -->
               <a-form-item label="资料标题" name="title" required>
                 <a-input
-                  v-model:value="formData.title"
-                  placeholder="请输入资料标题"
-                  :maxlength="100"
-                  show-count
+                    v-model:value="formData.title"
+                    :maxlength="100"
+                    placeholder="请输入资料标题"
+                    show-count
                 />
               </a-form-item>
 
               <!-- 资料描述 -->
               <a-form-item label="资料描述" name="description">
                 <a-textarea
-                  v-model:value="formData.description"
-                  placeholder="请输入资料描述"
-                  :rows="4"
-                  :maxlength="500"
-                  show-count
+                    v-model:value="formData.description"
+                    :maxlength="500"
+                    :rows="4"
+                    placeholder="请输入资料描述"
+                    show-count
                 />
               </a-form-item>
 
               <!-- 分类 -->
               <a-form-item label="资料分类" name="categoryId">
                 <a-tree-select
-                  v-model:value="formData.categoryId"
-                  :tree-data="categoryTree"
-                  :field-names="{ label: 'name', value: 'id', children: 'children' }"
-                  placeholder="请选择分类（或使用智能推荐）"
-                  allow-clear
-                  tree-default-expand-all
+                    v-model:value="formData.categoryId"
+                    :field-names="{ label: 'name', value: 'id', children: 'children' }"
+                    :tree-data="categoryTree"
+                    allow-clear
+                    placeholder="请选择分类（或使用智能推荐）"
+                    tree-default-expand-all
                 />
               </a-form-item>
 
               <!-- 标签 -->
               <a-form-item label="标签" name="tags">
                 <a-select
-                  v-model:value="formData.tags"
-                  mode="tags"
-                  placeholder="输入标签后按回车添加（或使用智能推荐）"
-                  :max-tag-count="5"
-                  allow-clear
+                    v-model:value="formData.tags"
+                    :max-tag-count="5"
+                    allow-clear
+                    mode="tags"
+                    placeholder="输入标签后按回车添加（或使用智能推荐）"
                 >
                   <a-select-option
-                    v-for="tag in existingTags"
-                    :key="tag.id"
-                    :value="tag.name"
+                      v-for="tag in existingTags"
+                      :key="tag.id"
+                      :value="tag.name"
                   >
                     {{ tag.name }}
                   </a-select-option>
@@ -92,20 +92,20 @@
 
               <!-- 上传进度 -->
               <a-form-item
-                v-if="uploading || classifying"
-                label="处理进度"
-                :wrapper-col="{ span: 16 }"
+                  v-if="uploading || classifying"
+                  :wrapper-col="{ span: 16 }"
+                  label="处理进度"
               >
                 <a-steps :current="currentStep" size="small">
-                  <a-step title="上传文件" :status="getStepStatus(0)" />
-                  <a-step title="智能分析" :status="getStepStatus(1)" />
-                  <a-step title="完成" :status="getStepStatus(2)" />
+                  <a-step :status="getStepStatus(0)" title="上传文件"/>
+                  <a-step :status="getStepStatus(1)" title="智能分析"/>
+                  <a-step :status="getStepStatus(2)" title="完成"/>
                 </a-steps>
-                <a-progress 
-                  v-if="uploading" 
-                  :percent="uploadProgress" 
-                  :status="uploadStatus" 
-                  style="margin-top: 12px"
+                <a-progress
+                    v-if="uploading"
+                    :percent="uploadProgress"
+                    :status="uploadStatus"
+                    style="margin-top: 12px"
                 />
               </a-form-item>
 
@@ -113,20 +113,24 @@
               <a-form-item :wrapper-col="{ span: 16, offset: 4 }">
                 <a-space>
                   <a-button
-                    v-if="!uploadedMaterialId"
-                    type="primary"
-                    :loading="uploading"
-                    @click="handleSubmit"
+                      v-if="!uploadedMaterialId"
+                      :loading="uploading"
+                      type="primary"
+                      @click="handleSubmit"
                   >
-                    <template #icon><UploadOutlined /></template>
+                    <template #icon>
+                      <UploadOutlined/>
+                    </template>
                     {{ uploading ? '上传中...' : '开始上传' }}
                   </a-button>
                   <a-button
-                    v-else
-                    type="primary"
-                    @click="handleFinish"
+                      v-else
+                      type="primary"
+                      @click="handleFinish"
                   >
-                    <template #icon><CheckOutlined /></template>
+                    <template #icon>
+                      <CheckOutlined/>
+                    </template>
                     完成
                   </a-button>
                   <a-button v-if="!uploadedMaterialId" @click="handleReset">重置</a-button>
@@ -141,19 +145,19 @@
         <a-col v-if="uploadedMaterialId" :span="8">
           <!-- 智能分类 -->
           <ClassificationPanel
-            ref="classificationPanelRef"
-            :material-id="uploadedMaterialId"
-            :auto-analyze="true"
-            @classified="handleClassified"
-            @accepted="handleCategoryAccepted"
+              ref="classificationPanelRef"
+              :auto-analyze="true"
+              :material-id="uploadedMaterialId"
+              @accepted="handleCategoryAccepted"
+              @classified="handleClassified"
           />
-          
+
           <!-- 标签推荐 -->
           <TagSuggestions
-            ref="tagSuggestionsRef"
-            :material-id="uploadedMaterialId"
-            v-model:selected-tags="formData.tags"
-            :auto-load="true"
+              ref="tagSuggestionsRef"
+              v-model:selected-tags="formData.tags"
+              :auto-load="true"
+              :material-id="uploadedMaterialId"
           />
         </a-col>
       </a-row>
@@ -161,19 +165,15 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import type { FormInstance, UploadProps } from 'ant-design-vue'
-import {
-  InboxOutlined,
-  UploadOutlined,
-  CheckOutlined
-} from '@ant-design/icons-vue'
-import { materialApiUploadPost } from '@/api/materialController.ts'
-import { categoryApiGet } from '@/api/categoryController.ts'
-import { tagApiGet } from '@/api/tagController.ts'
+<script lang="ts" setup>
+import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import type {FormInstance, UploadProps} from 'ant-design-vue'
+import {message} from 'ant-design-vue'
+import {CheckOutlined, InboxOutlined, UploadOutlined} from '@ant-design/icons-vue'
+import {materialApiUploadPost} from '@/api/materialController.ts'
+import {categoryApiGet} from '@/api/categoryController.ts'
+import {tagApiGet} from '@/api/tagController.ts'
 import ClassificationPanel from '@/components/materials/ClassificationPanel.vue'
 import TagSuggestions from '@/components/materials/TagSuggestions.vue'
 
@@ -219,15 +219,15 @@ const acceptedFileTypes = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.jpg,.
 // 表单验证规则
 const rules = {
   title: [
-    { required: true, message: '请输入资料标题', trigger: 'blur' },
-    { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' }
+    {required: true, message: '请输入资料标题', trigger: 'blur'},
+    {min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur'}
   ],
   description: [
-    { max: 500, message: '描述不能超过 500 个字符', trigger: 'blur' }
+    {max: 500, message: '描述不能超过 500 个字符', trigger: 'blur'}
   ],
   file: [
-    { 
-      required: true, 
+    {
+      required: true,
       validator: (_rule: any, _value: any) => {
         if (fileList.value.length === 0) {
           return Promise.reject('请选择要上传的文件')
@@ -261,7 +261,7 @@ const buildCategoryTree = (categories: any[]): any[] => {
 
   // 创建映射
   categories.forEach(cat => {
-    map.set(cat.id, { ...cat, children: [] })
+    map.set(cat.id, {...cat, children: []})
   })
 
   // 构建树结构
@@ -348,7 +348,7 @@ const handleSubmit = async () => {
     const formDataToSend = new FormData()
     formDataToSend.append('file', fileList.value[0].originFileObj)
     formDataToSend.append('title', formData.title)
-    
+
     if (formData.description) {
       formDataToSend.append('description', formData.description)
     }
@@ -381,7 +381,7 @@ const handleSubmit = async () => {
 
     // 解析响应数据 - axios 返回 response.data，后端返回 { code, message, data }
     const materialData = response.data?.data || response.data
-    
+
     // 获取上传的资料ID，触发智能分类
     if (materialData?.id) {
       message.success('上传成功! 正在进行智能分析...')
@@ -406,7 +406,7 @@ const handleSubmit = async () => {
 const handleClassified = (result: API.ClassifyMaterialResponseModel) => {
   classifying.value = false
   currentStep.value = 2
-  
+
   // 如果有高置信度的分类建议且尚未选择分类，自动填充
   if (result.suggestedCategoryId && !formData.categoryId && result.shouldAutoApply) {
     formData.categoryId = result.suggestedCategoryId

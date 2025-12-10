@@ -5,11 +5,11 @@
     <!-- Navigation Bar -->
     <div class="fixed top-0 left-0 w-full bg-white shadow-sm z-10 flex items-center justify-between px-4 py-3">
       <a-button type="text" @click="goBack">
-        <LeftOutlined />
+        <LeftOutlined/>
       </a-button>
       <span class="text-lg font-semibold">学生签到</span>
       <a-button type="text">
-        <QuestionCircleOutlined />
+        <QuestionCircleOutlined/>
       </a-button>
     </div>
 
@@ -25,10 +25,11 @@
             <p><strong>二维码Token长度:</strong> {{ qrCodeToken ? qrCodeToken.length : 0 }}</p>
             <p class="break-all"><strong>二维码Token:</strong> {{ qrCodeToken || '未获取' }}</p>
             <p><strong>后端API:</strong> {{ apiBaseUrl }}</p>
-            <p><strong>网络状态:</strong> <span :class="isOnline ? 'text-green-600' : 'text-red-600'">{{ isOnline ? '在线' : '离线' }}</span></p>
+            <p><strong>网络状态:</strong> <span
+                :class="isOnline ? 'text-green-600' : 'text-red-600'">{{ isOnline ? '在线' : '离线' }}</span></p>
           </div>
         </div>
-        
+
         <!-- 错误信息卡片 -->
         <div v-if="lastError" class="bg-red-50 rounded-xl p-4 shadow-sm border border-red-200">
           <h3 class="text-sm font-bold mb-2 text-red-800">错误详情</h3>
@@ -41,47 +42,47 @@
             </div>
           </div>
         </div>
-        
+
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h2 class="text-xl font-bold mb-2">请输入学号</h2>
           <p class="text-gray-500 mb-6">验证学号后将进行人脸识别验证</p>
-          
-          <a-input 
-            v-model:value="studentId"
-            size="large"
-            placeholder="请输入您的学号"
-            class="mb-6"
+
+          <a-input
+              v-model:value="studentId"
+              class="mb-6"
+              placeholder="请输入您的学号"
+              size="large"
           >
             <template #prefix>
-              <UserOutlined />
+              <UserOutlined/>
             </template>
           </a-input>
-          
-          <a-button 
-            type="primary" 
-            size="large" 
-            block 
-            @click="handleNextStep"
-            :loading="validating"
-            :disabled="!studentId.trim()"
+
+          <a-button
+              :disabled="!studentId.trim()"
+              :loading="validating"
+              block
+              size="large"
+              type="primary"
+              @click="handleNextStep"
           >
             下一步 - 人脸验证
           </a-button>
         </div>
-        
+
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h3 class="font-bold mb-3">签到说明</h3>
           <ul class="space-y-2 text-gray-600">
             <li class="flex items-start">
-              <CheckCircleOutlined class="text-green-500 mt-1 mr-2" />
+              <CheckCircleOutlined class="text-green-500 mt-1 mr-2"/>
               <span>请输入您的学号进行身份验证</span>
             </li>
             <li class="flex items-start">
-              <CheckCircleOutlined class="text-green-500 mt-1 mr-2" />
+              <CheckCircleOutlined class="text-green-500 mt-1 mr-2"/>
               <span>点击下一步后将进行人脸识别验证</span>
             </li>
             <li class="flex items-start">
-              <CheckCircleOutlined class="text-green-500 mt-1 mr-2" />
+              <CheckCircleOutlined class="text-green-500 mt-1 mr-2"/>
               <span>请确保您已上传人脸照片</span>
             </li>
           </ul>
@@ -93,46 +94,46 @@
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h2 class="text-xl font-bold mb-2">人脸识别验证</h2>
           <p class="text-gray-500 mb-6">请将面部对准摄像头完成身份验证</p>
-          
+
           <div class="relative bg-gray-100 rounded-lg overflow-hidden mb-6" style="height: 240px;">
             <div v-if="!cameraActive" class="absolute inset-0 flex items-center justify-center">
-              <CameraOutlined class="text-4xl text-gray-400" />
+              <CameraOutlined class="text-4xl text-gray-400"/>
             </div>
-            <video 
-              v-show="cameraActive" 
-              ref="videoRef"
-              autoplay 
-              playsinline
-              class="w-full h-full object-cover"
+            <video
+                v-show="cameraActive"
+                ref="videoRef"
+                autoplay
+                class="w-full h-full object-cover"
+                playsinline
             ></video>
-            
+
             <div class="absolute inset-0 flex items-center justify-center">
               <div class="border-2 border-dashed border-white rounded-full w-48 h-48"></div>
             </div>
           </div>
-          
+
           <div class="flex space-x-3">
-            <a-button 
-              size="large" 
-              block 
-              @click="toggleCamera"
+            <a-button
+                block
+                size="large"
+                @click="toggleCamera"
             >
               {{ cameraActive ? '关闭摄像头' : '开启摄像头' }}
             </a-button>
-            <a-button 
-              type="primary" 
-              size="large" 
-              block 
-              @click="captureAndVerify"
-              :loading="verifying"
+            <a-button
+                :loading="verifying"
+                block
+                size="large"
+                type="primary"
+                @click="captureAndVerify"
             >
               确认签到
             </a-button>
           </div>
         </div>
-        
+
         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-          <InfoCircleOutlined class="text-blue-500 mr-2" />
+          <InfoCircleOutlined class="text-blue-500 mr-2"/>
           <span class="text-blue-700">请确保您处于安静、光线良好的环境中，避免他人干扰识别过程</span>
         </div>
       </div>
@@ -140,10 +141,10 @@
       <!-- Step 3: Check-in Success -->
       <div v-else-if="currentStep === 3" class="space-y-6">
         <div class="bg-white rounded-xl p-8 shadow-sm text-center">
-          <CheckCircleOutlined class="text-6xl text-green-500 mb-4" />
+          <CheckCircleOutlined class="text-6xl text-green-500 mb-4"/>
           <h2 class="text-2xl font-bold mb-2">签到成功！</h2>
           <p class="text-gray-500 mb-6">您已完成今日课程签到</p>
-          
+
           <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
             <div class="flex justify-between py-2 border-b">
               <span class="text-gray-500">签到时间</span>
@@ -151,24 +152,24 @@
             </div>
             <div class="flex justify-between py-2 border-b">
               <span class="text-gray-500">签到状态</span>
-              <span class="font-medium" :style="{ color: statusColor }">{{ statusText }}</span>
+              <span :style="{ color: statusColor }" class="font-medium">{{ statusText }}</span>
             </div>
             <div class="flex justify-between py-2">
               <span class="text-gray-500">签到方式</span>
               <span class="font-medium">二维码签到</span>
             </div>
           </div>
-          
-          <a-button 
-            type="primary" 
-            size="large" 
-            block 
-            @click="finishProcess"
+
+          <a-button
+              block
+              size="large"
+              type="primary"
+              @click="finishProcess"
           >
             完成
           </a-button>
         </div>
-        
+
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h3 class="font-bold mb-3">签到统计</h3>
           <div class="flex justify-between text-center">
@@ -191,24 +192,24 @@
 
     <!-- 人脸验证模态框 -->
     <FaceVerificationModal
-      v-model:visible="faceVerificationVisible"
-      :attendance-id="attendanceId"
-      :student-number="studentId"
-      @success="handleFaceVerificationSuccess"
+        v-model:visible="faceVerificationVisible"
+        :attendance-id="attendanceId"
+        :student-number="studentId"
+        @success="handleFaceVerificationSuccess"
     />
 
     <!-- Tab Bar -->
     <div class="fixed bottom-0 left-0 w-full bg-white border-t flex justify-around py-2">
       <div class="flex flex-col items-center w-1/3">
-        <HomeOutlined class="text-xl" />
+        <HomeOutlined class="text-xl"/>
         <span class="text-xs mt-1">首页</span>
       </div>
       <div class="flex flex-col items-center w-1/3 text-blue-500">
-        <CheckSquareOutlined class="text-xl" />
+        <CheckSquareOutlined class="text-xl"/>
         <span class="text-xs mt-1">签到</span>
       </div>
       <div class="flex flex-col items-center w-1/3">
-        <UserOutlined class="text-xl" />
+        <UserOutlined class="text-xl"/>
         <span class="text-xs mt-1">我的</span>
       </div>
     </div>
@@ -216,20 +217,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { 
-  LeftOutlined, 
-  QuestionCircleOutlined, 
-  UserOutlined, 
-  CheckCircleOutlined,
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {
   CameraOutlined,
-  InfoCircleOutlined,
+  CheckCircleOutlined,
+  CheckSquareOutlined,
   HomeOutlined,
-  CheckSquareOutlined
+  InfoCircleOutlined,
+  LeftOutlined,
+  QuestionCircleOutlined,
+  UserOutlined
 } from '@ant-design/icons-vue';
-import { message } from 'ant-design-vue';
-import { verifyQRCodeAndCheckIn, type AttendanceRecord } from '@/api/attendanceController';
+import {message} from 'ant-design-vue';
+import {type AttendanceRecord, verifyQRCodeAndCheckIn} from '@/api/attendanceController';
 import FaceVerificationModal from '@/components/FaceVerificationModal.vue';
 
 const route = useRoute();
@@ -307,7 +308,7 @@ const successTime = computed(() => {
       minute: '2-digit'
     });
   }
-  
+
   const timeStr = checkInRecord.value.checkInTime || checkInRecord.value.check_in_time;
   return new Date(timeStr!).toLocaleString('zh-CN', {
     month: '2-digit',
@@ -320,7 +321,7 @@ const successTime = computed(() => {
 // 签到状态文本
 const statusText = computed(() => {
   if (!checkInRecord.value) return '正常';
-  
+
   const status = checkInRecord.value.status;
   switch (status) {
     case 'present':
@@ -339,7 +340,7 @@ const statusText = computed(() => {
 // 签到状态颜色
 const statusColor = computed(() => {
   if (!checkInRecord.value) return 'green';
-  
+
   const status = checkInRecord.value.status;
   switch (status) {
     case 'present':
@@ -386,7 +387,7 @@ const handleNextStep = () => {
     message.error('网络已断开，请检查网络连接');
     return;
   }
-  
+
   // 打开人脸验证模态框
   faceVerificationVisible.value = true;
 };
@@ -415,12 +416,12 @@ const validateStudentId = async () => {
     message.error('网络已断开，请检查网络连接');
     return;
   }
-  
+
   // 清除之前的错误
   lastError.value = null;
-  
+
   validating.value = true;
-  
+
   try {
     console.log('=== 开始签到 ===');
     console.log('请求参数:', {
@@ -428,40 +429,40 @@ const validateStudentId = async () => {
       qrCodeToken: qrCodeToken.value,
       studentNumber: studentId.value
     });
-    
+
     // 调用后端API验证二维码并签到
     const result = await verifyQRCodeAndCheckIn({
       attendanceId: attendanceId.value,
       qrCodeToken: qrCodeToken.value,
       studentNumber: studentId.value  // 传递学号
     });
-    
+
     // 保存签到记录
     checkInRecord.value = result.data;
-    
+
     // 签到成功，跳转到成功页面
     currentStep.value = 3;
     message.success('签到成功！');
-    
+
   } catch (error: any) {
     console.error('签到失败 - 完整错误信息:', error);
     console.error('错误响应:', error.response);
     console.error('错误数据:', error.response?.data);
     console.error('错误状态码:', error.response?.status);
     console.error('请求配置:', error.config);
-    
+
     // 构建详细错误信息
     let errorMsg = '签到失败';
     let errorDetail = '';
-    
+
     if (error.response) {
       // 服务器返回了错误响应
       const status = error.response.status;
       const data = error.response.data;
-      
+
       errorMsg = data?.message || `服务器错误 (${status})`;
       errorDetail = `状态码: ${status}\n请求地址: ${error.config?.url}\n响应数据: ${JSON.stringify(data, null, 2)}`;
-      
+
       // 保存错误信息到界面
       lastError.value = {
         message: errorMsg,
@@ -469,22 +470,22 @@ const validateStudentId = async () => {
         url: error.config?.url,
         detail: errorDetail
       };
-      
+
       console.log('服务器错误响应:', errorDetail);
     } else if (error.request) {
       // 请求已发送但没有收到响应
       errorMsg = '网络连接失败';
       errorDetail = `请求地址: ${error.config?.url}\n请求方法: ${error.config?.method}\n请求数据: ${JSON.stringify(error.config?.data, null, 2)}\n\n可能原因:\n1. 后端服务未启动\n2. 后端地址不正确\n3. 网络防火墙阻止\n4. CORS 跨域问题`;
-      
+
       console.log('网络连接错误:', errorDetail);
     } else {
       // 设置请求时发生了错误
       errorMsg = error.message || '未知错误';
       errorDetail = `错误信息: ${error.message}\n错误堆栈: ${error.stack}`;
-      
+
       console.log('请求配置错误:', errorDetail);
     }
-    
+
     // 显示错误信息
     if (errorMsg.includes('过期')) {
       message.error('二维码已过期，请重新扫描');
@@ -529,14 +530,14 @@ const toggleCamera = async () => {
 
 const startCamera = async () => {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: 'user' } 
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: 'user'}
     });
-    
+
     if (videoRef.value) {
       videoRef.value.srcObject = stream;
     }
-    
+
     cameraActive.value = true;
   } catch (err) {
     message.error('无法访问摄像头，请检查权限设置');
@@ -549,11 +550,11 @@ const stopCamera = () => {
     stream.getTracks().forEach(track => track.stop());
     stream = null;
   }
-  
+
   if (videoRef.value) {
     videoRef.value.srcObject = null;
   }
-  
+
   cameraActive.value = false;
 };
 
@@ -565,13 +566,13 @@ const captureAndVerify = async () => {
   }
 
   verifying.value = true;
-  
+
   // Simulate face recognition process
   await new Promise(resolve => setTimeout(resolve, 2000));
-  
+
   // Mock verification result
   const isSuccess = Math.random() > 0.2; // 80% success rate
-  
+
   if (isSuccess) {
     stopCamera();
     currentStep.value = 3;
@@ -579,7 +580,7 @@ const captureAndVerify = async () => {
   } else {
     message.error('人脸识别失败，请调整角度后重试');
   }
-  
+
   verifying.value = false;
 };
 
@@ -599,7 +600,7 @@ onMounted(() => {
     // 可以选择跳转到扫描页面
     // router.push({ name: 'QRCodeScanner' });
   }
-  
+
   // Initialize with step 1
   currentStep.value = 1;
 });

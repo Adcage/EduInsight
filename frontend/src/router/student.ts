@@ -5,6 +5,17 @@ import type {RouteRecordRaw} from 'vue-router'
  * 扁平路由结构,布局由 App.vue 根据路径前缀控制
  */
 const studentRoutes: RouteRecordRaw[] = [
+    // 个人资料页面 - 所有已认证用户可访问
+    {
+        path: '/student/profile',
+        name: 'StudentProfile',
+        component: () => import('@/pages/shared/profile/ProfilePage.vue'),
+        meta: {
+            title: '个人资料',
+            requiresAuth: true,
+            roles: ['student']
+        }
+    },
     // 学生资料中心
     {
         path: '/student/materials',
@@ -34,7 +45,7 @@ const studentRoutes: RouteRecordRaw[] = [
     // 我的考勤
 
     // 我的成绩
-    
+
     // 课堂互动
 
     // 学生人脸照片上传

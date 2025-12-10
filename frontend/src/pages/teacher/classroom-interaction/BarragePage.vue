@@ -1,11 +1,13 @@
 <template>
   <div class="barrage-page">
-    <a-page-header title="弹幕管理" sub-title="实时查看和管理课堂弹幕">
+    <a-page-header sub-title="实时查看和管理课堂弹幕" title="弹幕管理">
       <template #extra>
         <a-space>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
+          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'"/>
           <a-button @click="loadBarrages">
-            <template #icon><ReloadOutlined /></template>
+            <template #icon>
+              <ReloadOutlined/>
+            </template>
             刷新
           </a-button>
         </a-space>
@@ -14,37 +16,43 @@
 
     <div class="content-container">
       <!-- 弹幕墙 -->
-      <a-card title="弹幕墙" :bordered="false" style="margin-bottom: 16px">
-        <BarrageWall ref="barrageWallRef" :course-id="courseId" :height="600" @barrage-click="handleBarrageClick" />
+      <a-card :bordered="false" style="margin-bottom: 16px" title="弹幕墙">
+        <BarrageWall ref="barrageWallRef" :course-id="courseId" :height="600" @barrage-click="handleBarrageClick"/>
       </a-card>
 
       <!-- 统计信息 -->
       <a-row :gutter="16" style="margin-bottom: 16px">
-        <a-col :xs="24" :sm="8">
+        <a-col :sm="8" :xs="24">
           <a-card>
-            <a-statistic title="总弹幕数" :value="statistics.total" :value-style="{ color: '#1890ff' }">
-              <template #prefix><MessageOutlined /></template>
+            <a-statistic :value="statistics.total" :value-style="{ color: '#1890ff' }" title="总弹幕数">
+              <template #prefix>
+                <MessageOutlined/>
+              </template>
             </a-statistic>
           </a-card>
         </a-col>
-        <a-col :xs="24" :sm="8">
+        <a-col :sm="8" :xs="24">
           <a-card>
-            <a-statistic title="答案弹幕" :value="statistics.answer" :value-style="{ color: '#52c41a' }">
-              <template #prefix><CheckCircleOutlined /></template>
+            <a-statistic :value="statistics.answer" :value-style="{ color: '#52c41a' }" title="答案弹幕">
+              <template #prefix>
+                <CheckCircleOutlined/>
+              </template>
             </a-statistic>
           </a-card>
         </a-col>
-        <a-col :xs="24" :sm="8">
+        <a-col :sm="8" :xs="24">
           <a-card>
-            <a-statistic title="自由弹幕" :value="statistics.free" :value-style="{ color: '#faad14' }">
-              <template #prefix><CommentOutlined /></template>
+            <a-statistic :value="statistics.free" :value-style="{ color: '#faad14' }" title="自由弹幕">
+              <template #prefix>
+                <CommentOutlined/>
+              </template>
             </a-statistic>
           </a-card>
         </a-col>
       </a-row>
 
       <!-- 弹幕列表 -->
-      <a-card title="弹幕列表" :bordered="false">
+      <a-card :bordered="false" title="弹幕列表">
         <template #extra>
           <a-space>
             <a-radio-group v-model:value="filterType" button-style="solid" @change="loadBarrages">
@@ -56,7 +64,7 @@
         </template>
 
         <a-spin :spinning="loading">
-          <a-empty v-if="filteredBarrages.length === 0 && !loading" description="暂无弹幕" />
+          <a-empty v-if="filteredBarrages.length === 0 && !loading" description="暂无弹幕"/>
 
           <a-list v-else :data-source="filteredBarrages" :pagination="paginationConfig">
             <template #renderItem="{ item }">
@@ -64,7 +72,7 @@
                 <a-list-item-meta>
                   <template #avatar>
                     <a-avatar :style="{ backgroundColor: item.question_id ? '#52c41a' : '#1890ff' }">
-                      <MessageOutlined />
+                      <MessageOutlined/>
                     </a-avatar>
                   </template>
 
@@ -72,12 +80,14 @@
                     <a-space>
                       <span>{{ item.user_name }}</span>
                       <a-tag v-if="item.question_id" color="green">
-                        <CheckCircleOutlined /> 答案弹幕
+                        <CheckCircleOutlined/>
+                        答案弹幕
                       </a-tag>
                       <a-tag v-else color="blue">
-                        <CommentOutlined /> 自由弹幕
+                        <CommentOutlined/>
+                        自由弹幕
                       </a-tag>
-                      <a-tag v-if="item.is_anonymous" color="orange"> 匿名 </a-tag>
+                      <a-tag v-if="item.is_anonymous" color="orange"> 匿名</a-tag>
                     </a-space>
                   </template>
 
@@ -97,7 +107,8 @@
                 <template #actions>
                   <a-popconfirm title="确定删除这条弹幕吗？" @confirm="deleteBarrage(item)">
                     <a style="color: #ff4d4f">
-                      <DeleteOutlined /> 删除
+                      <DeleteOutlined/>
+                      删除
                     </a>
                   </a-popconfirm>
                 </template>
@@ -109,10 +120,10 @@
     </div>
 
     <!-- 弹幕详情对话框 -->
-    <a-modal v-model:open="detailModalVisible" title="弹幕详情" width="600px" :footer="null">
+    <a-modal v-model:open="detailModalVisible" :footer="null" title="弹幕详情" width="600px">
       <div v-if="currentBarrage">
         <a-descriptions :column="2" bordered>
-          <a-descriptions-item label="内容" :span="2">
+          <a-descriptions-item :span="2" label="内容">
             {{ currentBarrage.content }}
           </a-descriptions-item>
           <a-descriptions-item label="发送者">
@@ -129,7 +140,7 @@
           <a-descriptions-item label="发送时间">
             {{ formatTime(currentBarrage.created_at) }}
           </a-descriptions-item>
-          <a-descriptions-item v-if="currentBarrage.question_id" label="关联问题" :span="2">
+          <a-descriptions-item v-if="currentBarrage.question_id" :span="2" label="关联问题">
             <a @click="viewQuestion(currentBarrage.question_id)">查看问题详情</a>
           </a-descriptions-item>
         </a-descriptions>
@@ -138,19 +149,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
 import {
-  ReloadOutlined,
-  MessageOutlined,
   CheckCircleOutlined,
   CommentOutlined,
   DeleteOutlined,
+  MessageOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons-vue'
 import BarrageWall from '@/components/interaction/BarrageWall.vue'
-import { barrageApiGet, barrageApiIntBarrageIdDelete } from '@/api/interactionController'
-import { useBarrageSocket } from '@/composables/useSocket'
+import {barrageApiGet, barrageApiIntBarrageIdDelete} from '@/api/interactionController'
+import {useBarrageSocket} from '@/composables/useSocket'
 import dayjs from 'dayjs'
 
 // 用户信息
@@ -159,10 +170,10 @@ const userName = ref('教师')
 const courseId = ref(1)
 
 // WebSocket
-const { isConnected, onNewBarrage, onBarrageRemoved, notifyBarrageDeleted } = useBarrageSocket(
-  courseId.value,
-  userId.value,
-  userName.value
+const {isConnected, onNewBarrage, onBarrageRemoved, notifyBarrageDeleted} = useBarrageSocket(
+    courseId.value,
+    userId.value,
+    userName.value
 )
 
 // 数据
@@ -187,7 +198,7 @@ const statistics = computed(() => {
   const total = barrages.value.length
   const answer = barrages.value.filter((b) => b.question_id !== null).length
   const free = barrages.value.filter((b) => b.question_id === null).length
-  return { total, answer, free }
+  return {total, answer, free}
 })
 
 // 过滤后的弹幕列表
@@ -304,7 +315,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .barrage-page {
   min-height: 100vh;
   background: var(--bg-color);

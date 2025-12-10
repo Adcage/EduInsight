@@ -1,20 +1,20 @@
 <template>
   <div class="warnings-container">
-    <a-card title="📊 学情预警管理" :bordered="false">
+    <a-card :bordered="false" title="📊 学情预警管理">
       <!-- 筛选区域 -->
-      <a-form layout="inline" :model="filterForm" class="filter-form">
+      <a-form :model="filterForm" class="filter-form" layout="inline">
         <a-form-item label="课程">
           <a-select
-            v-model:value="filterForm.courseId"
-            placeholder="请选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
-            :loading="coursesLoading"
+              v-model:value="filterForm.courseId"
+              :loading="coursesLoading"
+              placeholder="请选择课程"
+              style="width: 200px"
+              @change="handleCourseChange"
           >
             <a-select-option
-              v-for="course in courses"
-              :key="course.id"
-              :value="course.id"
+                v-for="course in courses"
+                :key="course.id"
+                :value="course.id"
             >
               {{ course.name }}
             </a-select-option>
@@ -23,16 +23,16 @@
 
         <a-form-item label="班级">
           <a-select
-            v-model:value="filterForm.classId"
-            placeholder="全部班级"
-            style="width: 150px"
-            :disabled="!filterForm.courseId"
-            allowClear
+              v-model:value="filterForm.classId"
+              :disabled="!filterForm.courseId"
+              allowClear
+              placeholder="全部班级"
+              style="width: 150px"
           >
             <a-select-option
-              v-for="cls in classes"
-              :key="cls.id"
-              :value="cls.id"
+                v-for="cls in classes"
+                :key="cls.id"
+                :value="cls.id"
             >
               {{ cls.name }}
             </a-select-option>
@@ -41,10 +41,10 @@
 
         <a-form-item label="风险等级">
           <a-select
-            v-model:value="filterForm.riskLevel"
-            placeholder="全部等级"
-            style="width: 150px"
-            allowClear
+              v-model:value="filterForm.riskLevel"
+              allowClear
+              placeholder="全部等级"
+              style="width: 150px"
           >
             <a-select-option value="high">🔴 高风险</a-select-option>
             <a-select-option value="medium">🟡 中风险</a-select-option>
@@ -56,25 +56,28 @@
         <a-form-item>
           <a-space>
             <a-button
-              type="primary"
-              @click="loadWarnings"
-              :disabled="!filterForm.courseId"
-              :loading="loading"
+                :disabled="!filterForm.courseId"
+                :loading="loading"
+                type="primary"
+                @click="loadWarnings"
             >
-              <SearchOutlined /> 查询
+              <SearchOutlined/>
+              查询
             </a-button>
             <a-button
-              type="primary"
-              @click="showGenerateModal"
-              :disabled="!filterForm.courseId"
+                :disabled="!filterForm.courseId"
+                type="primary"
+                @click="showGenerateModal"
             >
-              <ThunderboltOutlined /> 生成预警
+              <ThunderboltOutlined/>
+              生成预警
             </a-button>
             <a-button
-              @click="handleBatchSend"
-              :disabled="selectedRowKeys.length === 0"
+                :disabled="selectedRowKeys.length === 0"
+                @click="handleBatchSend"
             >
-              <MailOutlined /> 批量发送通知
+              <MailOutlined/>
+              批量发送通知
             </a-button>
           </a-space>
         </a-form-item>
@@ -82,12 +85,12 @@
 
       <!-- 统计信息 -->
       <a-alert
-        v-if="statistics"
-        :message="`共 ${statistics.total} 条预警记录`"
-        type="info"
-        show-icon
-        closable
-        class="statistics-alert"
+          v-if="statistics"
+          :message="`共 ${statistics.total} 条预警记录`"
+          class="statistics-alert"
+          closable
+          show-icon
+          type="info"
       >
         <template #description>
           <a-space>
@@ -101,16 +104,16 @@
 
       <!-- 预警列表 -->
       <a-table
-        :columns="columns"
-        :data-source="warnings"
-        :loading="loading"
-        :row-selection="{
+          :columns="columns"
+          :data-source="warnings"
+          :loading="loading"
+          :pagination="false"
+          :row-selection="{
           selectedRowKeys: selectedRowKeys,
           onChange: onSelectChange,
         }"
-        :pagination="false"
-        :scroll="{ x: 1200 }"
-        class="warnings-table"
+          :scroll="{ x: 1200 }"
+          class="warnings-table"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'riskLevel'">
@@ -127,9 +130,9 @@
 
           <template v-if="column.key === 'confidence'">
             <a-progress
-              :percent="record.confidence"
-              :stroke-color="getConfidenceColor(record.confidence)"
-              size="small"
+                :percent="record.confidence"
+                :stroke-color="getConfidenceColor(record.confidence)"
+                size="small"
             />
           </template>
 
@@ -141,21 +144,21 @@
 
           <template v-if="column.key === 'action'">
             <a-space>
-              <a-button type="link" size="small" @click="viewDetail(record)">
+              <a-button size="small" type="link" @click="viewDetail(record)">
                 查看详情
               </a-button>
               <a-button
-                type="link"
-                size="small"
-                @click="showInterventionModal(record)"
+                  size="small"
+                  type="link"
+                  @click="showInterventionModal(record)"
               >
                 记录干预
               </a-button>
               <a-button
-                type="link"
-                size="small"
-                :disabled="record.isSent"
-                @click="sendNotification(record.id)"
+                  :disabled="record.isSent"
+                  size="small"
+                  type="link"
+                  @click="sendNotification(record.id)"
               >
                 发送通知
               </a-button>
@@ -167,18 +170,18 @@
 
     <!-- 生成预警对话框 -->
     <a-modal
-      v-model:open="generateModalVisible"
-      title="生成预警预测"
-      @ok="handleGenerate"
-      :confirm-loading="generating"
+        v-model:open="generateModalVisible"
+        :confirm-loading="generating"
+        title="生成预警预测"
+        @ok="handleGenerate"
     >
       <a-form :model="generateForm" layout="vertical">
         <a-form-item label="课程">
           <a-select v-model:value="generateForm.courseId" disabled>
             <a-select-option
-              v-for="course in courses"
-              :key="course.id"
-              :value="course.id"
+                v-for="course in courses"
+                :key="course.id"
+                :value="course.id"
             >
               {{ course.name }}
             </a-select-option>
@@ -187,14 +190,14 @@
 
         <a-form-item label="班级(可选)">
           <a-select
-            v-model:value="generateForm.classId"
-            placeholder="不选择则为全部班级"
-            allowClear
+              v-model:value="generateForm.classId"
+              allowClear
+              placeholder="不选择则为全部班级"
           >
             <a-select-option
-              v-for="cls in classes"
-              :key="cls.id"
-              :value="cls.id"
+                v-for="cls in classes"
+                :key="cls.id"
+                :value="cls.id"
             >
               {{ cls.name }}
             </a-select-option>
@@ -202,34 +205,34 @@
         </a-form-item>
 
         <a-alert
-          message="预测说明"
-          description="系统将基于学生的历史成绩(平时、期中等)预测期末成绩,并根据预测结果生成预警。至少需要2次成绩记录才能进行预测。"
-          type="info"
-          show-icon
+            description="系统将基于学生的历史成绩(平时、期中等)预测期末成绩,并根据预测结果生成预警。至少需要2次成绩记录才能进行预测。"
+            message="预测说明"
+            show-icon
+            type="info"
         />
       </a-form>
     </a-modal>
 
     <!-- 添加干预记录对话框 -->
     <a-modal
-      v-model:open="interventionModalVisible"
-      title="记录干预措施"
-      @ok="handleAddIntervention"
-      :confirm-loading="addingIntervention"
-      width="600px"
+        v-model:open="interventionModalVisible"
+        :confirm-loading="addingIntervention"
+        title="记录干预措施"
+        width="600px"
+        @ok="handleAddIntervention"
     >
       <a-form :model="interventionForm" layout="vertical">
         <a-form-item label="学生信息">
           <a-input
-            :value="`${currentWarning?.studentName} (${currentWarning?.studentCode})`"
-            disabled
+              :value="`${currentWarning?.studentName} (${currentWarning?.studentCode})`"
+              disabled
           />
         </a-form-item>
 
         <a-form-item label="干预日期" required>
           <a-date-picker
-            v-model:value="interventionForm.interventionDate"
-            style="width: 100%"
+              v-model:value="interventionForm.interventionDate"
+              style="width: 100%"
           />
         </a-form-item>
 
@@ -244,17 +247,17 @@
 
         <a-form-item label="干预内容" required>
           <a-textarea
-            v-model:value="interventionForm.description"
-            :rows="4"
-            placeholder="请详细描述干预措施的具体内容..."
+              v-model:value="interventionForm.description"
+              :rows="4"
+              placeholder="请详细描述干预措施的具体内容..."
           />
         </a-form-item>
 
         <a-form-item label="预期效果">
           <a-textarea
-            v-model:value="interventionForm.expectedEffect"
-            :rows="2"
-            placeholder="预期达到的效果..."
+              v-model:value="interventionForm.expectedEffect"
+              :rows="2"
+              placeholder="预期达到的效果..."
           />
         </a-form-item>
       </a-form>
@@ -262,31 +265,31 @@
 
     <!-- 预警详情抽屉 -->
     <a-drawer
-      v-model:open="detailDrawerVisible"
-      title="预警详情"
-      width="800"
-      :body-style="{ paddingBottom: '80px' }"
+        v-model:open="detailDrawerVisible"
+        :body-style="{ paddingBottom: '80px' }"
+        title="预警详情"
+        width="800"
     >
       <div v-if="currentDetail" class="detail-content">
         <!-- 学生基本信息 -->
-        <a-descriptions title="学生信息" :column="2" bordered>
+        <a-descriptions :column="2" bordered title="学生信息">
           <a-descriptions-item label="姓名">
             {{ currentDetail.studentName }}
           </a-descriptions-item>
           <a-descriptions-item label="学号">
             {{ currentDetail.studentCode }}
           </a-descriptions-item>
-          <a-descriptions-item label="邮箱" :span="2">
+          <a-descriptions-item :span="2" label="邮箱">
             {{ currentDetail.studentEmail || '未设置' }}
           </a-descriptions-item>
         </a-descriptions>
 
         <!-- 预测信息 -->
         <a-descriptions
-          title="预测信息"
-          :column="2"
-          bordered
-          style="margin-top: 20px"
+            :column="2"
+            bordered
+            style="margin-top: 20px"
+            title="预测信息"
         >
           <a-descriptions-item label="课程">
             {{ currentDetail.courseName }}
@@ -325,9 +328,9 @@
           <h3>📋 干预记录 ({{ currentDetail.interventions?.length || 0 }})</h3>
           <a-timeline v-if="currentDetail.interventions?.length > 0">
             <a-timeline-item
-              v-for="intervention in currentDetail.interventions"
-              :key="intervention.id"
-              :color="getInterventionColor(intervention.interventionType)"
+                v-for="intervention in currentDetail.interventions"
+                :key="intervention.id"
+                :color="getInterventionColor(intervention.interventionType)"
             >
               <p>
                 <strong>{{ formatInterventionType(intervention.interventionType) }}</strong>
@@ -350,25 +353,21 @@
               </p>
             </a-timeline-item>
           </a-timeline>
-          <a-empty v-else description="暂无干预记录" />
+          <a-empty v-else description="暂无干预记录"/>
         </div>
       </div>
     </a-drawer>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
-import { message } from 'ant-design-vue'
-import {
-  SearchOutlined,
-  ThunderboltOutlined,
-  MailOutlined,
-} from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {nextTick, onMounted, reactive, ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {MailOutlined, SearchOutlined, ThunderboltOutlined,} from '@ant-design/icons-vue'
 import axios from '@/request'
+import type {ECharts} from 'echarts'
 import * as echarts from 'echarts'
-import type { ECharts } from 'echarts'
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs, {Dayjs} from 'dayjs'
 
 // 接口定义
 interface Course {
@@ -563,14 +562,14 @@ const loadCourses = async () => {
 const handleCourseChange = async (courseId: number) => {
   filterForm.classId = undefined
   classes.value = []
-  
+
   if (!courseId) return
-  
+
   try {
     const response = await axios.get('/api/v1/grades/course-students', {
-      params: { courseId },
+      params: {courseId},
     })
-    
+
     // 提取唯一的班级列表
     const classMap = new Map<number, string>()
     response.data.forEach((student: any) => {
@@ -578,7 +577,7 @@ const handleCourseChange = async (courseId: number) => {
         classMap.set(student.class_id, student.class_name)
       }
     })
-    
+
     classes.value = Array.from(classMap.entries()).map(([id, name]) => ({
       id,
       name,
@@ -594,7 +593,7 @@ const loadWarnings = async () => {
     message.warning('请先选择课程')
     return
   }
-  
+
   loading.value = true
   try {
     const response = await axios.get('/api/v1/predictions/list', {
@@ -604,7 +603,7 @@ const loadWarnings = async () => {
         riskLevel: filterForm.riskLevel,
       },
     })
-    
+
     warnings.value = response.data.map((item: any) => ({
       id: item.id,
       studentId: item.student_id,
@@ -621,7 +620,7 @@ const loadWarnings = async () => {
       interventionCount: item.intervention_count,
       createdAt: item.created_at,
     }))
-    
+
     // 计算统计信息
     statistics.value = {
       total: warnings.value.length,
@@ -650,23 +649,23 @@ const handleGenerate = async () => {
     message.warning('请选择课程')
     return
   }
-  
+
   generating.value = true
   try {
     const response = await axios.post('/api/v1/predictions/generate', {
       courseId: generateForm.courseId,
       classId: generateForm.classId,
     })
-    
+
     const result = response.data
     message.success(
-      `预警生成成功! 共预测 ${result.predicted_count} 人, ` +
+        `预警生成成功! 共预测 ${result.predicted_count} 人, ` +
         `高风险 ${result.high_risk_count} 人, ` +
         `中风险 ${result.medium_risk_count} 人, ` +
         `低风险 ${result.low_risk_count} 人, ` +
         `跳过 ${result.skipped_count} 人(成绩不足)`
     )
-    
+
     generateModalVisible.value = false
     loadWarnings()
   } catch (error: any) {
@@ -689,12 +688,12 @@ const showInterventionModal = (warning: Warning) => {
 // 添加干预记录
 const handleAddIntervention = async () => {
   if (!currentWarning.value) return
-  
+
   if (!interventionForm.description) {
     message.warning('请填写干预内容')
     return
   }
-  
+
   addingIntervention.value = true
   try {
     await axios.post('/api/v1/predictions/interventions', {
@@ -704,7 +703,7 @@ const handleAddIntervention = async () => {
       description: interventionForm.description,
       expectedEffect: interventionForm.expectedEffect || undefined,
     })
-    
+
     message.success('干预记录添加成功')
     interventionModalVisible.value = false
     loadWarnings()
@@ -719,7 +718,7 @@ const handleAddIntervention = async () => {
 const viewDetail = async (warning: Warning) => {
   try {
     const response = await axios.get(`/api/v1/predictions/${warning.id}`)
-    
+
     currentDetail.value = {
       id: response.data.id,
       studentId: response.data.student_id,
@@ -754,9 +753,9 @@ const viewDetail = async (warning: Warning) => {
       })),
       createdAt: response.data.created_at,
     }
-    
+
     detailDrawerVisible.value = true
-    
+
     // 等待DOM更新后渲染图表
     await nextTick()
     renderChart()
@@ -768,17 +767,17 @@ const viewDetail = async (warning: Warning) => {
 // 渲染成绩趋势图
 const renderChart = () => {
   if (!chartRef.value || !currentDetail.value) return
-  
+
   if (chartInstance) {
     chartInstance.dispose()
   }
-  
+
   chartInstance = echarts.init(chartRef.value)
-  
+
   const grades = currentDetail.value.historicalGrades
   const examTypes = grades.map((g) => g.examName || g.examType)
   const scores = grades.map((g) => g.score)
-  
+
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -803,13 +802,13 @@ const renderChart = () => {
         },
         markLine: {
           data: [
-            { yAxis: 60, name: '及格线', lineStyle: { color: '#ff4d4f' } },
+            {yAxis: 60, name: '及格线', lineStyle: {color: '#ff4d4f'}},
           ],
         },
       },
     ],
   }
-  
+
   chartInstance.setOption(option)
 }
 
@@ -832,14 +831,14 @@ const handleBatchSend = async () => {
     message.warning('请选择要发送通知的预警记录')
     return
   }
-  
+
   try {
     const response = await axios.post('/api/v1/predictions/send-notifications', {
       predictionIds: selectedRowKeys.value,
     })
-    
+
     message.success(
-      `批量发送完成! 成功 ${response.data.success_count} 条, ` +
+        `批量发送完成! 成功 ${response.data.success_count} 条, ` +
         `失败 ${response.data.failed_count} 条`
     )
     selectedRowKeys.value = []
@@ -915,7 +914,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="less">
+<style lang="less" scoped>
 .warnings-container {
   padding: 24px;
 }

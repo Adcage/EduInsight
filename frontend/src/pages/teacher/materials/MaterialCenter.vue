@@ -1,12 +1,14 @@
 <template>
   <div class="material-center-enhanced">
     <a-page-header
-      title="资料中心"
-      sub-title="管理和查看所有教学资料"
+        sub-title="管理和查看所有教学资料"
+        title="资料中心"
     >
       <template #extra>
         <a-button type="primary" @click="handleUpload">
-          <template #icon><UploadOutlined /></template>
+          <template #icon>
+            <UploadOutlined/>
+          </template>
           上传资料
         </a-button>
       </template>
@@ -15,64 +17,64 @@
     <div class="content-container">
       <a-row :gutter="16">
         <!-- 左侧：标签云和分类树 -->
-        <a-col :xs="24" :sm="24" :md="4" :lg="4">
+        <a-col :lg="4" :md="4" :sm="24" :xs="24">
           <!-- 标签云 -->
           <TagCloud
-            v-model="selectedTags"
-            :show-manage="true"
-            :default-show-count="15"
-            @select="handleTagSelect"
+              v-model="selectedTags"
+              :default-show-count="15"
+              :show-manage="true"
+              @select="handleTagSelect"
           />
 
           <!-- 分类树 -->
           <div class="category-tree-wrapper" style="margin-top: 16px">
             <CategoryTree
-              v-model="filters.categoryId"
-              :show-manage="true"
-              :show-count="true"
-              @select="handleCategorySelect"
+                v-model="filters.categoryId"
+                :show-count="true"
+                :show-manage="true"
+                @select="handleCategorySelect"
             />
           </div>
         </a-col>
 
         <!-- 右侧：搜索、筛选和资料列表 -->
-        <a-col :xs="24" :sm="24" :md="20" :lg="20">
+        <a-col :lg="20" :md="20" :sm="24" :xs="24">
           <!-- 搜索栏 -->
           <SearchBar
-            v-model="searchKeyword"
-            @search="handleSearch"
+              v-model="searchKeyword"
+              @search="handleSearch"
           />
 
           <!-- 高级筛选 -->
           <div style="margin-top: 16px">
             <AdvancedFilter
-              :model-value="filters"
-              @update:model-value="handleFilterUpdate"
-              @change="handleFilterChange"
+                :model-value="filters"
+                @change="handleFilterChange"
+                @update:model-value="handleFilterUpdate"
             />
           </div>
 
           <!-- 资料列表 -->
           <a-card :bordered="false" class="material-list-card">
             <a-spin :spinning="loading">
-              <a-empty v-if="materials.length === 0 && !loading" description="暂无资料" />
-              
+              <a-empty v-if="materials.length === 0 && !loading" description="暂无资料"/>
+
               <a-row v-else :gutter="[16, 16]">
                 <a-col
-                  v-for="material in materials"
-                  :key="material.id"
-                  :xs="24"
-                  :sm="12"
-                  :md="12"
-                  :lg="8"
-                  :xl="6"
+                    v-for="material in materials"
+                    :key="material.id"
+                    :lg="8"
+                    :md="12"
+                    :sm="12"
+                    :xl="6"
+                    :xs="24"
                 >
                   <MaterialCard
-                    :material="material"
-                    @click="handleViewDetail"
-                    @preview="handlePreview"
-                    @download="handleDownload"
-                    @more="handleMore"
+                      :material="material"
+                      @click="handleViewDetail"
+                      @download="handleDownload"
+                      @more="handleMore"
+                      @preview="handlePreview"
                   />
                 </a-col>
               </a-row>
@@ -80,14 +82,14 @@
               <!-- 分页 -->
               <div v-if="total > 0" class="pagination-container">
                 <a-pagination
-                  v-model:current="pagination.page"
-                  v-model:page-size="pagination.pageSize"
-                  :total="total"
-                  :show-total="(total: number) => `共 ${total} 条`"
-                  :show-size-changer="true"
-                  :page-size-options="['12', '24', '36', '48']"
-                  @change="handlePageChange"
-                  @show-size-change="handlePageSizeChange"
+                    v-model:current="pagination.page"
+                    v-model:page-size="pagination.pageSize"
+                    :page-size-options="['12', '24', '36', '48']"
+                    :show-size-changer="true"
+                    :show-total="(total: number) => `共 ${total} 条`"
+                    :total="total"
+                    @change="handlePageChange"
+                    @show-size-change="handlePageSizeChange"
                 />
               </div>
             </a-spin>
@@ -98,20 +100,17 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
-import { UploadOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {UploadOutlined} from '@ant-design/icons-vue'
 import SearchBar from '@/components/materials/SearchBar.vue'
 import CategoryTree from '@/components/materials/CategoryTree.vue'
 import TagCloud from '@/components/materials/TagCloud.vue'
 import AdvancedFilter from '@/components/materials/AdvancedFilter.vue'
 import MaterialCard from '@/components/materials/MaterialCard.vue'
-import {
-  materialApiGet,
-  materialApiIntMaterialIdDownloadGet
-} from '@/api/materialController.ts'
+import {materialApiGet, materialApiIntMaterialIdDownloadGet} from '@/api/materialController.ts'
 
 const router = useRouter()
 
@@ -177,12 +176,12 @@ const loadMaterials = async () => {
     }
 
     console.log('加载资料，参数:', params)
-    
+
     const response = await materialApiGet(params)
     const data = (response as any).data?.data || (response as any).data
     materials.value = data?.materials || []
     total.value = data?.total || 0
-    
+
     console.log('加载完成，资料数量:', materials.value.length, '总数:', total.value)
   } catch (error: any) {
     console.error('加载资料失败:', error)
@@ -276,7 +275,7 @@ const handleDownload = async (material: any) => {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    
+
     message.success('下载成功')
   } catch (error: any) {
     message.error(error.message || '下载失败')

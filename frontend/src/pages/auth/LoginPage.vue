@@ -10,19 +10,19 @@
     <!-- 动态装饰元素 -->
     <div class="decorative-elements">
       <div class="floating-card card-1">
-        <FileTextOutlined class="card-icon" />
+        <FileTextOutlined class="card-icon"/>
         <span class="card-text">资料管理</span>
       </div>
       <div class="floating-card card-2">
-        <TeamOutlined class="card-icon" />
+        <TeamOutlined class="card-icon"/>
         <span class="card-text">协作共享</span>
       </div>
       <div class="floating-card card-3">
-        <CloudUploadOutlined class="card-icon" />
+        <CloudUploadOutlined class="card-icon"/>
         <span class="card-text">云端存储</span>
       </div>
       <div class="floating-card card-4">
-        <SafetyOutlined class="card-icon" />
+        <SafetyOutlined class="card-icon"/>
         <span class="card-text">安全可靠</span>
       </div>
     </div>
@@ -34,7 +34,7 @@
         <div class="brand-section">
           <div class="logo-wrapper">
             <div class="logo-circle">
-              <img src="@/assets/logo-origin.png" alt="Logo" class="logo-image" />
+              <img alt="Logo" class="logo-image" src="@/assets/logo-origin.png"/>
             </div>
           </div>
           <h1 class="brand-title">教学资源管理系统</h1>
@@ -51,24 +51,27 @@
           </div>
 
           <a-form ref="formRef" :model="formState" :rules="rules" class="login-form" @finish="handleLogin">
-            <a-form-item name="loginIdentifier" class="form-item">
-              <a-input v-model:value="formState.loginIdentifier" size="large" placeholder="邮箱/用户名/工号" @keyup.enter="handleEnterKey">
+            <a-form-item class="form-item" name="loginIdentifier">
+              <a-input v-model:value="formState.loginIdentifier" placeholder="邮箱/用户名/工号" size="large"
+                       @keyup.enter="handleEnterKey">
                 <template #prefix>
-                  <UserOutlined class="input-icon" />
+                  <UserOutlined class="input-icon"/>
                 </template>
               </a-input>
             </a-form-item>
 
-            <a-form-item name="password" class="form-item">
-              <a-input-password v-model:value="formState.password" size="large" placeholder="密码" @keyup.enter="handleEnterKey">
+            <a-form-item class="form-item" name="password">
+              <a-input-password v-model:value="formState.password" placeholder="密码" size="large"
+                                @keyup.enter="handleEnterKey">
                 <template #prefix>
-                  <LockOutlined class="input-icon" />
+                  <LockOutlined class="input-icon"/>
                 </template>
               </a-input-password>
             </a-form-item>
 
             <a-form-item class="form-item">
-              <a-button type="primary" html-type="submit" size="large" :loading="loading" :disabled="loading" block class="login-button">
+              <a-button :disabled="loading" :loading="loading" block class="login-button" html-type="submit" size="large"
+                        type="primary">
                 {{ loading ? '登录中...' : '登录' }}
               </a-button>
             </a-form-item>
@@ -83,11 +86,18 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { UserOutlined, LockOutlined, FileTextOutlined, TeamOutlined, CloudUploadOutlined, SafetyOutlined } from '@ant-design/icons-vue'
-import type { FormInstance, Rule } from 'ant-design-vue/es/form'
-import { useAuth } from '@/composables/useAuth'
+<script lang="ts" setup>
+import {reactive, ref} from 'vue'
+import {
+  CloudUploadOutlined,
+  FileTextOutlined,
+  LockOutlined,
+  SafetyOutlined,
+  TeamOutlined,
+  UserOutlined
+} from '@ant-design/icons-vue'
+import type {FormInstance, Rule} from 'ant-design-vue/es/form'
+import {useAuth} from '@/composables/useAuth'
 
 // 表单引用
 const formRef = ref<FormInstance>()
@@ -99,7 +109,7 @@ const formState = reactive<API.UserLoginModel>({
 })
 
 // 使用 useAuth 组合式函数
-const { login, loading } = useAuth()
+const {login, loading} = useAuth()
 
 // 表单验证规则
 const rules: Record<string, Rule[]> = {
@@ -141,13 +151,13 @@ const handleLogin = async () => {
  */
 const handleEnterKey = () => {
   formRef.value
-    ?.validate()
-    .then(() => {
-      handleLogin()
-    })
-    .catch(() => {
-      // 验证失败，不执行提交
-    })
+      ?.validate()
+      .then(() => {
+        handleLogin()
+      })
+      .catch(() => {
+        // 验证失败，不执行提交
+      })
 }
 </script>
 

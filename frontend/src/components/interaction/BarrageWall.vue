@@ -1,5 +1,5 @@
 <template>
-  <div class="barrage-wall" ref="wallRef">
+  <div ref="wallRef" class="barrage-wall">
     <!-- 控制栏 -->
     <div class="barrage-controls">
       <a-space>
@@ -9,10 +9,12 @@
           <a-select-option :value="3">快速</a-select-option>
         </a-select>
 
-        <a-checkbox v-model:checked="showAnswerOnly"> 只显示答案弹幕 </a-checkbox>
+        <a-checkbox v-model:checked="showAnswerOnly"> 只显示答案弹幕</a-checkbox>
 
-        <a-button size="small" danger @click="clearBarrages">
-          <template #icon><DeleteOutlined /></template>
+        <a-button danger size="small" @click="clearBarrages">
+          <template #icon>
+            <DeleteOutlined/>
+          </template>
           清空
         </a-button>
 
@@ -23,12 +25,12 @@
     </div>
 
     <!-- 弹幕容器 -->
-    <div class="barrage-container" :style="{ height: height + 'px' }">
+    <div :style="{ height: height + 'px' }" class="barrage-container">
       <div
-        v-for="barrage in displayBarrages"
-        :key="barrage.id"
-        :class="['barrage-item', getBarrageClass(barrage)]"
-        :style="getBarrageStyle(barrage)"
+          v-for="barrage in displayBarrages"
+          :key="barrage.id"
+          :class="['barrage-item', getBarrageClass(barrage)]"
+          :style="getBarrageStyle(barrage)"
       >
         {{ barrage.user_name }}：{{ barrage.content }}
       </div>
@@ -36,9 +38,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { DeleteOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {computed, ref, watch} from 'vue'
+import {DeleteOutlined} from '@ant-design/icons-vue'
 
 // Props
 interface Props {
@@ -57,7 +59,6 @@ const props = withDefaults(defineProps<Props>(), {
   maxBarrages: 50,
   totalCount: 0,
 })
-
 
 
 // 数据
@@ -85,19 +86,19 @@ const displayBarrages = computed(() => {
 const getAvailableTrack = () => {
   const now = Date.now()
   const maxTracks = Math.floor(props.height / TRACK_HEIGHT)
-  
+
   // 初始化轨道
   if (tracks.value.length === 0) {
     tracks.value = new Array(maxTracks).fill(0)
   }
-  
+
   // 找到最早可用的轨道
   for (let i = 0; i < tracks.value.length; i++) {
     if (tracks.value[i] <= now) {
       return i
     }
   }
-  
+
   // 如果所有轨道都被占用，返回最早结束的轨道
   let minTrack = 0
   let minTime = tracks.value[0]
@@ -120,12 +121,12 @@ const addBarrage = (barrage: any) => {
   // 获取可用轨道
   const trackIndex = getAvailableTrack()
   const duration = getAnimationDuration()
-  
+
   // 添加动画属性和移除定时器ID
   const removeTimerId = setTimeout(() => {
     removeBarrage(newBarrage.id)
   }, duration * 1000)
-  
+
   const newBarrage = {
     ...barrage,
     top: trackIndex * TRACK_HEIGHT + 10, // 使用轨道位置
@@ -135,7 +136,7 @@ const addBarrage = (barrage: any) => {
   }
 
   barrages.value.push(newBarrage)
-  
+
   // 更新轨道占用时间（弹幕完全通过需要的时间）
   tracks.value[trackIndex] = Date.now() + duration * 1000
 }
@@ -144,7 +145,7 @@ const addBarrage = (barrage: any) => {
 const addBarrages = (newBarrages: any[]) => {
   // 清除之前的定时器
   clearPendingTimers()
-  
+
   newBarrages.forEach((barrage, index) => {
     // 延迟添加，避免同时出现
     // 增加间隔到800ms，让弹幕更自然地依次出现
@@ -156,7 +157,7 @@ const addBarrages = (newBarrages: any[]) => {
         pendingTimers.value.splice(timerIndex, 1)
       }
     }, index * 800)
-    
+
     // 记录定时器ID
     pendingTimers.value.push(timerId)
   })
@@ -210,13 +211,12 @@ const getBarrageClass = (barrage: any) => {
 }
 
 
-
 // 监听showAnswerOnlyProp变化
 watch(
-  () => props.showAnswerOnlyProp,
-  (newVal) => {
-    showAnswerOnly.value = newVal
-  }
+    () => props.showAnswerOnlyProp,
+    (newVal) => {
+      showAnswerOnly.value = newVal
+    }
 )
 
 // 暴露方法给父组件
@@ -228,7 +228,7 @@ defineExpose({
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .barrage-wall {
   position: relative;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -289,7 +289,6 @@ defineExpose({
     box-shadow: 0 4px 16px rgba(24, 144, 255, 0.6);
   }
 }
-
 
 
 // 弹幕移动动画

@@ -1,40 +1,44 @@
 <template>
   <div class="classification-panel">
-    <a-card 
-      :bordered="false" 
-      :loading="loading"
-      class="classification-card"
+    <a-card
+        :bordered="false"
+        :loading="loading"
+        class="classification-card"
     >
       <template #title>
         <div class="card-title">
-          <RobotOutlined />
+          <RobotOutlined/>
           <span>智能分类分析</span>
         </div>
       </template>
-      
+
       <template #extra>
-        <a-button 
-          v-if="!loading && !classificationResult" 
-          type="primary" 
-          size="small"
-          @click="handleAnalyze"
+        <a-button
+            v-if="!loading && !classificationResult"
+            size="small"
+            type="primary"
+            @click="handleAnalyze"
         >
-          <template #icon><ThunderboltOutlined /></template>
+          <template #icon>
+            <ThunderboltOutlined/>
+          </template>
           开始分析
         </a-button>
-        <a-button 
-          v-if="classificationResult" 
-          size="small"
-          @click="handleAnalyze"
+        <a-button
+            v-if="classificationResult"
+            size="small"
+            @click="handleAnalyze"
         >
-          <template #icon><ReloadOutlined /></template>
+          <template #icon>
+            <ReloadOutlined/>
+          </template>
           重新分析
         </a-button>
       </template>
 
       <!-- 分析中状态 -->
       <div v-if="loading" class="analyzing-state">
-        <a-spin tip="正在分析文档内容..." />
+        <a-spin tip="正在分析文档内容..."/>
       </div>
 
       <!-- 分析结果 -->
@@ -45,66 +49,70 @@
           <div v-if="classificationResult.suggestedCategoryName" class="category-suggestion">
             <div class="suggestion-row">
               <span class="label">推荐分类：</span>
-              <a-tag color="blue" class="category-tag">
+              <a-tag class="category-tag" color="blue">
                 {{ classificationResult.suggestedCategoryName }}
               </a-tag>
             </div>
             <div class="suggestion-row">
               <span class="label">置信度：</span>
-              <a-progress 
-                :percent="Math.round(classificationResult.confidence * 100)" 
-                :status="getConfidenceStatus(classificationResult.confidence)"
-                :stroke-color="getConfidenceColor(classificationResult.confidence)"
-                size="small"
-                style="width: 150px"
+              <a-progress
+                  :percent="Math.round(classificationResult.confidence * 100)"
+                  :status="getConfidenceStatus(classificationResult.confidence)"
+                  :stroke-color="getConfidenceColor(classificationResult.confidence)"
+                  size="small"
+                  style="width: 150px"
               />
               <span class="confidence-text">
                 {{ getConfidenceText(classificationResult.confidence) }}
               </span>
             </div>
-            
+
             <!-- 操作按钮 -->
-            <div class="action-buttons" v-if="classificationResult.logId">
+            <div v-if="classificationResult.logId" class="action-buttons">
               <a-space>
-                <a-button 
-                  v-if="classificationResult.shouldAutoApply || classificationResult.needsConfirmation"
-                  type="primary" 
-                  size="small"
-                  :loading="acceptLoading"
-                  @click="handleAccept"
+                <a-button
+                    v-if="classificationResult.shouldAutoApply || classificationResult.needsConfirmation"
+                    :loading="acceptLoading"
+                    size="small"
+                    type="primary"
+                    @click="handleAccept"
                 >
-                  <template #icon><CheckOutlined /></template>
+                  <template #icon>
+                    <CheckOutlined/>
+                  </template>
                   {{ classificationResult.shouldAutoApply ? '确认应用' : '接受建议' }}
                 </a-button>
-                <a-button 
-                  size="small"
-                  :loading="rejectLoading"
-                  @click="handleReject"
+                <a-button
+                    :loading="rejectLoading"
+                    size="small"
+                    @click="handleReject"
                 >
-                  <template #icon><CloseOutlined /></template>
+                  <template #icon>
+                    <CloseOutlined/>
+                  </template>
                   拒绝
                 </a-button>
               </a-space>
             </div>
           </div>
           <div v-else class="no-suggestion">
-            <a-alert 
-              message="置信度较低，建议手动选择分类" 
-              type="info" 
-              show-icon 
+            <a-alert
+                message="置信度较低，建议手动选择分类"
+                show-icon
+                type="info"
             />
           </div>
         </div>
 
         <!-- 关键词 -->
-        <div class="result-section" v-if="classificationResult.keywords?.length">
+        <div v-if="classificationResult.keywords?.length" class="result-section">
           <div class="section-title">提取的关键词</div>
           <div class="keywords-container">
-            <a-tag 
-              v-for="(kw, index) in classificationResult.keywords" 
-              :key="index"
-              :color="getKeywordColor(kw.weight)"
-              class="keyword-tag"
+            <a-tag
+                v-for="(kw, index) in classificationResult.keywords"
+                :key="index"
+                :color="getKeywordColor(kw.weight)"
+                class="keyword-tag"
             >
               {{ kw.keyword }}
               <span class="weight-badge">{{ Math.round(kw.weight * 100) }}%</span>
@@ -114,10 +122,10 @@
 
         <!-- 错误信息 -->
         <div v-if="classificationResult.error" class="error-section">
-          <a-alert 
-            :message="classificationResult.error" 
-            type="warning" 
-            show-icon 
+          <a-alert
+              :message="classificationResult.error"
+              show-icon
+              type="warning"
           />
         </div>
       </div>
@@ -126,7 +134,7 @@
       <div v-else class="initial-state">
         <a-empty description="点击「开始分析」进行智能分类">
           <template #image>
-            <RobotOutlined style="font-size: 48px; color: #bfbfbf" />
+            <RobotOutlined style="font-size: 48px; color: #bfbfbf"/>
           </template>
         </a-empty>
       </div>
@@ -134,20 +142,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import { message } from 'ant-design-vue'
+<script lang="ts" setup>
+import {ref, watch} from 'vue'
+import {message} from 'ant-design-vue'
+import {CheckOutlined, CloseOutlined, ReloadOutlined, RobotOutlined, ThunderboltOutlined} from '@ant-design/icons-vue'
 import {
-  RobotOutlined,
-  ThunderboltOutlined,
-  ReloadOutlined,
-  CheckOutlined,
-  CloseOutlined
-} from '@ant-design/icons-vue'
-import { 
-  materialApiIntMaterialIdClassifyPost, 
-  materialApiClassificationLogsIntLogIdAcceptPost, 
-  materialApiClassificationLogsIntLogIdRejectPost 
+  materialApiClassificationLogsIntLogIdAcceptPost,
+  materialApiClassificationLogsIntLogIdRejectPost,
+  materialApiIntMaterialIdClassifyPost
 } from '@/api/classificationController'
 
 // Props
@@ -172,20 +174,20 @@ const classificationResult = ref<API.ClassifyMaterialResponseModel | null>(null)
 // 开始分析 - 必须在 watch 之前定义
 const handleAnalyze = async () => {
   if (!props.materialId) return
-  
+
   loading.value = true
   classificationResult.value = null
-  
+
   try {
-    const response: any = await materialApiIntMaterialIdClassifyPost({ materialId: props.materialId })
-    
+    const response: any = await materialApiIntMaterialIdClassifyPost({materialId: props.materialId})
+
     // 处理 axios 响应结构: response.data 是后端返回的 { code, message, data }
     const responseData = response.data || response
-    
+
     if (responseData.code === 200 && responseData.data) {
       classificationResult.value = responseData.data
       emit('classified', responseData.data)
-      
+
       if (responseData.data.shouldAutoApply) {
         message.success('已自动应用高置信度分类')
       }
@@ -205,20 +207,20 @@ watch(() => props.materialId, (newId) => {
   if (newId && props.autoAnalyze) {
     handleAnalyze()
   }
-}, { immediate: true })
+}, {immediate: true})
 
 // 接受分类建议
 const handleAccept = async () => {
   if (!classificationResult.value?.logId) return
-  
+
   acceptLoading.value = true
   try {
-    const response: any = await materialApiClassificationLogsIntLogIdAcceptPost({ 
-      logId: classificationResult.value.logId 
+    const response: any = await materialApiClassificationLogsIntLogIdAcceptPost({
+      logId: classificationResult.value.logId
     })
-    
+
     const responseData = response.data || response
-    
+
     if (responseData.code === 200) {
       message.success('已接受分类建议')
       if (classificationResult.value.suggestedCategoryId) {
@@ -238,15 +240,15 @@ const handleAccept = async () => {
 // 拒绝分类建议
 const handleReject = async () => {
   if (!classificationResult.value?.logId) return
-  
+
   rejectLoading.value = true
   try {
-    const response: any = await materialApiClassificationLogsIntLogIdRejectPost({ 
-      logId: classificationResult.value.logId 
+    const response: any = await materialApiClassificationLogsIntLogIdRejectPost({
+      logId: classificationResult.value.logId
     })
-    
+
     const responseData = response.data || response
-    
+
     if (responseData.code === 200) {
       message.info('已拒绝分类建议')
       emit('rejected')

@@ -1,11 +1,11 @@
 <template>
   <a-layout-sider
-    v-model:collapsed="isCollapsed"
-    :trigger="null"
-    collapsible
-    class="layout-sider"
-    :width="220"
-    :collapsed-width="80"
+      v-model:collapsed="isCollapsed"
+      :collapsed-width="80"
+      :trigger="null"
+      :width="220"
+      class="layout-sider"
+      collapsible
   >
     <div class="sider-content">
       <!-- 顶部标题 -->
@@ -17,22 +17,22 @@
       <!-- 菜单容器 -->
       <div class="sider-menu-container">
         <a-menu
-          v-model:selectedKeys="selectedKeys"
-          v-model:openKeys="openKeys"
-          mode="inline"
-          theme="light"
-          class="sider-menu"
-          @click="handleMenuClick"
+            v-model:openKeys="openKeys"
+            v-model:selectedKeys="selectedKeys"
+            class="sider-menu"
+            mode="inline"
+            theme="light"
+            @click="handleMenuClick"
         >
           <template v-for="item in menuItems" :key="item.key">
             <!-- 子菜单 -->
             <a-sub-menu v-if="item.children" :key="item.key">
               <template #icon>
-                <component :is="item.icon" />
+                <component :is="item.icon"/>
               </template>
               <template #title>{{ item.label }}</template>
               <a-menu-item v-for="child in item.children" :key="child.key">
-                <component :is="child.icon" />
+                <component :is="child.icon"/>
                 {{ child.label }}
               </a-menu-item>
             </a-sub-menu>
@@ -41,7 +41,7 @@
             <template v-else>
               <a-menu-item :key="item.key">
                 <template #icon>
-                  <component :is="item.icon" />
+                  <component :is="item.icon"/>
                 </template>
                 <span>{{ item.label }}</span>
               </a-menu-item>
@@ -52,17 +52,17 @@
 
       <!-- 折叠按钮（底部） -->
       <div class="sider-trigger" @click="toggleCollapsed">
-        <MenuUnfoldOutlined v-if="isCollapsed" />
-        <MenuFoldOutlined v-else />
+        <MenuUnfoldOutlined v-if="isCollapsed"/>
+        <MenuFoldOutlined v-else/>
       </div>
     </div>
   </a-layout-sider>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, onMounted, type Component } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {type Component, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {MenuFoldOutlined, MenuUnfoldOutlined} from '@ant-design/icons-vue'
 
 // 定义菜单项类型
 export interface MenuItem {
@@ -100,7 +100,7 @@ const toggleCollapsed = () => {
   emit('collapse-change', isCollapsed.value)
 }
 
-const handleMenuClick = ({ key }: { key: string }) => {
+const handleMenuClick = ({key}: { key: string }) => {
   selectedKeys.value = [key]
 
   // 从菜单配置中查找对应的路径
@@ -131,19 +131,19 @@ const updateSelectedKeys = () => {
 
   // 从菜单配置中查找匹配的菜单项
   const findMenuByPath = (
-    items: MenuItem[],
-    parentKey?: string,
+      items: MenuItem[],
+      parentKey?: string,
   ): { key: string; openKey?: string } | null => {
     for (const item of items) {
       // 检查当前项
       if (item.path === path) {
-        return { key: item.key, openKey: parentKey }
+        return {key: item.key, openKey: parentKey}
       }
       // 检查子项
       if (item.children) {
         for (const child of item.children) {
           if (child.path === path) {
-            return { key: child.key, openKey: item.key }
+            return {key: child.key, openKey: item.key}
           }
         }
       }
@@ -167,10 +167,10 @@ onMounted(() => {
 
 // 监听路由变化
 watch(
-  () => route.path,
-  () => {
-    updateSelectedKeys()
-  },
+    () => route.path,
+    () => {
+      updateSelectedKeys()
+    },
 )
 
 // 暴露折叠状态给父组件
