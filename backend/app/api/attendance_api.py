@@ -7,7 +7,8 @@ from app.schemas.attendance_schemas import (
     AttendanceDetailResponseModel, AttendanceListResponseModel,
     AttendanceQueryModel, AttendancePathModel, AttendanceRecordListResponseModel,
     AttendanceRecordUpdateModel, AttendanceRecordPathModel, AttendanceRecordResponseModel,
-    QRCodeGenerateRequestModel, QRCodeGenerateResponseModel, QRCodeVerifyModel
+    QRCodeGenerateRequestModel, QRCodeGenerateResponseModel, QRCodeVerifyModel,
+    FaceVerificationModel, FaceVerificationResponseModel
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.attendance_service import AttendanceService
@@ -731,4 +732,118 @@ class AttendanceAPI:
             return {
                 'message': '签到失败',
                 'error': str(e)
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.post('/face-verification',
+                           summary="人脸验证签到",
+                           tags=[attendance_tag],
+                           responses={
+                               200: FaceVerificationResponseModel,
+                               400: MessageResponseModel,
+                               404: MessageResponseModel
+                           })
+    @log_user_action("人脸验证签到")
+    def face_verification_checkin(body: FaceVerificationModel):
+        """
+        人脸验证签到
+        
+        学生输入学号并拍照，系统验证人脸后完成签到。
+        验证流程：
+        1. 根据学号查找用户
+        2. 检查用户是否已上传人脸照片
+        3. 使用DeepFace进行人脸验证
+        4. 验证通过后完成签到
+        """
+        try:
+            logger.info(f"=== 收到人脸验证签到请求 ===")
+            logger.info(f"attendance_id: {body.attendance_id}")
+            logger.info(f"student_number: {body.student_number}")
+            
+            AttendanceAPI.log_request(f"FACE_VERIFICATION: attendance={body.attendance_id}, student={body.student_number}")
+            
+            # 导入所需模块
+            from app.models.user import User
+            
+            # 检查人脸识别服务是否可用
+            try:
+                from app.services.face_verification_service import FaceVerificationService
+            except ImportError as e:
+                logger.error(f"Failed to import FaceVerificationService: {e}")
+                return {
+                    'verified': False,
+                    'similarity': 0.0,
+                    'message': '人脸识别服务未正确配置，请联系管理员。错误：DeepFace库未安装',
+                    'has_face_image': False
+                }, 500
+            
+            # 查找学生
+            student = User.query.filter_by(user_code=body.student_number).first()
+            if not student:
+                return {
+                    'verified': False,
+                    'similarity': 0.0,
+                    'message': f'学号 {body.student_number} 不存在',
+                    'has_face_image': False
+                }, 404
+            
+            # 检查是否已上传人脸照片
+            if not student.face_image:
+                logger.warning(f"Student {body.student_number} has not uploaded face image")
+                return {
+                    'verified': False,
+                    'similarity': 0.0,
+                    'message': '您还未上传人脸照片，请先上传后再使用人脸签到',
+                    'has_face_image': False
+                }, 400
+            
+            # 执行人脸验证
+            logger.info(f"Verifying face for student {body.student_number}")
+            verified, similarity, error_msg = FaceVerificationService.verify_face_from_base64(
+                stored_image_path=student.face_image,
+                captured_base64=body.face_image_base64
+            )
+            
+            if not verified:
+                logger.warning(f"Face verification failed: {error_msg}")
+                return {
+                    'verified': False,
+                    'similarity': similarity,
+                    'message': error_msg or '人脸验证失败',
+                    'has_face_image': True
+                }, 400
+            
+            # 验证通过，完成签到
+            logger.info(f"Face verified successfully, similarity: {similarity:.2%}")
+            
+            # 调用签到服务
+            record = AttendanceService.student_checkin(
+                student_id=student.id,
+                attendance_id=body.attendance_id,
+                face_image=body.face_image_base64,
+                face_similarity=similarity
+            )
+            
+            return {
+                'verified': True,
+                'similarity': similarity,
+                'message': f'人脸验证成功，签到完成！相似度: {similarity:.1%}',
+                'has_face_image': True
+            }, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'verified': False,
+                'similarity': 0.0,
+                'message': str(e),
+                'has_face_image': False
+            }, 400
+        except Exception as e:
+            logger.error(f"Error in face verification check-in: {str(e)}")
+            return {
+                'verified': False,
+                'similarity': 0.0,
+                'message': f'人脸验证失败: {str(e)}',
+                'has_face_image': False
             }, 500

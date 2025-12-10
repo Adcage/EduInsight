@@ -1,7 +1,8 @@
 from flask_openapi3 import APIBlueprint, Tag
 from app.schemas.user_schemas import (
     UserUpdateModel, UserResponseModel, UserListResponseModel, 
-    UserPathModel, UserQueryModel, MessageResponseModel, UserStatsModel
+    UserPathModel, UserQueryModel, MessageResponseModel, UserStatsModel,
+    FaceImageUploadModel
 )
 from app.services.auth_service import AuthService
 from app.models.user import User, UserRole
@@ -12,6 +13,9 @@ from app.utils.auth_decorators import (
 from app.extensions import db
 from sqlalchemy import or_, func
 import logging
+import os
+import base64
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -284,6 +288,101 @@ class UserAPI:
             return {
                 'message': '激活用户账户失败',
                 'error_code': 'ACTIVATE_USER_ERROR'
+            }, 500
+
+    @staticmethod
+    @user_api_bp.post('/face-image', 
+                     summary="上传人脸照片", 
+                     tags=[user_tag],
+                     responses={200: MessageResponseModel, 400: MessageResponseModel})
+    @login_required
+    @log_user_action("上传人脸照片")
+    def upload_face_image(body: FaceImageUploadModel):
+        """
+        上传人脸照片
+        
+        学生上传人脸照片用于人脸识别签到。
+        照片以Base64格式上传，后端保存为文件并更新用户表。
+        """
+        try:
+            UserAPI.log_request("UPLOAD_FACE_IMAGE")
+            
+            # 获取当前用户信息
+            current_user = get_current_user_info()
+            if not current_user:
+                return {
+                    'message': '用户未登录',
+                    'error_code': 'USER_NOT_LOGGED_IN'
+                }, 401
+            
+            user_id = current_user.get('user_id')
+            user = User.query.get(user_id)
+            if not user:
+                return {
+                    'message': '用户不存在',
+                    'error_code': 'USER_NOT_FOUND'
+                }, 404
+            
+            # 解析Base64图片数据
+            try:
+                # 移除data:image/xxx;base64,前缀（如果有）
+                face_image_data = body.face_image_base64
+                if ',' in face_image_data:
+                    face_image_data = face_image_data.split(',')[1]
+                
+                # 解码Base64
+                image_bytes = base64.b64decode(face_image_data)
+                
+                # 验证文件大小（限制5MB）
+                max_size = 5 * 1024 * 1024
+                if len(image_bytes) > max_size:
+                    return {
+                        'message': '图片大小超过限制（最大5MB）',
+                        'error_code': 'FILE_TOO_LARGE'
+                    }, 400
+                
+            except Exception as e:
+                logger.error(f"Base64 decode error: {str(e)}")
+                return {
+                    'message': '图片数据格式错误',
+                    'error_code': 'INVALID_IMAGE_DATA'
+                }, 400
+            
+            # 创建上传目录
+            upload_dir = os.path.join('uploads', 'face_images')
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # 生成文件名：user_id_timestamp.jpg
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"user_{user_id}_{timestamp}.jpg"
+            file_path = os.path.join(upload_dir, filename)
+            
+            # 删除旧的人脸照片（如果存在）
+            if user.face_image and os.path.exists(user.face_image):
+                try:
+                    os.remove(user.face_image)
+                except Exception as e:
+                    logger.warning(f"Failed to delete old face image: {str(e)}")
+            
+            # 保存文件
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+            
+            # 更新用户表
+            user.face_image = file_path
+            db.session.commit()
+            
+            return {
+                'message': '人脸照片上传成功',
+                'face_image_path': file_path
+            }, 200
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Upload face image error: {str(e)}")
+            return {
+                'message': '上传人脸照片失败',
+                'error_code': 'UPLOAD_FACE_IMAGE_ERROR'
             }, 500
 
     @staticmethod

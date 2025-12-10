@@ -67,6 +67,7 @@ class UserUpdateModel(CamelCaseModel):
     real_name: Optional[str] = Field(None, description="真实姓名", min_length=1, max_length=50)
     phone: Optional[str] = Field(None, description="手机号码", max_length=20)
     avatar: Optional[str] = Field(None, description="头像URL", max_length=255)
+    face_image: Optional[str] = Field(None, description="人脸照片路径", max_length=255)
     
     @validator('username')
     def validate_username(cls, v):
@@ -83,6 +84,10 @@ class UserUpdateModel(CamelCaseModel):
             if not re.match(r'^1[3-9]\d{9}$', v):
                 raise ValueError('请输入有效的手机号码')
         return v
+
+class FaceImageUploadModel(CamelCaseModel):
+    """人脸照片上传模型"""
+    face_image_base64: str = Field(..., description="人脸照片Base64编码", min_length=1)
 
 class PasswordChangeModel(CamelCaseModel):
     """密码修改模型"""

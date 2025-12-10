@@ -44,7 +44,7 @@
         
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h2 class="text-xl font-bold mb-2">请输入学号</h2>
-          <p class="text-gray-500 mb-6">验证学号后即可完成签到</p>
+          <p class="text-gray-500 mb-6">验证学号后将进行人脸识别验证</p>
           
           <a-input 
             v-model:value="studentId"
@@ -61,11 +61,11 @@
             type="primary" 
             size="large" 
             block 
-            @click="validateStudentId"
+            @click="handleNextStep"
             :loading="validating"
             :disabled="!studentId.trim()"
           >
-            下一步
+            下一步 - 人脸验证
           </a-button>
         </div>
         
@@ -78,11 +78,11 @@
             </li>
             <li class="flex items-start">
               <CheckCircleOutlined class="text-green-500 mt-1 mr-2" />
-              <span>系统将自动记录您的签到时间</span>
+              <span>点击下一步后将进行人脸识别验证</span>
             </li>
             <li class="flex items-start">
               <CheckCircleOutlined class="text-green-500 mt-1 mr-2" />
-              <span>开始时间后15分钟内签到为正常，超过为迟到</span>
+              <span>请确保您已上传人脸照片</span>
             </li>
           </ul>
         </div>
@@ -189,6 +189,14 @@
       </div>
     </div>
 
+    <!-- 人脸验证模态框 -->
+    <FaceVerificationModal
+      v-model:visible="faceVerificationVisible"
+      :attendance-id="attendanceId"
+      :student-number="studentId"
+      @success="handleFaceVerificationSuccess"
+    />
+
     <!-- Tab Bar -->
     <div class="fixed bottom-0 left-0 w-full bg-white border-t flex justify-around py-2">
       <div class="flex flex-col items-center w-1/3">
@@ -222,6 +230,7 @@ import {
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import { verifyQRCodeAndCheckIn, type AttendanceRecord } from '@/api/attendanceController';
+import FaceVerificationModal from '@/components/FaceVerificationModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -354,6 +363,38 @@ const goBack = () => {
     // 实际项目中应返回上一页
     console.log('返回上一页');
   }
+};
+
+// 人脸验证模态框显示状态
+const faceVerificationVisible = ref(false);
+
+// 点击下一步，打开人脸验证模态框
+const handleNextStep = () => {
+  if (!studentId.value.trim()) {
+    message.error('请输入学号');
+    return;
+  }
+
+  // 检查是否有考勤信息
+  if (!hasAttendanceInfo.value) {
+    message.error('缺少考勤信息，请重新扫描二维码');
+    return;
+  }
+
+  // 检查网络状态
+  if (!isOnline.value) {
+    message.error('网络已断开，请检查网络连接');
+    return;
+  }
+  
+  // 打开人脸验证模态框
+  faceVerificationVisible.value = true;
+};
+
+// 人脸验证成功回调
+const handleFaceVerificationSuccess = () => {
+  // 人脸验证成功后，调用二维码签到接口完成签到
+  validateStudentId();
 };
 
 // Student ID validation and check-in

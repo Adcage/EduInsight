@@ -895,18 +895,20 @@ const initMap = () => {
       city: '全国', // city code or name
     });
 
-    // Init Geolocation - 高精度配置
+    // Init Geolocation - 高精度配置（优化版）
     geolocation = new AMap.Geolocation({
-      enableHighAccuracy: true,    // 启用高精度定位
-      timeout: 15000,               // 增加超时时间到15秒
-      maximumAge: 0,                // 不使用缓存位置
-      convert: true,                // 自动转换为高德坐标
-      noIpLocate: 0,                // 优先使用精确定位，IP定位作为备选
-      noGeoLocation: 0,             // 优先使用浏览器定位
-      GeoLocationFirst: true,       // 优先使用浏览器定位而非IP定位
-      zoomToAccuracy: true,         // 定位成功后调整地图视野到定位点
-      useNative: true,              // 优先使用浏览器原生定位
-      position: 'RB'
+      enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
+      timeout: 30000,               // 超时时间30秒（给GPS更多时间）
+      maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+      convert: true,                // 自动转换为高德坐标系
+      needAddress: false,           // 不需要逆地理编码（加快定位速度）
+      extensions: 'all',            // 返回更多信息
+      GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
+      noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+      noGeoLocation: 0,             // 允许使用浏览器定位
+      useNative: true,              // 使用浏览器原生定位API
+      zoomToAccuracy: true,         // 定位成功后调整地图视野
+      buttonPosition: 'RB'          // 定位按钮位置（右下角）
     });
   })
   .catch((e) => {
@@ -916,18 +918,75 @@ const initMap = () => {
 };
 
 const locateCurrentPosition = () => {
-  if (!geolocation) {
-    message.warning('地图组件未就绪');
+  console.log('[AttendancePublish] 开始定位...');
+  
+  if (!map) {
+    console.error('[AttendancePublish] map对象未初始化');
+    message.warning('地图未加载完成，请稍后再试');
     return;
   }
-  message.loading('正在获取位置...', 0);
+  
+  if (!AMapObj) {
+    console.error('[AttendancePublish] AMapObj未初始化');
+    message.warning('地图组件未就绪，请稍后再试');
+    return;
+  }
+  
+  // 每次定位都重新初始化geolocation对象（与学生端保持一致）
+  console.log('[AttendancePublish] 重新初始化geolocation对象');
+  geolocation = new AMapObj.Geolocation({
+    enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
+    timeout: 30000,               // 超时时间30秒（给GPS更多时间）
+    maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+    convert: true,                // 自动转换为高德坐标系
+    needAddress: false,           // 不需要逆地理编码（加快定位速度）
+    extensions: 'all',            // 返回更多信息
+    GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
+    noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+    noGeoLocation: 0,             // 允许使用浏览器定位
+    useNative: true,              // 使用浏览器原生定位API
+    zoomToAccuracy: true,         // 定位成功后调整地图视野
+    buttonPosition: 'RB'          // 定位按钮位置（右下角）
+  });
+  
+  message.loading({
+    content: '正在高精度定位中，请稍候...',
+    duration: 0,
+    key: 'locating'
+  });
+  
+  console.log('[AttendancePublish] 调用 geolocation.getCurrentPosition');
   geolocation.getCurrentPosition((status: string, result: any) => {
     message.destroy();
+    
     if (status === 'complete') {
+      console.log('[AttendancePublish] ========== 定位成功 ==========');
+      console.log('[AttendancePublish] 经度:', result.position.lng);
+      console.log('[AttendancePublish] 纬度:', result.position.lat);
+      console.log('[AttendancePublish] 定位精度:', result.accuracy, '米');
+      console.log('[AttendancePublish] 定位类型:', result.location_type);
+      console.log('[AttendancePublish] 完整结果:', result);
+      console.log('[AttendancePublish] ================================');
+      
       handleMapClick(result.position);
-      message.success('定位成功');
+      
+      // 根据精度给出提示
+      const accuracy = result.accuracy ? Math.round(result.accuracy) : null;
+      if (accuracy !== null) {
+        if (accuracy <= 20) {
+          message.success(`定位成功！精度优秀 (±${accuracy}米)`, 3);
+        } else if (accuracy <= 50) {
+          message.success(`定位成功！精度良好 (±${accuracy}米)`, 3);
+        } else if (accuracy <= 100) {
+          message.warning(`定位成功，精度一般 (±${accuracy}米)`, 3);
+        } else {
+          message.warning(`定位成功，但精度较低 (±${accuracy}米)，建议移至室外或窗边`, 4);
+        }
+      } else {
+        message.success('定位成功');
+      }
     } else {
-      console.error(result);
+      console.error('[AttendancePublish] 定位失败:', result);
       message.error('定位失败，请确保已授予位置权限');
     }
   });

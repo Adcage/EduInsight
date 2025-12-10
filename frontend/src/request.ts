@@ -2,9 +2,27 @@ import axios from 'axios'
 import { message } from 'ant-design-vue'
 import router from '@/router'
 
+// 自动检测API地址
+// 开发环境：使用localhost
+// 生产环境或移动端：使用当前访问的主机地址
+const getBaseURL = () => {
+  // 如果是通过IP访问（非localhost），使用相同的主机地址
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // 本地开发环境
+    return 'http://localhost:5030';
+  } else {
+    // 通过IP访问（如手机访问），使用相同的IP
+    return `http://${hostname}:5030`;
+  }
+};
+
+console.log('API Base URL:', getBaseURL());
+
 // 创建 Axios 实例
 const myAxios = axios.create({
-  baseURL: 'http://localhost:5030',
+  baseURL: getBaseURL(),
   timeout: 60000,
   withCredentials: true,
 })

@@ -187,6 +187,21 @@ class QRCodeVerifyModel(CamelCaseModel):
     student_number: Optional[str] = Field(None, description="学号（不登录时必填）", min_length=1)
 
 
+class FaceVerificationModel(CamelCaseModel):
+    """人脸验证模型"""
+    student_number: str = Field(..., description="学号", min_length=1)
+    face_image_base64: str = Field(..., description="人脸照片Base64编码", min_length=1)
+    attendance_id: int = Field(..., description="考勤ID", ge=1)
+
+
+class FaceVerificationResponseModel(CamelCaseModel):
+    """人脸验证响应模型"""
+    verified: bool = Field(..., description="是否验证通过")
+    similarity: float = Field(..., description="相似度（0-1）")
+    message: str = Field(..., description="验证消息")
+    has_face_image: bool = Field(..., description="用户是否已上传人脸照片")
+
+
 class AttendanceRecordCreateModel(CamelCaseModel):
     """考勤记录创建模型（教师手动签到）"""
     student_id: int = Field(..., description="学生ID", ge=1)

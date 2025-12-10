@@ -1,60 +1,59 @@
 <template>
   <div class="map-location-picker">
-    <!-- 控制栏 -->
-    <div class="map-controls">
-      <a-space>
-        <a-button @click="locateCurrentPosition" :loading="locating">
-          <template #icon><AimOutlined /></template>
-          定位当前位置
-        </a-button>
+    <div class="map-wrapper">
+      <!-- 搜索框 - 浮动在左上角 -->
+      <div v-if="editable" class="absolute top-4 left-4 z-10 w-72 bg-white rounded shadow p-2">
         <a-input-search
-          v-if="editable"
           v-model:value="searchKeyword"
-          placeholder="搜索地点"
-          style="width: 300px"
+          placeholder="搜索地点..."
           @search="handleSearch"
-        >
-          <template #enterButton>
-            <SearchOutlined />
-          </template>
-        </a-input-search>
-      </a-space>
-    </div>
-
-    <!-- 位置信息 - 仅教师端显示经纬度 -->
-    <div class="map-info" v-if="selectedLocation && editable">
-      <a-descriptions :column="2" size="small" bordered>
-        <a-descriptions-item label="经度">
-          {{ typeof selectedLocation.lng === 'number' ? selectedLocation.lng.toFixed(6) : '--' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="纬度">
-          {{ typeof selectedLocation.lat === 'number' ? selectedLocation.lat.toFixed(6) : '--' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="地址" :span="2">
-          {{ selectedLocation.address || '未知地址' }}
-        </a-descriptions-item>
-      </a-descriptions>
-    </div>
-
-    <div 
-      ref="mapContainer" 
-      class="map-container"
-      :class="{ 'readonly': !editable }"
-    ></div>
-
-    <div class="map-footer" v-if="editable && showRadius">
-      <div class="radius-control">
-        <label>签到范围：</label>
-        <a-slider
-          v-model:value="radiusValue"
-          :min="10"
-          :max="500"
-          :step="10"
-          :marks="{ 10: '10m', 100: '100m', 200: '200m', 500: '500m' }"
-          style="flex: 1; margin: 0 16px"
-          @change="handleRadiusChange"
+          allow-clear
         />
-        <span class="radius-value">{{ radiusValue }}米</span>
+        <div v-if="searchResults.length > 0" class="mt-2 max-h-60 overflow-y-auto bg-white border-t">
+          <div
+            v-for="(item, index) in searchResults"
+            :key="index"
+            class="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+            @click="selectSearchResult(item)"
+          >
+            <div class="font-medium">{{ item.name }}</div>
+            <div class="text-xs text-gray-500">{{ item.address }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 定位按钮 - 浮动在右上角 -->
+      <div 
+        class="absolute top-4 right-4 z-10 bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-50 flex items-center justify-center w-10 h-10" 
+        @click="locateCurrentPosition" 
+        :class="{ 'opacity-50 cursor-not-allowed': locating }"
+        title="定位当前位置"
+      >
+        <AimOutlined class="text-xl text-gray-600" />
+      </div>
+
+      <!-- 地图容器 -->
+      <div 
+        ref="mapContainer" 
+        class="map-container"
+        :class="{ 'readonly': !editable }"
+      ></div>
+
+      <!-- 底部半径控制 -->
+      <div v-if="showRadius" class="absolute bottom-4 left-4 right-4 z-10 bg-white rounded shadow p-4">
+        <div class="flex items-center">
+          <span class="text-sm font-medium text-gray-700 mr-4 whitespace-nowrap">签到范围半径:</span>
+          <a-slider
+            v-model:value="radiusValue"
+            :min="100"
+            :max="1000"
+            :step="50"
+            :marks="{ 100: '100m', 500: '500m', 1000: '1000m' }"
+            class="flex-1"
+            @change="handleRadiusChange"
+          />
+          <span class="text-sm font-medium text-blue-600 ml-4 whitespace-nowrap">{{ radiusValue }}米</span>
+        </div>
       </div>
     </div>
   </div>
@@ -100,6 +99,7 @@ const emits = defineEmits<Emits>()
 
 const mapContainer = ref<HTMLDivElement>()
 const searchKeyword = ref('')
+const searchResults = ref<any[]>([])
 const locating = ref(false)
 const selectedLocation = ref<LocationData | null>(null)
 const radiusValue = ref(props.defaultRadius)
@@ -141,7 +141,7 @@ const initMap = () => {
     map = new AMap.Map(mapContainer.value, {
       zoom: 15,
       center: [116.397428, 39.90923], // 默认北京
-      viewMode: '3D',
+      resizeEnable: true  // 启用地图自适应（与教师端保持一致）
     })
 
     // 初始化地点搜索
@@ -149,21 +149,20 @@ const initMap = () => {
       city: '全国',
     })
 
-    // 初始化定位 - 与教师端保持一致的高精度配置
+    // 初始化定位 - 高精度配置（优化版）
     geolocation = new AMap.Geolocation({
-      enableHighAccuracy: true,     // 启用高精度定位
-      timeout: 15000,               // 超时时间15秒
-      maximumAge: 0,                // 不使用缓存位置
-      convert: true,                // 自动转换为高德坐标
-      noIpLocate: 0,                // 优先使用精确定位，IP定位作为备选
-      noGeoLocation: 0,             // 优先使用浏览器定位
-      GeoLocationFirst: true,       // 优先使用浏览器定位而非IP定位
-      useNative: true,              // 优先使用浏览器原生定位
-      showButton: false,            // 不显示定位按钮（我们自己控制）
-      showMarker: false,            // 不显示定位标记（我们自己控制）
-      showCircle: false,            // 不显示精度圆圈（我们自己控制）
-      panToLocation: false,         // 不自动移动地图（我们自己控制）
-      zoomToAccuracy: false         // 不自动调整缩放（我们自己控制）
+      enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
+      timeout: 30000,               // 超时时间30秒（给GPS更多时间）
+      maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+      convert: true,                // 自动转换为高德坐标系
+      needAddress: false,           // 不需要逆地理编码（加快定位速度）
+      extensions: 'all',            // 返回更多信息
+      GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
+      noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+      noGeoLocation: 0,             // 允许使用浏览器定位
+      useNative: true,              // 使用浏览器原生定位API
+      zoomToAccuracy: true,         // 定位成功后调整地图视野
+      buttonPosition: 'RB'          // 定位按钮位置（右下角）
     })
 
     // 如果可编辑，添加点击事件
@@ -242,20 +241,41 @@ const showTargetLocation = (location: LocationData) => {
 const locateCurrentPosition = () => {
   console.log('[MapLocationPicker] 开始定位...')
   
-  if (!geolocation) {
-    console.error('[MapLocationPicker] geolocation对象未初始化')
-    message.warning('地图组件未就绪，请稍后再试')
-    return
-  }
-  
   if (!map) {
     console.error('[MapLocationPicker] map对象未初始化')
     message.warning('地图未加载完成，请稍后再试')
     return
   }
   
+  if (!AMapObj) {
+    console.error('[MapLocationPicker] AMapObj未初始化')
+    message.warning('地图组件未就绪，请稍后再试')
+    return
+  }
+  
+  // 每次定位都重新初始化geolocation对象（解决同一任务中多次定位失败的问题）
+  console.log('[MapLocationPicker] 重新初始化geolocation对象')
+  geolocation = new AMapObj.Geolocation({
+    enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
+    timeout: 30000,               // 超时时间30秒（给GPS更多时间）
+    maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+    convert: true,                // 自动转换为高德坐标系
+    needAddress: false,           // 不需要逆地理编码（加快定位速度）
+    extensions: 'all',            // 返回更多信息
+    GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
+    noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+    noGeoLocation: 0,             // 允许使用浏览器定位
+    useNative: true,              // 使用浏览器原生定位API
+    zoomToAccuracy: true,         // 定位成功后调整地图视野
+    buttonPosition: 'RB'          // 定位按钮位置（右下角）
+  })
+  
   locating.value = true
-  message.loading('正在获取位置...', 0)
+  message.loading({
+    content: '正在高精度定位中，请稍候...',
+    duration: 0,
+    key: 'locating'
+  })
   
   console.log('[MapLocationPicker] 调用 geolocation.getCurrentPosition')
   
@@ -265,9 +285,31 @@ const locateCurrentPosition = () => {
     locating.value = false
     
     if (status === 'complete') {
-      console.log('[MapLocationPicker] 定位成功，位置:', result.position)
+      console.log('[MapLocationPicker] ========== 定位成功 ==========')
+      console.log('[MapLocationPicker] 经度:', result.position.lng)
+      console.log('[MapLocationPicker] 纬度:', result.position.lat)
+      console.log('[MapLocationPicker] 定位精度:', result.accuracy, '米')
+      console.log('[MapLocationPicker] 定位类型:', result.location_type)
+      console.log('[MapLocationPicker] 完整结果:', result)
+      console.log('[MapLocationPicker] ================================')
+      
       handleMapClick(result.position)
-      message.success('定位成功')
+      
+      // 根据精度给出提示
+      const accuracy = result.accuracy ? Math.round(result.accuracy) : null
+      if (accuracy !== null) {
+        if (accuracy <= 20) {
+          message.success(`定位成功！精度优秀 (±${accuracy}米)`, 3)
+        } else if (accuracy <= 50) {
+          message.success(`定位成功！精度良好 (±${accuracy}米)`, 3)
+        } else if (accuracy <= 100) {
+          message.warning(`定位成功，精度一般 (±${accuracy}米)`, 3)
+        } else {
+          message.warning(`定位成功，但精度较低 (±${accuracy}米)，建议移至室外或窗边`, 4)
+        }
+      } else {
+        message.success('定位成功')
+      }
     } else {
       console.error('[MapLocationPicker] 定位失败 - info:', result.info, 'message:', result.message)
       
@@ -375,14 +417,20 @@ const handleSearch = () => {
 
   placeSearch.search(searchKeyword.value, (status: string, result: any) => {
     if (status === 'complete' && result.poiList && result.poiList.pois.length > 0) {
-      const poi = result.poiList.pois[0]
-      const location = poi.location
-      handleMapClick(location)
-      message.success(`已定位到：${poi.name}`)
+      searchResults.value = result.poiList.pois
     } else {
-      message.error('未找到相关地点')
+      searchResults.value = []
+      message.info('未找到相关地点')
     }
   })
+}
+
+const selectSearchResult = (item: any) => {
+  const location = item.location
+  handleMapClick(location)
+  searchResults.value = []
+  searchKeyword.value = ''
+  message.success(`已定位到：${item.name}`)
 }
 
 const handleMapClick = (lnglat: any) => {
@@ -453,6 +501,26 @@ const handleRadiusChange = (value: number) => {
   emits('radiusChange', value)
 }
 
+// 监听目标位置变化 - 重新初始化地图（模拟教师端行为，提升定位精度）
+watch(() => props.targetLocation, (newVal, oldVal) => {
+  // 当目标位置变化时（打开新的签到任务），重新初始化地图
+  if (newVal && newVal !== oldVal) {
+    console.log('[MapLocationPicker] 目标位置变化，重新初始化地图以提升定位精度')
+    
+    // 销毁旧地图
+    if (map) {
+      map.destroy()
+      map = null
+      marker = null
+      targetMarker = null
+      circle = null
+    }
+    
+    // 重新初始化地图
+    initMap()
+  }
+})
+
 // 监听外部位置变化
 watch(() => props.modelValue, (newVal) => {
   if (newVal && map) {
@@ -476,49 +544,20 @@ watch(() => props.defaultRadius, (newVal) => {
   width: 100%;
 }
 
-.map-controls {
-  margin-bottom: 16px;
-}
-
-.map-info {
-  margin-bottom: 16px;
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: v-bind(height);
 }
 
 .map-container {
   width: 100%;
-  height: v-bind(height);
-  border: 1px solid #d9d9d9;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
   
   &.readonly {
     cursor: default;
-  }
-}
-
-.map-footer {
-  margin-top: 16px;
-}
-
-.radius-control {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  
-  label {
-    font-weight: 600;
-    color: #262626;
-    white-space: nowrap;
-  }
-  
-  .radius-value {
-    font-weight: 600;
-    color: #1890ff;
-    white-space: nowrap;
-    min-width: 60px;
-    text-align: right;
   }
 }
 </style>
