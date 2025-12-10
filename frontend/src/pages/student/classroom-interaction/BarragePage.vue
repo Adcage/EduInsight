@@ -44,8 +44,6 @@
           placeholder="输入弹幕内容，按回车或点击发送..."
           enter-button="发送"
           size="large"
-          :maxlength="100"
-          show-count
           :loading="sendLoading"
           @search="handleSendBarrage"
         >

@@ -1,34 +1,63 @@
 <template>
   <div class="question-page">
-    <a-page-header title="课堂提问" sub-title="发布问题、查看回答、采纳答案">
-      <template #extra>
-        <a-space>
-          <a-select
-            v-model:value="courseId"
-            placeholder="选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
-          >
-            <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
-              {{ course.name }}
-            </a-select-option>
-          </a-select>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
-          <a-button type="primary" @click="showCreateModal" :disabled="!courseId">
-            <template #icon><PlusOutlined /></template>
-            发布问题
-          </a-button>
-          <a-button type="primary" @click="handleRandomCallOn" :disabled="!courseId" :loading="callOnLoading">
-            <template #icon><UserOutlined /></template>
-            随机点名
-          </a-button>
-          <a-button @click="loadQuestions" :disabled="!courseId">
-            <template #icon><ReloadOutlined /></template>
-            刷新
-          </a-button>
-        </a-space>
-      </template>
-    </a-page-header>
+    <!-- 顶部操作栏 -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">
+            <QuestionCircleOutlined class="title-icon" />
+            课堂提问管理
+          </h1>
+          <p class="page-subtitle">发布问题、查看回答、采纳答案、随机点名</p>
+        </div>
+        <div class="header-right">
+          <a-space :size="12">
+            <a-select
+              v-model:value="courseId"
+              placeholder="选择课程"
+              class="course-select"
+              @change="handleCourseChange"
+            >
+              <template #suffixIcon>
+                <BookOutlined />
+              </template>
+              <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
+                {{ course.name }}
+              </a-select-option>
+            </a-select>
+            <a-badge 
+              :status="isConnected ? 'success' : 'error'" 
+              :text="isConnected ? '实时连接' : '连接断开'" 
+              class="connection-badge"
+            />
+            <a-button 
+              type="primary" 
+              size="large"
+              @click="showCreateModal" 
+              :disabled="!courseId"
+              class="create-btn"
+            >
+              <template #icon><PlusOutlined /></template>
+              发布问题
+            </a-button>
+            <a-button 
+              type="primary" 
+              size="large"
+              @click="handleRandomCallOn" 
+              :disabled="!courseId" 
+              :loading="callOnLoading"
+              class="callon-btn"
+            >
+              <template #icon><UserOutlined /></template>
+              随机点名
+            </a-button>
+            <a-button @click="loadQuestions" :disabled="!courseId" size="large">
+              <template #icon><ReloadOutlined /></template>
+            </a-button>
+          </a-space>
+        </div>
+      </div>
+    </div>
 
     <div class="content-container">
       <!-- 筛选标签 -->
@@ -314,6 +343,8 @@ import {
   LikeOutlined,
   DeleteOutlined,
   UserOutlined,
+  QuestionCircleOutlined,
+  BookOutlined,
 } from '@ant-design/icons-vue'
 import {
   questionApiPost,
@@ -978,51 +1009,156 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .question-page {
   min-height: 100vh;
-  background: var(--bg-color);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+}
+
+// 页面头部样式
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 32px 40px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-left {
+  .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .title-icon {
+      font-size: 36px;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    padding-left: 48px;
+  }
+}
+
+.header-right {
+  .course-select {
+    width: 220px;
+    :deep(.ant-select-selector) {
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      font-weight: 500;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    :deep(.ant-select-arrow) {
+      color: #fff;
+    }
+  }
+
+  .connection-badge {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .create-btn, .callon-btn {
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+  }
 }
 
 .content-container {
-  padding: 24px;
+  padding: 0 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+// 问题卡片样式
 .question-card {
   height: 100%;
-  transition: all 0.3s;
+  border-radius: 16px;
+  border: none;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
   }
 }
 
 .question-content {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  color: #1a1a1a;
   min-height: 60px;
-  line-height: 1.5;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .question-info {
   display: flex;
   align-items: center;
   font-size: 14px;
+  padding: 8px 0;
 
   .info-label {
-    color: var(--text-color-secondary);
+    color: #999;
     margin-right: 8px;
+    font-weight: 500;
   }
 
   .info-value {
-    font-weight: 600;
-    color: var(--primary-color);
+    font-weight: 700;
+    color: #667eea;
+    font-size: 16px;
   }
 }
 
 .question-actions {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+
+  :deep(.ant-btn-link) {
+    font-weight: 600;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
 }
 
 .answer-content {

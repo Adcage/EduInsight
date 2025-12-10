@@ -1,26 +1,42 @@
 <template>
   <div class="question-page">
-    <a-page-header title="课堂提问" sub-title="查看问题、提交回答">
-      <template #extra>
-        <a-space>
-          <a-select
-            v-model:value="courseId"
-            placeholder="选择课程"
-            style="width: 200px"
-            @change="handleCourseChange"
-          >
-            <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
-              {{ course.name }}
-            </a-select-option>
-          </a-select>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
-          <a-button @click="loadQuestions" :disabled="!courseId">
-            <template #icon><ReloadOutlined /></template>
-            刷新
-          </a-button>
-        </a-space>
-      </template>
-    </a-page-header>
+    <!-- 顶部操作栏 -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">
+            <QuestionCircleOutlined class="title-icon" />
+            课堂提问
+          </h1>
+          <p class="page-subtitle">查看问题、提交回答、获取采纳</p>
+        </div>
+        <div class="header-right">
+          <a-space :size="12">
+            <a-select
+              v-model:value="courseId"
+              placeholder="选择课程"
+              class="course-select"
+              @change="handleCourseChange"
+            >
+              <template #suffixIcon>
+                <BookOutlined />
+              </template>
+              <a-select-option v-for="course in courses" :key="course.id" :value="course.id">
+                {{ course.name }}
+              </a-select-option>
+            </a-select>
+            <a-badge 
+              :status="isConnected ? 'success' : 'error'" 
+              :text="isConnected ? '实时连接' : '连接断开'" 
+              class="connection-badge"
+            />
+            <a-button @click="loadQuestions" :disabled="!courseId" size="large">
+              <template #icon><ReloadOutlined /></template>
+            </a-button>
+          </a-space>
+        </div>
+      </div>
+    </div>
 
     <div class="content-container">
       <!-- 筛选标签 -->
@@ -122,13 +138,11 @@
           v-model:value="answerContent"
           :rows="6"
           placeholder="请输入你的回答..."
-          :maxlength="200"
-          show-count
         />
 
         <a-alert
           message="提示"
-          description="回答将以弹幕形式展示，建议简洁明了，字数在50-200字之间"
+          description="回答将以弹幕形式展示，建议简洁明了"
           type="warning"
           show-icon
           style="margin-top: 16px"
@@ -161,7 +175,7 @@
 
                   <template #title>
                     <a-space>
-                      <span>{{ item.is_anonymous ? '匿名用户' : `学生 ${item.user_id}` }}</span>
+                      <span>{{ item.is_anonymous ? '匿名用户' : (item.user_name || item.real_name || `学生 ${item.user_id}`) }}</span>
                       <a-tag v-if="item.is_accepted" color="green">
                         <CheckCircleOutlined /> 已采纳
                       </a-tag>
@@ -206,6 +220,7 @@ import {
   EditOutlined,
   EyeOutlined,
   LikeOutlined,
+  BookOutlined,
 } from '@ant-design/icons-vue'
 import {
   questionApiGet,
@@ -383,11 +398,6 @@ const answerQuestion = (question: any) => {
 const handleSubmitAnswer = async () => {
   if (!answerContent.value.trim()) {
     message.warning('请输入回答内容')
-    return
-  }
-
-  if (answerContent.value.length < 10) {
-    message.warning('回答内容至少10个字符')
     return
   }
 
@@ -615,40 +625,166 @@ watch(isConnected, (connected) => {
 <style scoped lang="scss">
 .question-page {
   min-height: 100vh;
-  background: var(--bg-color);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+}
+
+// 页面头部样式
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 32px 40px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-left {
+  .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .title-icon {
+      font-size: 36px;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    padding-left: 48px;
+  }
+}
+
+.header-right {
+  .course-select {
+    width: 220px;
+    :deep(.ant-select-selector) {
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      font-weight: 500;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    :deep(.ant-select-arrow) {
+      color: #fff;
+    }
+  }
+
+  .connection-badge {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+  }
 }
 
 .content-container {
-  padding: 24px;
+  padding: 0 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+// 问题列表项样式
 .question-item {
   background: #fff;
-  padding: 16px;
+  padding: 24px;
   margin-bottom: 16px;
-  border-radius: 8px;
-  transition: all 0.3s;
+  border-radius: 16px;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+  }
+
+  :deep(.ant-list-item-meta-avatar) {
+    .ant-avatar {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+  }
+
+  :deep(.ant-list-item-action) {
+    margin-left: 24px;
+
+    li {
+      padding: 0 8px;
+    }
+
+    .ant-btn {
+      border-radius: 8px;
+      font-weight: 600;
+      
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
   }
 }
 
 .question-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.5;
 }
 
 .answer-content {
   font-size: 15px;
   line-height: 1.6;
   margin-bottom: 8px;
-  color: var(--text-color);
+  color: #333;
 }
 
 .answer-meta {
   font-size: 13px;
-  color: var(--text-color-secondary);
+  color: #999;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .page-header {
+    padding: 24px 20px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .header-left .page-title {
+    font-size: 24px;
+  }
+
+  .content-container {
+    padding: 0 20px 20px;
+  }
+
+  .question-item {
+    padding: 16px;
+  }
 }
 </style>

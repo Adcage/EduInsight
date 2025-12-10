@@ -39,6 +39,8 @@ import {
   CalendarOutlined,
   BarChartOutlined,
   MessageOutlined,
+  BarChartOutlined as PollOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
@@ -84,7 +86,20 @@ const menuItems: MenuItem[] = [
     key: 'interaction',
     label: '课堂互动',
     icon: MessageOutlined,
-    path: '/student/interaction',
+    children: [
+      {
+        key: 'interaction-poll',
+        label: '投票参与',
+        icon: PollOutlined,
+        path: '/student/interaction/poll',
+      },
+      {
+        key: 'interaction-question',
+        label: '提问回答',
+        icon: QuestionCircleOutlined,
+        path: '/student/interaction/question',
+      },
+    ],
   },
 ]
 
