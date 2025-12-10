@@ -253,7 +253,7 @@ const handleUpload = () => {
 
 // 查看详情
 const handleViewDetail = (material: any) => {
-  router.push(`/teacher/material/${material.id}`)
+  router.push(`/teacher/materials/${material.id}`)
 }
 
 // 预览
@@ -263,21 +263,46 @@ const handlePreview = (material: any) => {
 
 // 下载
 const handleDownload = async (material: any) => {
+  const loadingMsg = message.loading('正在下载...', 0)
   try {
     const response = await materialApiIntMaterialIdDownloadGet({
       materialId: material.id
+    }, {
+      responseType: 'blob'
     })
-    const url = window.URL.createObjectURL(new Blob([response.data]))
+    
+    // 从axios响应中提取blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+    
+    // 尝试从响应头获取文件名
+    let fileName = material.fileName
+    const contentDisposition = response.headers?.['content-disposition']
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1].replace(/['"]/g, '')
+        try {
+          fileName = decodeURIComponent(fileName)
+        } catch (e) {
+          // 如果解码失败,使用原始文件名
+        }
+      }
+    }
+    
+    const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', material.fileName)
+    link.setAttribute('download', fileName)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
 
+    loadingMsg()
     message.success('下载成功')
   } catch (error: any) {
+    loadingMsg()
+    console.error('下载失败:', error)
     message.error(error.message || '下载失败')
   }
 }

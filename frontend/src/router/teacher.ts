@@ -47,9 +47,10 @@ const teacherRoutes: RouteRecordRaw[] = [
         }
     },
     {
-        path: '/teacher/material/:id',
+        path: '/teacher/materials/:id',
         name: 'TeacherMaterialDetail',
         component: () => import('@/pages/teacher/materials/MaterialDetail.vue'),
+        props: true,
         meta: {
             title: '资料详情',
             requiresAuth: true,

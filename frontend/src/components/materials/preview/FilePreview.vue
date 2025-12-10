@@ -86,6 +86,7 @@ const isText = computed(() => {
   if (!props.fileType) return false
   return textTypes.includes(props.fileType.toLowerCase())
 })
+  console.log(props.fileType)
 
 // 判断是否为Word文档
 const isDocx = computed(() => {

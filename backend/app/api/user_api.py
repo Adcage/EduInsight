@@ -192,17 +192,36 @@ class UserAPI:
     @user_api_bp.put('/<int:userId>', 
                     summary="更新用户信息", 
                     tags=[user_tag],
-                    responses={200: UserResponseModel, 404: MessageResponseModel})
-    @admin_required
+                    responses={200: UserResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
+    @login_required
     @log_user_action("更新用户信息")
     def update_user(path: UserPathModel, body: UserUpdateModel):
         """
         更新用户信息
         
-        只有管理员可以更新其他用户的信息。
+        管理员可以更新任何用户信息。
+        普通用户只能更新自己的信息。
         """
         try:
             UserAPI.log_request("UPDATE_USER", str(path.user_id))
+            
+            # 权限检查
+            current_user = get_current_user_info()
+            if not current_user:
+                return {
+                    'message': '用户未登录',
+                    'error_code': 'UNAUTHORIZED'
+                }, 401
+                
+            current_role = current_user.get('role')
+            current_user_id = current_user.get('user_id')
+            
+            # 如果不是管理员，且不是更新自己的信息，则拒绝
+            if current_role != UserRole.ADMIN.value and current_user_id != path.user_id:
+                return {
+                    'message': '权限不足，无法修改他人信息',
+                    'error_code': 'FORBIDDEN'
+                }, 403
             
             user = User.query.get(path.user_id)
             if not user:

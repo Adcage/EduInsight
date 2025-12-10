@@ -64,8 +64,12 @@ export const useCategoryStore = defineStore('category', () => {
         try {
             const response = await categoryApiGet()
             const data = (response as any).data?.data || (response as any).data
-
-            categories.value = Array.isArray(data) ? data : []
+            
+            // 后端返回的是 { categories: [...] } 格式
+            const categoryList = data?.categories || data
+            // 确保 categoryList 是数组
+            categories.value = Array.isArray(categoryList) ? categoryList : []
+            
             categoryTree.value = buildTree(categories.value)
             cacheTimestamp.value = Date.now()
 

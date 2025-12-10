@@ -54,10 +54,10 @@ const collapsed = ref(false)
 // 教师菜单配置(参考需求文档 4.2)
 const menuItems: MenuItem[] = [
   {
-    key: 'dashboard',
+    key: 'profile',
     label: '教师首页',
     icon: DashboardOutlined,
-    path: '/teacher/dashboard',
+    path: '/teacher/profile',
   },
   {
     key: 'courses',

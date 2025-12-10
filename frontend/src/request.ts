@@ -40,6 +40,11 @@ myAxios.interceptors.request.use(
 // 全局响应拦截器
 myAxios.interceptors.response.use(
     async function (response) {
+        // 对于blob类型的响应,直接返回整个响应对象
+        if (response.config.responseType === 'blob') {
+            return response
+        }
+        
         const {data} = response
         // 未登录
         if (data.code === 40100) {

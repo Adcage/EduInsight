@@ -44,7 +44,11 @@ const loadDocx = async () => {
 
   try {
     // 获取文件
-    const response = await fetch(props.url)
+    // 如果是blob URL,fetch会直接读取;如果是http URL,需要携带credentials
+    const response = await fetch(props.url, {
+      credentials: 'include' // 携带cookies用于认证
+    })
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
@@ -76,7 +80,7 @@ const loadDocx = async () => {
     message.success('文档加载成功')
   } catch (err: any) {
     console.error('Word文档加载失败:', err)
-    error.value = err.message || 'Word文档加载失败，请稍后重试'
+    error.value = err.message || 'Word文档加载失败,请稍后重试'
     message.error('文档加载失败')
   } finally {
     loading.value = false

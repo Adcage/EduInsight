@@ -265,22 +265,22 @@ const handleReject = async () => {
 
 // 获取置信度状态
 const getConfidenceStatus = (confidence: number): 'success' | 'normal' | 'exception' => {
-  if (confidence > 0.7) return 'success'
-  if (confidence >= 0.5) return 'normal'
+  if (confidence >= 0.5) return 'success'  // 50%以上为高置信度
+  if (confidence >= 0.3) return 'normal'   // 30%-50%为中等置信度
   return 'exception'
 }
 
 // 获取置信度颜色
 const getConfidenceColor = (confidence: number): string => {
-  if (confidence > 0.7) return '#52c41a'
-  if (confidence >= 0.5) return '#faad14'
+  if (confidence >= 0.5) return '#52c41a'  // 50%以上为绿色（高置信度）
+  if (confidence >= 0.3) return '#faad14'  // 30%-50%为橙色（中等置信度）
   return '#ff4d4f'
 }
 
 // 获取置信度文本
 const getConfidenceText = (confidence: number): string => {
-  if (confidence > 0.7) return '高'
-  if (confidence >= 0.5) return '中'
+  if (confidence >= 0.5) return '高'  // 50%以上为高置信度
+  if (confidence >= 0.3) return '中'  // 30%-50%为中等置信度
   return '低'
 }
 

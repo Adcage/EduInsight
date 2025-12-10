@@ -2,7 +2,7 @@ from flask_openapi3 import APIBlueprint, Tag
 from app.schemas.user_schemas import (
     UserRegisterModel, UserLoginModel, UserResponseModel, 
     LoginResponseModel, MessageResponseModel, UserProfileModel,
-    PasswordChangeModel, UserPathModel
+    PasswordChangeModel
 )
 from app.services.auth_service import AuthService
 from app.models.user import UserRole
@@ -61,9 +61,12 @@ class AuthAPI:
                 class_id=body.class_id
             )
             
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            user_response = UserResponseModel.model_validate(user)
+            
             return {
                 'message': '注册成功',
-                'user': user.to_dict()
+                'user': user_response.model_dump(by_alias=True)
             }, 201
             
         except ValueError as e:
@@ -97,7 +100,14 @@ class AuthAPI:
             
             result = AuthService.login_user(body.login_identifier, body.password)
             
-            return result, 200
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            # result['user'] is a dict (snake_case)
+            user_response = UserResponseModel.model_validate(result['user'])
+            
+            return {
+                'user': user_response.model_dump(by_alias=True),
+                'message': result['message']
+            }, 200
             
         except ValueError as e:
             logger.warning(f"Login failed for {body.login_identifier}: {str(e)}")
@@ -159,7 +169,9 @@ class AuthAPI:
                     'error_code': 'USER_NOT_FOUND'
                 }, 404
             
-            return user.to_dict(), 200
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            user_response = UserProfileModel.model_validate(user)
+            return user_response.model_dump(by_alias=True), 200
             
         except Exception as e:
             logger.error(f"Get loginuser error: {str(e)}")
@@ -235,10 +247,16 @@ class AuthAPI:
             
             if is_logged_in:
                 user = AuthService.get_current_user()
+                user_data = None
+                if user:
+                    # 使用 Schema 序列化，自动转换为驼峰格式
+                    # 使用 UserResponseModel 确保包含所有字段（如 user_code 等）
+                    user_data = UserResponseModel.model_validate(user).model_dump(by_alias=True)
+                
                 return {
                     'message': '用户已登录',
                     'logged_in': True,
-                    'user': user.to_dict() if user else None
+                    'user': user_data
                 }, 200
             else:
                 return {
@@ -266,4 +284,3 @@ class AuthAPI:
             'request_count': AuthAPI.request_count,
             'version': '1.0.0'
         }, 200
-    

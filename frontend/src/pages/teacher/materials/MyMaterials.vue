@@ -523,12 +523,35 @@ const formatDateTime = (date?: string): string => {
 const loadMaterials = async () => {
   loading.value = true
   try {
+    // 从 localStorage 获取当前用户信息
+    const userInfo = localStorage.getItem('user')  // 注意：登录时存储的键是'user'而不是'userInfo'
+    let currentUserId = null
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo)
+        currentUserId = user.id
+        console.log('当前用户ID:', currentUserId, '用户信息:', user)
+      } catch (e) {
+        console.error('解析用户信息失败:', e)
+      }
+    } else {
+      console.warn('未找到用户信息')
+    }
+
     const params: any = {
       page: pagination.current,
       perPage: pagination.pageSize,
       sort_by: filters.sortBy,
       order: filters.order
     }
+
+    // 添加当前用户ID筛选,只显示当前用户上传的资料
+    if (currentUserId) {
+      params.uploader_id = currentUserId
+      console.log('添加uploader_id筛选:', currentUserId)
+    }
+
+    console.log('请求参数:', params)
 
     if (searchKeyword.value) {
       params.search = searchKeyword.value
@@ -569,7 +592,8 @@ const loadCategories = async () => {
   try {
     const response = await categoryApiGet()
     const data = (response as any).data?.data || (response as any).data
-    categories.value = data || []
+    // 后端返回的数据结构是 {categories: [...]}
+    categories.value = data?.categories || data || []
   } catch (error: any) {
     console.error('加载分类失败:', error)
   }

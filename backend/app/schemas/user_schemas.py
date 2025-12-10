@@ -195,6 +195,22 @@ class UserProfileModel(CamelCaseModel):
     last_login_time: Optional[str] = Field(None, description="最后登录时间")
     created_at: str = Field(..., description="注册时间")
 
+    @validator('role', pre=True)
+    def convert_role_enum(cls, v):
+        """转换UserRole枚举为字符串"""
+        from app.models.user import UserRole
+        if isinstance(v, UserRole):
+            return v.value
+        return v
+    
+    @validator('created_at', 'last_login_time', pre=True)
+    def convert_datetime(cls, v):
+        """转换datetime为字符串"""
+        from datetime import datetime
+        if isinstance(v, datetime):
+            return v.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return v
+
 class UserCreateModel(CamelCaseModel):
     """用户创建模型"""
     username: str = Field(..., description="用户名", min_length=3, max_length=50)

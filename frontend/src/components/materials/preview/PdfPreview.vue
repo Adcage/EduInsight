@@ -127,7 +127,12 @@ const loadPdf = async () => {
   error.value = ''
 
   try {
-    const loadingTask = pdfjsLib.getDocument(props.url)
+    // 配置PDF.js加载选项
+    const loadingTask = pdfjsLib.getDocument({
+      url: props.url,
+      withCredentials: true // 携带cookies用于认证
+    })
+    
     pdfDoc = await loadingTask.promise
     totalPages.value = pdfDoc.numPages
 
@@ -135,7 +140,7 @@ const loadPdf = async () => {
     await renderPage(1)
   } catch (err: any) {
     console.error('PDF加载失败:', err)
-    error.value = err.message || 'PDF加载失败，请稍后重试'
+    error.value = err.message || 'PDF加载失败,请稍后重试'
     message.error('PDF加载失败')
   } finally {
     loading.value = false

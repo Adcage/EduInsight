@@ -279,7 +279,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {message, Modal} from 'ant-design-vue'
 import {
@@ -291,7 +291,7 @@ import {
   RobotOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
-import {materialApiIntMaterialIdDownloadGet} from '@/api/materialController.ts'
+import {materialApiIntMaterialIdDownloadGet, materialApiIntMaterialIdPreviewGet} from '@/api/materialController.ts'
 import {materialApiIntMaterialIdKeywordsGet} from '@/api/classificationController.ts'
 import {useMaterialStore} from '@/stores/material.ts'
 import {useCategoryStore} from '@/stores/category.ts'
@@ -317,6 +317,10 @@ const editForm = ref({
 })
 const currentUserId = ref<number | null>(null)
 
+// 预览URL状态
+const previewUrl = ref('')
+const previewLoading = ref(false)
+
 // 关键词状态
 const keywords = ref<API.KeywordResponseModel[]>([])
 const keywordsLoading = ref(false)
@@ -331,14 +335,6 @@ const material = computed(() => materialStore.currentMaterial)
 const loading = computed(() => materialStore.loading)
 const categories = computed(() => categoryStore.flatCategories)
 
-// 预览URL
-const previewUrl = computed(() => {
-  if (!material.value) return ''
-  // 构建预览URL - 使用预览接口（不会触发下载）
-  const baseUrl = 'http://localhost:5030'
-  return `${baseUrl}/api/v1/materials/${material.value.id}/preview`
-})
-
 // 是否可以预览
 const canPreview = computed(() => {
   if (!material.value) return false
@@ -347,8 +343,66 @@ const canPreview = computed(() => {
 })
 
 // 打开预览模态框
-const togglePreview = () => {
-  previewModalVisible.value = true
+const togglePreview = async () => {
+  if (!material.value) return
+  
+  previewLoading.value = true
+  try {
+    // 通过API获取文件blob数据
+    const response = await materialApiIntMaterialIdPreviewGet({
+      materialId: materialId.value
+    }, {
+      responseType: 'blob'
+    })
+    
+    console.log('预览响应:', response)
+    console.log('响应头:', response.headers)
+    console.log('响应数据类型:', response.data instanceof Blob, response.data)
+    
+    // 从响应中提取blob数据
+    let blob: Blob
+    if (response.data instanceof Blob) {
+      blob = response.data
+    } else {
+      // 获取Content-Type
+      const contentType = response.headers?.['content-type'] || getContentTypeByFileType(material.value.fileType)
+      blob = new Blob([response.data], { type: contentType })
+    }
+    
+    console.log('创建的blob:', blob, 'type:', blob.type, 'size:', blob.size)
+    
+    // 创建本地blob URL
+    // 清理旧的URL
+    if (previewUrl.value) {
+      window.URL.revokeObjectURL(previewUrl.value)
+    }
+    previewUrl.value = window.URL.createObjectURL(blob)
+    
+    console.log('创建的blob URL:', previewUrl.value)
+    
+    // 打开预览模态框
+    previewModalVisible.value = true
+  } catch (error: any) {
+    console.error('获取预览失败:', error)
+    message.error(error.message || '获取预览失败')
+  } finally {
+    previewLoading.value = false
+  }
+}
+
+// 根据文件类型获取Content-Type
+const getContentTypeByFileType = (fileType: string): string => {
+  const typeMap: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'image': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  }
+  return typeMap[fileType.toLowerCase()] || 'application/octet-stream'
 }
 
 // 权限判断
@@ -450,8 +504,10 @@ const loadKeywords = async () => {
       topN: 10
     })
 
-    if (response.code === 200 && response.data) {
-      keywords.value = response.data
+    console.log('响应数据:', response)
+
+    if (response.data.code === 200 && response.data.data) {
+      keywords.value = response.data.data
     } else {
       keywords.value = []
     }
@@ -482,12 +538,31 @@ const handleDownload = async () => {
       responseType: 'blob'
     })
 
+    // 从axios响应中提取blob数据
+    // response.data 才是实际的blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+    
+    // 尝试从响应头获取文件名
+    let fileName = material.value.fileName
+    const contentDisposition = response.headers?.['content-disposition']
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1].replace(/['"]/g, '')
+        // 处理URL编码的文件名
+        try {
+          fileName = decodeURIComponent(fileName)
+        } catch (e) {
+          // 如果解码失败,使用原始文件名
+        }
+      }
+    }
+
     // 创建下载链接
-    const blob = new Blob([response])
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', material.value.fileName)
+    link.setAttribute('download', fileName)
     link.style.display = 'none'
     document.body.appendChild(link)
     link.click()
@@ -515,7 +590,7 @@ const handleEdit = () => {
   editForm.value = {
     title: material.value.title,
     description: material.value.description || '',
-    categoryId: material.value.category?.id || null,
+    categoryId: material.value.categoryId || null,
     tags: material.value.tags?.map((tag: any) => tag.name) || []
   }
 
@@ -614,6 +689,14 @@ onMounted(() => {
   loadCurrentUser()
   loadMaterialDetail()
   loadCategories()
+})
+
+// 清理
+onBeforeUnmount(() => {
+  // 清理blob URL
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value)
+  }
 })
 </script>
 

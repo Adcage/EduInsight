@@ -18,8 +18,8 @@
             class="cloud-tag"
             @click="handleTagClick(tag)"
         >
+
           {{ tag.name }}
-          <span class="tag-count">({{ tag.usageCount }})</span>
         </a-tag>
       </div>
 
