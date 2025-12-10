@@ -26,10 +26,17 @@ const studentRoutes: RouteRecordRaw[] = [
             roles: ['student']
         }
     },
-    // 后续添加学生页面路由：
-    // /student/dashboard - 学生首页
-    // /student/courses - 我的课程
-    // /student/attendance - 我的考勤
+
+    // 学生首页
+
+    // 我的课程
+
+    // 我的考勤
+
+    // 我的成绩
+    
+    // 课堂互动
+
     // 学生人脸照片上传
     {
         path: '/student/face-upload',
@@ -51,8 +58,6 @@ const studentRoutes: RouteRecordRaw[] = [
             requiresAuth: false  // 扫码前可能未登录
         }
     }
-    // /student/grades - 我的成绩
-    // /student/interaction - 课堂互动
 ]
 
 export default studentRoutes

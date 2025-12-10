@@ -45,13 +45,19 @@ const teacherRoutes: RouteRecordRaw[] = [
       roles: ['teacher']
     }
   }
-  // 后续可以添加其他教师页面路由：
-  // /teacher/dashboard - 教师首页
-  // /teacher/courses - 课程管理
-  // /teacher/attendance - 考勤管理
-  // /teacher/grades - 成绩管理
-  // /teacher/interaction - 课堂互动
-  // /teacher/analysis - 学情分析
+
+  // 教师首页
+
+  // 课程管理
+
+  // 考勤管理
+
+  // 成绩管理
+
+  // 课堂互动
+
+  // 学情分析
+
 ]
 
 export default teacherRoutes

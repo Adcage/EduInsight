@@ -18,10 +18,10 @@ export function getDefaultHomeByRole(role?: string): string {
       return '/admin/dashboard'
     case 'teacher':
       // 教师跳转到教师资料中心
-      return '/teacher/materials'
+      return '/teacher/'
     case 'student':
       // 学生跳转到学生资料浏览
-      return '/student/materials'
+      return '/student/'
     default:
       // 未知角色或未登录跳转到首页
       return '/'

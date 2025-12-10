@@ -15,11 +15,13 @@ const adminRoutes: RouteRecordRaw[] = [
       roles: ['admin']
     }
   },
-  // 后续添加其他管理员页面路由：
-  // /admin/dashboard - 控制台
-  // /admin/courses - 课程管理
-  // /admin/classes - 班级管理
-  // /admin/settings - 系统设置
+  // 控制台
+
+  // 课程管理
+
+  // 班级管理
+
+  // 系统设置
 ]
 
 export default adminRoutes
