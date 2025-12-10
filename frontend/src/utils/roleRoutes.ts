@@ -5,11 +5,14 @@
 
 /**
  * 根据用户角色获取默认主页路径
- * @param role 用户角色 ('admin' | 'teacher' | 'student')
+ * @param role 用户角色 ('admin' | 'teacher' | 'student' 或大写形式)
  * @returns 默认主页路径
  */
 export function getDefaultHomeByRole(role?: string): string {
-  switch (role) {
+  // 统一转换为小写进行比较，兼容大小写
+  const normalizedRole = role?.toLowerCase()
+  
+  switch (normalizedRole) {
     case 'admin':
       // 管理员跳转到管理员仪表板
       return '/admin/dashboard'
@@ -45,6 +48,10 @@ export function hasRoutePermission(
     return false
   }
 
+  // 统一转换为小写进行比较，兼容大小写
+  const normalizedUserRole = userRole.toLowerCase()
+  const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase())
+
   // 检查用户角色是否在要求的角色列表中
-  return requiredRoles.includes(userRole)
+  return normalizedRequiredRoles.includes(normalizedUserRole)
 }

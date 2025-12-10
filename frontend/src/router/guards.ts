@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getDefaultHomeByRole } from '@/utils/roleRoutes'
+import { message } from 'ant-design-vue'
 
 /**
  * 设置路由守卫
@@ -35,9 +36,13 @@ export function setupRouterGuards(router: Router): void {
     if (requiresAuth && authStore.isLoggedIn && requiredRoles && requiredRoles.length > 0) {
       const userRole = authStore.user?.role
       
+      // 统一转换为小写进行比较，兼容大小写
+      const normalizedUserRole = userRole?.toLowerCase()
+      const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase())
+      
       // 如果用户角色不在允许的角色列表中
-      if (!userRole || !requiredRoles.includes(userRole)) {
-        console.warn(`访问被拒绝: 用户角色 ${userRole} 无权访问 ${to.path}`)
+      if (!normalizedUserRole || !normalizedRequiredRoles.includes(normalizedUserRole)) {
+        message.warn(`访问被拒绝: 用户角色 ${userRole} 无权访问 ${to.path}`)
         
         // 重定向到用户角色对应的默认主页
         const defaultHome = getDefaultHomeByRole(userRole)

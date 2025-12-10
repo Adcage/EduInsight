@@ -5,19 +5,30 @@ import type { RouteRecordRaw } from 'vue-router'
  * 扁平路由结构,布局由 App.vue 根据路径前缀控制
  */
 const studentRoutes: RouteRecordRaw[] = [
+  // 学生资料中心
+  {
+    path: '/student/materials',
+    name: 'StudentMaterialCenter',
+    component: () => import('@/pages/student/materials/MaterialCenter.vue'),
+    meta: {
+      title: '资料中心',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  },
+  {
+    path: '/student/materials/:id',
+    name: 'StudentMaterialDetail',
+    component: () => import('@/pages/student/materials/MaterialDetail.vue'),
+    meta: {
+      title: '资料详情',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  }
   // 后续添加学生页面路由：
-  // {
-  //   path: '/student/dashboard',
-  //   name: 'StudentDashboard',
-  //   component: () => import('@/pages/student/Dashboard.vue'),
-  //   meta: {
-  //     title: '学生首页',
-  //     requiresAuth: true,
-  //     roles: ['student']
-  //   }
-  // },
+  // /student/dashboard - 学生首页
   // /student/courses - 我的课程
-  // /student/materials - 学习资料
   // /student/attendance - 我的考勤
   // /student/grades - 我的成绩
   // /student/interaction - 课堂互动

@@ -12,6 +12,17 @@ const authRoutes: RouteRecordRaw[] = [
       title: '登录',
       requiresAuth: false
     }
+  },
+  // 个人资料页面 - 所有已认证用户可访问
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/pages/shared/profile/ProfilePage.vue'),
+    meta: {
+      title: '个人资料',
+      requiresAuth: true,
+      roles: ['student', 'teacher', 'admin']
+    }
   }
 ]
 

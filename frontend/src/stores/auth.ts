@@ -29,14 +29,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ========== Getters ==========
   
-  /** 是否为管理员 */
-  const isAdmin = computed(() => user.value?.role === 'admin')
+  /** 是否为管理员 (兼容大小写) */
+  const isAdmin = computed(() => user.value?.role?.toLowerCase() === 'admin')
   
-  /** 是否为教师 */
-  const isTeacher = computed(() => user.value?.role === 'teacher')
+  /** 是否为教师 (兼容大小写) */
+  const isTeacher = computed(() => user.value?.role?.toLowerCase() === 'teacher')
   
-  /** 是否为学生 */
-  const isStudent = computed(() => user.value?.role === 'student')
+  /** 是否为学生 (兼容大小写) */
+  const isStudent = computed(() => user.value?.role?.toLowerCase() === 'student')
   
   /** 用户显示名称 */
   const userDisplayName = computed(() => user.value?.realName || user.value?.username || '')
