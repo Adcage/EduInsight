@@ -1,21 +1,21 @@
 <template>
   <div class="statistics-page">
-    <a-card :bordered="false" title="成绩统计分析">
+    <a-card title="成绩统计分析" :bordered="false">
       <!-- 筛选区域 -->
       <div class="filter-section">
         <a-form layout="inline">
           <a-form-item label="课程" required>
             <a-select
-                v-model:value="filterForm.courseId"
-                :loading="loading.courses"
-                placeholder="请选择课程"
-                style="width: 200px"
-                @change="handleCourseChange"
+              v-model:value="filterForm.courseId"
+              placeholder="请选择课程"
+              style="width: 200px"
+              :loading="loading.courses"
+              @change="handleCourseChange"
             >
               <a-select-option
-                  v-for="course in courses"
-                  :key="course.id"
-                  :value="course.id"
+                v-for="course in courses"
+                :key="course.id"
+                :value="course.id"
               >
                 {{ course.name }}
               </a-select-option>
@@ -24,17 +24,17 @@
 
           <a-form-item label="班级">
             <a-select
-                v-model:value="filterForm.classId"
-                :disabled="!filterForm.courseId"
-                :loading="loading.classes"
-                allowClear
-                placeholder="全部班级"
-                style="width: 200px"
+              v-model:value="filterForm.classId"
+              placeholder="全部班级"
+              style="width: 200px"
+              :loading="loading.classes"
+              :disabled="!filterForm.courseId"
+              allowClear
             >
               <a-select-option
-                  v-for="cls in classes"
-                  :key="cls.id"
-                  :value="cls.id"
+                v-for="cls in classes"
+                :key="cls.id"
+                :value="cls.id"
               >
                 {{ cls.name }}
               </a-select-option>
@@ -43,9 +43,9 @@
 
           <a-form-item label="考试类型">
             <a-select
-                v-model:value="filterForm.examType"
-                placeholder="请选择类型"
-                style="width: 180px"
+              v-model:value="filterForm.examType"
+              placeholder="请选择类型"
+              style="width: 180px"
             >
               <a-select-option value="daily">平时成绩</a-select-option>
               <a-select-option value="midterm">期中考试</a-select-option>
@@ -59,10 +59,10 @@
 
           <a-form-item>
             <a-button
-                :disabled="!filterForm.courseId"
-                :loading="loading.statistics"
-                type="primary"
-                @click="loadStatistics"
+              type="primary"
+              @click="loadStatistics"
+              :loading="loading.statistics"
+              :disabled="!filterForm.courseId"
             >
               查询统计
             </a-button>
@@ -81,15 +81,15 @@
         </a-form>
       </div>
 
-      <a-divider/>
+      <a-divider />
 
       <!-- 统计说明(综合统计时显示) -->
       <a-alert
-          v-if="statisticsData && statisticsData.isComprehensive"
-          message="综合统计说明"
-          show-icon
-          style="margin-bottom: 16px"
-          type="info"
+        v-if="statisticsData && statisticsData.isComprehensive"
+        message="综合统计说明"
+        type="info"
+        show-icon
+        style="margin-bottom: 16px"
       >
         <template #description>
           <div>
@@ -107,12 +107,12 @@
           <a-col :span="6">
             <a-card>
               <a-statistic
-                  :value="statisticsData.basicStatistics.totalCount"
-                  :value-style="{ color: '#1890ff' }"
-                  title="总人数"
+                title="总人数"
+                :value="statisticsData.basicStatistics.totalCount"
+                :value-style="{ color: '#1890ff' }"
               >
                 <template #prefix>
-                  <UserOutlined/>
+                  <UserOutlined />
                 </template>
               </a-statistic>
             </a-card>
@@ -120,13 +120,13 @@
           <a-col :span="6">
             <a-card>
               <a-statistic
-                  :precision="2"
-                  :value="statisticsData.basicStatistics.averageScore"
-                  :value-style="{ color: '#52c41a' }"
-                  title="平均分"
+                title="平均分"
+                :value="statisticsData.basicStatistics.averageScore"
+                :precision="2"
+                :value-style="{ color: '#52c41a' }"
               >
                 <template #prefix>
-                  <LineChartOutlined/>
+                  <LineChartOutlined />
                 </template>
               </a-statistic>
             </a-card>
@@ -134,14 +134,14 @@
           <a-col :span="6">
             <a-card>
               <a-statistic
-                  :precision="2"
-                  :value="statisticsData.basicStatistics.passRate"
-                  :value-style="{ color: '#faad14' }"
-                  suffix="%"
-                  title="及格率"
+                title="及格率"
+                :value="statisticsData.basicStatistics.passRate"
+                suffix="%"
+                :precision="2"
+                :value-style="{ color: '#faad14' }"
               >
                 <template #prefix>
-                  <CheckCircleOutlined/>
+                  <CheckCircleOutlined />
                 </template>
               </a-statistic>
             </a-card>
@@ -149,14 +149,14 @@
           <a-col :span="6">
             <a-card>
               <a-statistic
-                  :precision="2"
-                  :value="statisticsData.basicStatistics.excellentRate"
-                  :value-style="{ color: '#f5222d' }"
-                  suffix="%"
-                  title="优秀率"
+                title="优秀率"
+                :value="statisticsData.basicStatistics.excellentRate"
+                suffix="%"
+                :precision="2"
+                :value-style="{ color: '#f5222d' }"
               >
                 <template #prefix>
-                  <TrophyOutlined/>
+                  <TrophyOutlined />
                 </template>
               </a-statistic>
             </a-card>
@@ -164,8 +164,8 @@
         </a-row>
 
         <!-- 详细统计表格 -->
-        <a-card style="margin-bottom: 16px" title="详细统计">
-          <a-descriptions :column="3" bordered>
+        <a-card title="详细统计" style="margin-bottom: 16px">
+          <a-descriptions bordered :column="3">
             <a-descriptions-item label="最高分">
               {{ statisticsData.basicStatistics.maxScore }}
             </a-descriptions-item>
@@ -207,21 +207,26 @@
 
       <!-- 空状态 -->
       <a-empty
-          v-else
-          description="请选择课程并点击查询统计"
-          style="margin: 60px 0"
+        v-else
+        description="请选择课程并点击查询统计"
+        style="margin: 60px 0"
       />
     </a-card>
   </div>
 </template>
 
-<script lang="ts" setup>
-import {nextTick, onBeforeUnmount, onMounted, reactive, ref} from 'vue'
-import {message} from 'ant-design-vue'
-import {CheckCircleOutlined, LineChartOutlined, TrophyOutlined, UserOutlined} from '@ant-design/icons-vue'
-import type {ECharts} from 'echarts'
+<script setup lang="ts">
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { message } from 'ant-design-vue'
+import {
+  UserOutlined,
+  LineChartOutlined,
+  CheckCircleOutlined,
+  TrophyOutlined
+} from '@ant-design/icons-vue'
 import * as echarts from 'echarts'
-import {statisticsApiCourseGet} from '@/api/statisticsController'
+import type { ECharts } from 'echarts'
+import { statisticsApiCourseGet } from '@/api/statisticsController'
 
 // 响应式数据
 const filterForm = reactive({
@@ -251,15 +256,15 @@ let trendChart: ECharts | null = null
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
-
+    
     if (!response.ok) {
       throw new Error('加载课程列表失败')
     }
-
+    
     courses.value = await response.json()
   } catch (error: any) {
     message.error(error.message || '加载课程列表失败')
@@ -272,24 +277,24 @@ const loadCourses = async () => {
 const handleCourseChange = async () => {
   filterForm.classId = undefined
   classes.value = []
-
+  
   if (!filterForm.courseId) return
-
+  
   loading.classes = true
   try {
     // 获取课程的班级列表
     const response = await fetch(
-        `http://localhost:5000/api/v1/grades/course-students?courseId=${filterForm.courseId}`,
-        {
-          method: 'GET',
-          credentials: 'include'
-        }
+      `http://localhost:5030/api/v1/grades/course-students?courseId=${filterForm.courseId}`,
+      {
+        method: 'GET',
+        credentials: 'include'
+      }
     )
-
+    
     if (!response.ok) {
       throw new Error('加载班级列表失败')
     }
-
+    
     const students = await response.json()
     // 从学生数据中提取唯一的班级
     const classMap = new Map()
@@ -315,28 +320,28 @@ const loadStatistics = async () => {
     message.warning('请先选择课程')
     return
   }
-
+  
   if (!filterForm.examType) {
     message.warning('请选择考试类型')
     return
   }
-
+  
   loading.statistics = true
   try {
     const params: any = {
       courseId: filterForm.courseId,
       examType: filterForm.examType
     }
-
+    
     if (filterForm.classId) {
       params.classId = filterForm.classId
     }
-
+    
     const response = await statisticsApiCourseGet(params)
     const data = response.data || response
-
+    
     console.log('📊 原始数据:', data)
-
+    
     // 转换字段名:下划线 -> 驼峰
     statisticsData.value = {
       basicStatistics: {
@@ -374,13 +379,13 @@ const loadStatistics = async () => {
       examTypeFilter: data.exam_type_filter,
       isComprehensive: data.is_comprehensive || false
     }
-
+    
     console.log('📊 转换后数据:', statisticsData.value)
-
+    
     // 等待DOM更新后渲染图表
     await nextTick()
     renderCharts()
-
+    
     message.success('统计数据加载成功')
   } catch (error: any) {
     console.error('加载统计失败:', error)
@@ -399,7 +404,7 @@ const loadStatistics = async () => {
 // 渲染图表
 const renderCharts = () => {
   if (!statisticsData.value) return
-
+  
   renderDistributionChart()
   renderTrendChart()
 }
@@ -407,17 +412,17 @@ const renderCharts = () => {
 // 渲染分数段分布图
 const renderDistributionChart = () => {
   if (!distributionChartRef.value) return
-
+  
   // 销毁旧图表
   if (distributionChart) {
     distributionChart.dispose()
   }
-
+  
   // 创建新图表
   distributionChart = echarts.init(distributionChartRef.value)
-
+  
   const dist = statisticsData.value.scoreDistribution
-
+  
   const option = {
     tooltip: {
       trigger: 'axis',
@@ -491,24 +496,24 @@ const renderDistributionChart = () => {
       }
     ]
   }
-
+  
   distributionChart.setOption(option)
 }
 
 // 渲染成绩趋势图
 const renderTrendChart = () => {
   if (!trendChartRef.value) return
-
+  
   // 销毁旧图表
   if (trendChart) {
     trendChart.dispose()
   }
-
+  
   // 创建新图表
   trendChart = echarts.init(trendChartRef.value)
-
+  
   const trendData = statisticsData.value.trendData
-
+  
   if (!trendData || trendData.length === 0) {
     // 没有趋势数据
     const option = {
@@ -525,13 +530,13 @@ const renderTrendChart = () => {
     trendChart.setOption(option)
     return
   }
-
+  
   // 准备数据
   const dates = trendData.map((item: any) => item.examDate || item.examName)
   const avgScores = trendData.map((item: any) => item.averageScore)
   const maxScores = trendData.map((item: any) => item.maxScore)
   const minScores = trendData.map((item: any) => item.minScore)
-
+  
   const option = {
     tooltip: {
       trigger: 'axis'
@@ -579,7 +584,7 @@ const renderTrendChart = () => {
       }
     ]
   }
-
+  
   trendChart.setOption(option)
 }
 
@@ -603,7 +608,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="less" scoped>
+<style scoped lang="less">
 .statistics-page {
   padding: 24px;
   background: #f0f2f5;

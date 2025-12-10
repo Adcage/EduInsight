@@ -42,6 +42,9 @@ import {
   FolderOutlined,
   LineChartOutlined,
   MessageOutlined,
+  UnorderedListOutlined,
+  PieChartOutlined,
+  AlertOutlined,
 } from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
@@ -100,7 +103,20 @@ const menuItems: MenuItem[] = [
     key: 'grades',
     label: '成绩管理',
     icon: BarChartOutlined,
-    path: '/teacher/grades',
+    children: [
+      {
+        key: 'grade-list',
+        label: '成绩列表与录入',
+        icon: UnorderedListOutlined,
+        path: '/teacher/grades/list',
+      },
+      {
+        key: 'grade-statistics',
+        label: '统计分析',
+        icon: PieChartOutlined,
+        path: '/teacher/grades/statistics',
+      },
+    ],
   },
   {
     key: 'interaction',
@@ -110,9 +126,9 @@ const menuItems: MenuItem[] = [
   },
   {
     key: 'analysis',
-    label: '学情分析',
-    icon: LineChartOutlined,
-    path: '/teacher/analysis',
+    label: '学情预警',
+    icon: AlertOutlined,
+    path: '/teacher/grades/warnings',
   },
 ]
 

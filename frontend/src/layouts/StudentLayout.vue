@@ -39,6 +39,9 @@ import {
   DashboardOutlined,
   FolderOutlined,
   MessageOutlined,
+  FileTextOutlined,
+  LineChartOutlined,
+  BellOutlined,
 } from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
@@ -78,7 +81,26 @@ const menuItems: MenuItem[] = [
     key: 'grades',
     label: '我的成绩',
     icon: BarChartOutlined,
-    path: '/student/grades',
+    children: [
+      {
+        key: 'my-grades',
+        label: '个人成绩查看',
+        icon: FileTextOutlined,
+        path: '/student/grades/my-grades',
+      },
+      {
+        key: 'grades-analysis',
+        label: '个人成绩分析',
+        icon: LineChartOutlined,
+        path: '/student/grades/analysis',
+      },
+      {
+        key: 'grades-warnings',
+        label: '预警与通知',
+        icon: BellOutlined,
+        path: '/student/grades/warnings',
+      },
+    ],
   },
   {
     key: 'interaction',

@@ -1,22 +1,22 @@
 <template>
   <div class="grade-list-page">
-    <a-card :bordered="false" title="📋 成绩列表">
+    <a-card title="📋 成绩列表" :bordered="false">
       <!-- 筛选区域 -->
       <div class="filter-section">
-        <a-form :model="filterForm" layout="inline">
+        <a-form layout="inline" :model="filterForm">
           <a-form-item label="课程">
             <a-select
-                v-model:value="filterForm.courseId"
-                :loading="loading.courses"
-                allow-clear
-                placeholder="请选择课程"
-                style="width: 200px"
-                @change="handleSearch"
+              v-model:value="filterForm.courseId"
+              placeholder="请选择课程"
+              style="width: 200px"
+              :loading="loading.courses"
+              allow-clear
+              @change="handleSearch"
             >
               <a-select-option
-                  v-for="course in courses"
-                  :key="course.id"
-                  :value="course.id"
+                v-for="course in courses"
+                :key="course.id"
+                :value="course.id"
               >
                 {{ course.name }}
               </a-select-option>
@@ -25,11 +25,11 @@
 
           <a-form-item label="考试类型">
             <a-select
-                v-model:value="filterForm.examType"
-                allow-clear
-                placeholder="全部"
-                style="width: 150px"
-                @change="handleSearch"
+              v-model:value="filterForm.examType"
+              placeholder="全部"
+              style="width: 150px"
+              allow-clear
+              @change="handleSearch"
             >
               <a-select-option value="daily">平时成绩</a-select-option>
               <a-select-option value="midterm">期中考试</a-select-option>
@@ -40,26 +40,22 @@
 
           <a-form-item label="学生">
             <a-input
-                v-model:value="filterForm.keyword"
-                allow-clear
-                placeholder="学号或姓名"
-                style="width: 200px"
-                @press-enter="handleSearch"
+              v-model:value="filterForm.keyword"
+              placeholder="学号或姓名"
+              style="width: 200px"
+              allow-clear
+              @press-enter="handleSearch"
             />
           </a-form-item>
 
           <a-form-item>
             <a-space>
               <a-button type="primary" @click="handleSearch">
-                <template #icon>
-                  <SearchOutlined/>
-                </template>
+                <template #icon><SearchOutlined /></template>
                 查询
               </a-button>
               <a-button @click="handleReset">
-                <template #icon>
-                  <ReloadOutlined/>
-                </template>
+                <template #icon><ReloadOutlined /></template>
                 重置
               </a-button>
             </a-space>
@@ -71,25 +67,19 @@
       <div class="action-section">
         <a-space>
           <a-button type="primary" @click="handleAdd">
-            <template #icon>
-              <PlusOutlined/>
-            </template>
+            <template #icon><PlusOutlined /></template>
             单条录入
           </a-button>
           <a-button @click="handleImport">
-            <template #icon>
-              <UploadOutlined/>
-            </template>
+            <template #icon><UploadOutlined /></template>
             批量导入
           </a-button>
           <a-button
-              :disabled="!filterForm.courseId"
-              :loading="loading.export"
-              @click="handleExport"
+            @click="handleExport"
+            :disabled="!filterForm.courseId"
+            :loading="loading.export"
           >
-            <template #icon>
-              <DownloadOutlined/>
-            </template>
+            <template #icon><DownloadOutlined /></template>
             导出Excel
           </a-button>
         </a-space>
@@ -97,13 +87,13 @@
 
       <!-- 数据表格 -->
       <a-table
-          :columns="columns"
-          :data-source="dataSource"
-          :loading="loading.table"
-          :pagination="pagination"
-          :scroll="{ x: 1200 }"
-          row-key="id"
-          @change="handleTableChange"
+        :columns="columns"
+        :data-source="dataSource"
+        :loading="loading.table"
+        :pagination="pagination"
+        :scroll="{ x: 1200 }"
+        @change="handleTableChange"
+        row-key="id"
       >
         <template #bodyCell="{ column, record }">
           <!-- 考试类型 -->
@@ -124,10 +114,10 @@
           <!-- 百分比 -->
           <template v-if="column.key === 'percentage'">
             <a-progress
-                :percent="record.percentage"
-                :show-info="true"
-                :status="record.isPass ? 'success' : 'exception'"
-                size="small"
+              :percent="record.percentage"
+              :status="record.isPass ? 'success' : 'exception'"
+              :show-info="true"
+              size="small"
             />
           </template>
 
@@ -141,16 +131,16 @@
           <!-- 操作 -->
           <template v-if="column.key === 'action'">
             <a-space>
-              <a-button size="small" type="link" @click="handleEdit(record)">
+              <a-button type="link" size="small" @click="handleEdit(record)">
                 编辑
               </a-button>
               <a-popconfirm
-                  cancel-text="取消"
-                  ok-text="确定"
-                  title="确定要删除这条成绩吗?"
-                  @confirm="handleDelete(record)"
+                title="确定要删除这条成绩吗?"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="handleDelete(record)"
               >
-                <a-button danger size="small" type="link">
+                <a-button type="link" size="small" danger>
                   删除
                 </a-button>
               </a-popconfirm>
@@ -162,46 +152,46 @@
 
     <!-- 编辑对话框 -->
     <a-modal
-        v-model:open="editModal.visible"
-        :confirm-loading="editModal.loading"
-        title="编辑成绩"
-        @cancel="handleEditCancel"
-        @ok="handleEditSubmit"
+      v-model:open="editModal.visible"
+      title="编辑成绩"
+      @ok="handleEditSubmit"
+      @cancel="handleEditCancel"
+      :confirm-loading="editModal.loading"
     >
       <a-form :model="editModal.form" layout="vertical">
         <a-form-item label="分数">
           <a-input-number
-              v-model:value="editModal.form.score"
-              :max="editModal.form.fullScore"
-              :min="0"
-              :precision="1"
-              style="width: 100%"
+            v-model:value="editModal.form.score"
+            :min="0"
+            :max="editModal.form.fullScore"
+            :precision="1"
+            style="width: 100%"
           />
         </a-form-item>
         <a-form-item label="满分">
           <a-input-number
-              v-model:value="editModal.form.fullScore"
-              :min="1"
-              :precision="0"
-              style="width: 100%"
+            v-model:value="editModal.form.fullScore"
+            :min="1"
+            :precision="0"
+            style="width: 100%"
           />
         </a-form-item>
         <a-form-item label="权重">
           <a-input-number
-              v-model:value="editModal.form.weight"
-              :max="10"
-              :min="0"
-              :precision="2"
-              :step="0.1"
-              style="width: 100%"
+            v-model:value="editModal.form.weight"
+            :min="0"
+            :max="10"
+            :precision="2"
+            :step="0.1"
+            style="width: 100%"
           />
         </a-form-item>
         <a-form-item label="备注">
           <a-textarea
-              v-model:value="editModal.form.remark"
-              :maxlength="255"
-              :rows="3"
-              show-count
+            v-model:value="editModal.form.remark"
+            :rows="3"
+            :maxlength="255"
+            show-count
           />
         </a-form-item>
       </a-form>
@@ -209,13 +199,19 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue'
-import {message} from 'ant-design-vue'
-import {useRouter} from 'vue-router'
-import {DownloadOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, UploadOutlined} from '@ant-design/icons-vue'
-import {gradeApiGet, gradeApiIntGradeIdDelete, gradeApiIntGradeIdPut} from '@/api/gradeController'
-import type {API} from '@/api/typings'
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { message } from 'ant-design-vue'
+import { useRouter } from 'vue-router'
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  PlusOutlined,
+  UploadOutlined,
+  DownloadOutlined
+} from '@ant-design/icons-vue'
+import { gradeApiGet, gradeApiIntGradeIdPut, gradeApiIntGradeIdDelete } from '@/api/gradeController'
+import type { API } from '@/api/typings'
 
 const router = useRouter()
 
@@ -262,17 +258,17 @@ const editModal = reactive({
 
 // 表格列定义
 const columns = [
-  {title: '学号', dataIndex: 'studentCode', key: 'studentCode', width: 120, fixed: 'left'},
-  {title: '姓名', dataIndex: 'studentName', key: 'studentName', width: 100, fixed: 'left'},
-  {title: '课程', dataIndex: 'courseName', key: 'courseName', width: 150},
-  {title: '考试类型', key: 'examType', width: 100},
-  {title: '考试名称', dataIndex: 'examName', key: 'examName', width: 150, ellipsis: true},
-  {title: '分数', key: 'score', width: 100},
-  {title: '百分比', key: 'percentage', width: 150},
-  {title: '是否及格', key: 'isPass', width: 100},
-  {title: '考试日期', dataIndex: 'examDate', key: 'examDate', width: 120},
-  {title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true},
-  {title: '操作', key: 'action', width: 150, fixed: 'right'}
+  { title: '学号', dataIndex: 'studentCode', key: 'studentCode', width: 120, fixed: 'left' },
+  { title: '姓名', dataIndex: 'studentName', key: 'studentName', width: 100, fixed: 'left' },
+  { title: '课程', dataIndex: 'courseName', key: 'courseName', width: 150 },
+  { title: '考试类型', key: 'examType', width: 100 },
+  { title: '考试名称', dataIndex: 'examName', key: 'examName', width: 150, ellipsis: true },
+  { title: '分数', key: 'score', width: 100 },
+  { title: '百分比', key: 'percentage', width: 150 },
+  { title: '是否及格', key: 'isPass', width: 100 },
+  { title: '考试日期', dataIndex: 'examDate', key: 'examDate', width: 120 },
+  { title: '备注', dataIndex: 'remark', key: 'remark', ellipsis: true },
+  { title: '操作', key: 'action', width: 150, fixed: 'right' }
 ]
 
 // 获取考试类型颜色
@@ -301,15 +297,15 @@ const getExamTypeText = (type: string) => {
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
-
+    
     if (!response.ok) {
       throw new Error('加载课程列表失败')
     }
-
+    
     courses.value = await response.json()
   } catch (error: any) {
     message.error(error.message || '加载课程列表失败')
@@ -332,10 +328,10 @@ const loadGrades = async () => {
     console.log('📤 请求参数:', params)
     const response = await gradeApiGet(params)
     console.log('📥 响应数据:', response)
-
+    
     // 从axios响应中提取实际数据
     const data = response.data || response
-
+    
     // 转换字段名:下划线 -> 驼峰
     const grades = (data.grades || []).map((grade: any) => ({
       id: grade.id,
@@ -352,10 +348,10 @@ const loadGrades = async () => {
       examDate: grade.exam_date,
       remark: grade.remark
     }))
-
+    
     dataSource.value = grades
     pagination.total = data.total || 0
-
+    
     console.log('📊 数据源:', dataSource.value)
     console.log('📈 总数:', pagination.total)
   } catch (error: any) {
@@ -420,11 +416,11 @@ const handleExport = async () => {
     }
 
     const response = await fetch(
-        `http://localhost:5000/api/v1/grades/export?${params.toString()}`,
-        {
-          method: 'GET',
-          credentials: 'include'
-        }
+      `http://localhost:5030/api/v1/grades/export?${params.toString()}`,
+      {
+        method: 'GET',
+        credentials: 'include'
+      }
     )
 
     if (!response.ok) {
@@ -464,8 +460,8 @@ const handleEditSubmit = async () => {
   editModal.loading = true
   try {
     await gradeApiIntGradeIdPut(
-        {grade_id: editModal.id},
-        editModal.form
+      { grade_id: editModal.id },
+      editModal.form
     )
 
     message.success('修改成功')
@@ -492,8 +488,8 @@ const handleEditCancel = () => {
 // 删除
 const handleDelete = async (record: any) => {
   try {
-    await gradeApiIntGradeIdDelete({grade_id: record.id})
-
+    await gradeApiIntGradeIdDelete({ grade_id: record.id })
+    
     message.success('删除成功')
     loadGrades()
   } catch (error: any) {
@@ -514,7 +510,7 @@ onMounted(() => {
 })
 </script>
 
-<style lang="less" scoped>
+<style scoped lang="less">
 .grade-list-page {
   padding: 24px;
   background: #f0f2f5;
