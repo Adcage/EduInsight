@@ -297,7 +297,7 @@ const getExamTypeText = (type: string) => {
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
@@ -416,7 +416,7 @@ const handleExport = async () => {
     }
 
     const response = await fetch(
-      `http://localhost:5000/api/v1/grades/export?${params.toString()}`,
+      `http://localhost:5030/api/v1/grades/export?${params.toString()}`,
       {
         method: 'GET',
         credentials: 'include'

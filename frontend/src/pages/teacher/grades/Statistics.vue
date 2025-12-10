@@ -256,7 +256,7 @@ let trendChart: ECharts | null = null
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
@@ -284,7 +284,7 @@ const handleCourseChange = async () => {
   try {
     // 获取课程的班级列表
     const response = await fetch(
-      `http://localhost:5000/api/v1/grades/course-students?courseId=${filterForm.courseId}`,
+      `http://localhost:5030/api/v1/grades/course-students?courseId=${filterForm.courseId}`,
       {
         method: 'GET',
         credentials: 'include'

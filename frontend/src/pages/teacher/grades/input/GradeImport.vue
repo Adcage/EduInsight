@@ -356,7 +356,7 @@ const filterOption = (input: string, option: any) => {
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
@@ -381,7 +381,7 @@ const handleDownloadTemplate = async () => {
     
     // 调用下载模板API
     const response = await fetch(
-      `http://localhost:5000/api/v1/grades/template?courseName=${encodeURIComponent(courseName)}`,
+      `http://localhost:5030/api/v1/grades/template?courseName=${encodeURIComponent(courseName)}`,
       {
         method: 'GET',
         credentials: 'include'
@@ -448,7 +448,7 @@ const handleParseFile = async () => {
     formData.append('file', file)
     formData.append('courseId', String(formState.courseId))
     
-    const response = await fetch('http://localhost:5000/api/v1/grades/parse-excel', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/parse-excel', {
       method: 'POST',
       credentials: 'include',
       body: formData
@@ -494,7 +494,7 @@ const handleImport = async () => {
     formData.append('fullScore', String(formState.fullScore))
     formData.append('weight', String(formState.weight))
 
-    const response = await fetch('http://localhost:5000/api/v1/grades/import', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/import', {
       method: 'POST',
       credentials: 'include',
       body: formData

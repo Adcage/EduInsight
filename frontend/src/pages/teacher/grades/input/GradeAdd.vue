@@ -216,7 +216,7 @@ const filterOption = (input: string, option: any) => {
 const loadCourses = async () => {
   loading.courses = true
   try {
-    const response = await fetch('http://localhost:5000/api/v1/grades/teacher-courses', {
+    const response = await fetch('http://localhost:5030/api/v1/grades/teacher-courses', {
       method: 'GET',
       credentials: 'include'
     })
@@ -243,7 +243,7 @@ const handleCourseChange = async (courseId: number) => {
   loading.students = true
   try {
     const response = await fetch(
-      `http://localhost:5000/api/v1/grades/course-students?courseId=${courseId}`,
+      `http://localhost:5030/api/v1/grades/course-students?courseId=${courseId}`,
       {
         method: 'GET',
         credentials: 'include'

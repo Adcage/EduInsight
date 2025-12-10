@@ -63,8 +63,8 @@ class Course(BaseModel):
     # 一对多：课程的考勤
     attendances = db.relationship('Attendance', backref='course', lazy='dynamic', foreign_keys='Attendance.course_id', cascade='all, delete-orphan')
     
-    # 一对多：课程的成绩（暂时注释，需要添加外键）
-    # grades = db.relationship('Grade', backref='course', lazy='dynamic', foreign_keys='Grade.course_id', cascade='all, delete-orphan')
+    # 一对多：课程的成绩
+    grades = db.relationship('Grade', backref='course', lazy='dynamic', foreign_keys='Grade.course_id', cascade='all, delete-orphan')
     
     # 一对多：课程的投票（暂时注释，需要添加外键）
     # polls = db.relationship('Poll', backref='course', lazy='dynamic', foreign_keys='Poll.course_id', cascade='all, delete-orphan')
