@@ -6,9 +6,9 @@ from enum import Enum
 
 class UserRole(Enum):
     """用户角色枚举"""
-    ADMIN = 'admin'
-    TEACHER = 'teacher'
-    STUDENT = 'student'
+    ADMIN = 'ADMIN'
+    TEACHER = 'TEACHER'
+    STUDENT = 'STUDENT'
 
 class User(BaseModel):
     """用户模型"""

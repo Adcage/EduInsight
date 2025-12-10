@@ -5,9 +5,9 @@ from app.schemas.base_schemas import CamelCaseModel
 
 class UserRoleEnum(str, Enum):
     """用户角色枚举"""
-    ADMIN = 'admin'
-    TEACHER = 'teacher'
-    STUDENT = 'student'
+    ADMIN = 'ADMIN'
+    TEACHER = 'TEACHER'
+    STUDENT = 'STUDENT'
 
 class UserRegisterModel(CamelCaseModel):
     """用户注册请求模型"""
@@ -19,6 +19,14 @@ class UserRegisterModel(CamelCaseModel):
     role: UserRoleEnum = Field(UserRoleEnum.STUDENT, description="用户角色")
     phone: Optional[str] = Field(None, description="手机号码", max_length=20)
     class_id: Optional[int] = Field(None, description="班级ID（学生角色时使用）", ge=1)
+    
+    @validator('role', pre=True)
+    def normalize_role(cls, v):
+        """标准化角色值，兼容大小写"""
+        if isinstance(v, str):
+            # 转换为大写以匹配枚举值
+            return v.upper()
+        return v
     
     @validator('username')
     def validate_username(cls, v):
@@ -112,6 +120,22 @@ class UserResponseModel(CamelCaseModel):
     last_login_time: Optional[str] = Field(None, description="最后登录时间")
     created_at: str = Field(..., description="创建时间")
     updated_at: str = Field(..., description="更新时间")
+    
+    @validator('role', pre=True)
+    def convert_role_enum(cls, v):
+        """转换UserRole枚举为字符串"""
+        from app.models.user import UserRole
+        if isinstance(v, UserRole):
+            return v.value
+        return v
+    
+    @validator('created_at', 'updated_at', 'last_login_time', pre=True)
+    def convert_datetime(cls, v):
+        """转换datetime为字符串"""
+        from datetime import datetime
+        if isinstance(v, datetime):
+            return v.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return v
 
 class UserListResponseModel(CamelCaseModel):
     """用户列表响应模型"""
@@ -175,6 +199,14 @@ class UserCreateModel(CamelCaseModel):
     role: UserRoleEnum = Field(..., description="用户角色")
     phone: Optional[str] = Field(None, description="手机号码", max_length=20)
     class_id: Optional[int] = Field(None, description="班级ID(学生角色时使用)", ge=1)
+    
+    @validator('role', pre=True)
+    def normalize_role(cls, v):
+        """标准化角色值，兼容大小写"""
+        if isinstance(v, str):
+            # 转换为大写以匹配枚举值
+            return v.upper()
+        return v
     
     @validator('username')
     def validate_username(cls, v):

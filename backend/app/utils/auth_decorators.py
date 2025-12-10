@@ -59,7 +59,9 @@ def role_required(*allowed_roles: UserRole):
             
             # 将字符串角色转换为枚举进行比较
             try:
-                current_role = UserRole(user_role)
+                # 兼容大小写，统一转换为大写
+                user_role_upper = user_role.upper() if isinstance(user_role, str) else user_role
+                current_role = UserRole(user_role_upper)
                 if current_role not in allowed_roles:
                     logger.warning(f"Access denied for user {session.get('username')} with role {user_role}")
                     return jsonify({

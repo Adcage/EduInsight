@@ -45,13 +45,14 @@ class UserService:
             email=user_data.email,
             real_name=user_data.real_name,
             phone=user_data.phone,
-            role=user_data.role,
+            role=UserRole(user_data.role.value),  # 转换 UserRoleEnum 到 UserRole
             class_id=user_data.class_id
         )
         user.set_password(user_data.password)
         
         db.session.add(user)
         db.session.commit()
+        db.session.refresh(user)  # 刷新对象以获取数据库生成的字段
         return user
     
     @staticmethod
@@ -163,8 +164,8 @@ class UserService:
             for index, row in df.iterrows():
                 try:
                     # 验证角色
-                    role_str = str(row['role']).lower()
-                    if role_str not in ['admin', 'teacher', 'student']:
+                    role_str = str(row['role']).upper()
+                    if role_str not in ['ADMIN', 'TEACHER', 'STUDENT']:
                         failed_count += 1
                         errors.append(f"第{index + 2}行: 无效的角色 '{row['role']}'")
                         continue

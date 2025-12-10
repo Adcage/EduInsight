@@ -327,6 +327,7 @@ class UserAPI:
             }, 200
             
         except ValueError as e:
+            logger.error(str(e))
             return {
                 'message': str(e),
                 'error_code': 'CREATE_USER_FAILED'
