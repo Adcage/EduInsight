@@ -146,7 +146,7 @@ def create_users():
             username=username,
             user_code=user_code,
             email=email,
-            password_hash=generate_password_hash(' '),
+            password_hash=generate_password_hash('password123'),
             real_name=real_name,
             role=UserRole.TEACHER,
             status=True

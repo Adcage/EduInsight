@@ -3,7 +3,7 @@
 """
 from flask_socketio import emit, join_room, leave_room, disconnect
 from flask import request
-from app.websocket import socketio
+from app.extensions import socketio
 from app.utils.auth_decorators import verify_token
 import logging
 

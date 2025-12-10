@@ -12,6 +12,10 @@ from app.api.attendance_api import attendance_api_bp
 from app.api.student_attendance_api import student_attendance_api_bp
 from app.api.course_api import course_api_bp
 from app.api.class_api import class_api_bp
+from app.api.poll_api import poll_api_bp
+from app.api.question_api import question_api_bp
+from app.api.barrage_api import barrage_api_bp
+from app.api.interaction_common_api import interaction_common_bp
 
 # 所有API蓝图列表
 __all__ = [

@@ -2,7 +2,8 @@ from flask_openapi3 import APIBlueprint, Tag, FileStorage
 from app.schemas.user_schemas import (
     UserUpdateModel, UserResponseModel, UserListResponseModel, 
     UserPathModel, UserQueryModel, MessageResponseModel, UserStatsModel,
-    UserCreateModel, BatchDeleteModel, BatchImportResponseModel
+    UserCreateModel, BatchDeleteModel, BatchImportResponseModel,
+    FaceImageUploadModel
 )
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService

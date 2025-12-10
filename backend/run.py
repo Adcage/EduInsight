@@ -13,7 +13,7 @@ config_name = os.environ.get('FLASK_ENV', 'development')
 app = create_app(config_name)
 
 # 获取socketio实例（在create_app中已经初始化）
-from app.websocket import socketio
+from app.extensions import socketio
 
 if __name__ == '__main__':
     # 使用socketio.run启动服务器以支持WebSocket

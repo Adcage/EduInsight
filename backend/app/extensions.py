@@ -1,9 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
+from flask_socketio import SocketIO
+
 # 初始化扩展
 db = SQLAlchemy()
 cors = CORS()
+socketio = SocketIO()
 
 def init_extensions(app):
     """初始化所有扩展"""
@@ -14,9 +17,14 @@ def init_extensions(app):
                   allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
                   methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
                   expose_headers=['Content-Type', 'X-Total-Count'])
-                  origins=app.config['CORS_ORIGINS'])
 
     # 初始化WebSocket
-    from app.websocket import init_socketio
-    socketio = init_socketio(app)
+    socketio.init_app(app, 
+                     cors_allowed_origins=app.config['CORS_ORIGINS'],
+                     async_mode='eventlet')
+    
+    # 注册WebSocket事件
+    from app.websocket import register_socketio_events
+    register_socketio_events()
+    
     return socketio

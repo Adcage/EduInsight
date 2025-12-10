@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from app.extensions import db
 
 class BaseModel(db.Model):
@@ -24,11 +25,8 @@ class BaseModel(db.Model):
             if isinstance(value, datetime):
                 result[c.name] = value.strftime('%Y-%m-%d %H:%M:%S')
             # 处理枚举类型 - 转换为枚举的值
-            if isinstance(value, Enum):
+            elif isinstance(value, Enum):
                 result[c.name] = value.value
-            # 自动转换 datetime 为字符串
-            elif isinstance(value, datetime):
-                result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
             else:
                 result[c.name] = value
         return result
