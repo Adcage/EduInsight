@@ -8,13 +8,14 @@ import router from '@/router'
 const getBaseURL = () => {
     // 如果是通过IP访问（非localhost），使用相同的主机地址
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol; // 获取当前协议 (http: 或 https:)
 
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         // 本地开发环境
         return 'http://localhost:5030';
     } else {
-        // 通过IP访问（如手机访问），使用相同的IP
-        return `http://${hostname}:5030`;
+        // 生产环境：使用当前协议和域名（不加端口，由反向代理处理）
+        return `${protocol}//${hostname}`;
     }
 };
 
