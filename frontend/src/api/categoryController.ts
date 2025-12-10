@@ -22,29 +22,29 @@ export async function categoryApiPost(body: API.MaterialCategoryCreateModel, opt
   })
 }
 
-/** 获取分类详情 获取分类详情</br></br>返回指定分类的详细信息。 GET /api/v1/material-categories/${param0} */
+/** 获取分类详情 获取分类详情</br></br>返回指定分类的详细信息。 GET /api/v1/material-categories/${param1} */
 export async function categoryApiIntCategoryIdGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.categoryApiIntCategoryIdGetParams,
   options?: { [key: string]: any }
 ) {
-  const { categoryId: param0, ...queryParams } = params
-  return request<API.MaterialCategoryResponseModel>(`/api/v1/material-categories/${param0}`, {
+  const { categoryId: param0, category_id: param1, ...queryParams } = params
+  return request<API.MaterialCategoryResponseModel>(`/api/v1/material-categories/${param1}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 更新分类 更新分类信息</br></br>可以更新分类名称、描述、父分类和排序序号。</br>只有管理员和教师可以更新分类。 PUT /api/v1/material-categories/${param0} */
+/** 更新分类 更新分类信息</br></br>可以更新分类名称、描述、父分类和排序序号。</br>只有管理员和教师可以更新分类。 PUT /api/v1/material-categories/${param1} */
 export async function categoryApiIntCategoryIdPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.categoryApiIntCategoryIdPutParams,
   body: API.MaterialCategoryUpdateModel,
   options?: { [key: string]: any }
 ) {
-  const { categoryId: param0, ...queryParams } = params
-  return request<API.MaterialCategoryResponseModel>(`/api/v1/material-categories/${param0}`, {
+  const { categoryId: param0, category_id: param1, ...queryParams } = params
+  return request<API.MaterialCategoryResponseModel>(`/api/v1/material-categories/${param1}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -55,28 +55,28 @@ export async function categoryApiIntCategoryIdPut(
   })
 }
 
-/** 删除分类 删除分类</br></br>只能删除没有子分类和关联资料的分类。</br>只有管理员和教师可以删除分类。 DELETE /api/v1/material-categories/${param0} */
+/** 删除分类 删除分类</br></br>只能删除没有子分类和关联资料的分类。</br>只有管理员和教师可以删除分类。 DELETE /api/v1/material-categories/${param1} */
 export async function categoryApiIntCategoryIdDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.categoryApiIntCategoryIdDeleteParams,
   options?: { [key: string]: any }
 ) {
-  const { categoryId: param0, ...queryParams } = params
-  return request<API.MessageResponseModel>(`/api/v1/material-categories/${param0}`, {
+  const { categoryId: param0, category_id: param1, ...queryParams } = params
+  return request<API.MessageResponseModel>(`/api/v1/material-categories/${param1}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
   })
 }
 
-/** 获取子分类 获取子分类</br></br>返回指定分类的所有直接子分类。 GET /api/v1/material-categories/${param0}/children */
+/** 获取子分类 获取子分类</br></br>返回指定分类的所有直接子分类。 GET /api/v1/material-categories/${param1}/children */
 export async function categoryApiIntCategoryIdChildrenGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.categoryApiIntCategoryIdChildrenGetParams,
   options?: { [key: string]: any }
 ) {
-  const { categoryId: param0, ...queryParams } = params
-  return request<any>(`/api/v1/material-categories/${param0}/children`, {
+  const { categoryId: param0, category_id: param1, ...queryParams } = params
+  return request<any>(`/api/v1/material-categories/${param1}/children`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),

@@ -8,6 +8,12 @@ import * as categoryController from './categoryController'
 import * as tagController from './tagController'
 import * as materialController from './materialController'
 import * as classificationController from './classificationController'
+import * as gradeController from './gradeController'
+import * as categoryController from './categoryController'
+import * as tagController from './tagController'
+import * as materialController from './materialController'
+import * as predictionController from './predictionController'
+import * as statisticsController from './statisticsController'
 import * as userController from './userController'
 export default {
   authController,
@@ -16,5 +22,11 @@ export default {
   tagController,
   materialController,
   classificationController,
+  gradeController,
+  categoryController,
+  tagController,
+  materialController,
+  predictionController,
+  statisticsController,
   userController,
 }

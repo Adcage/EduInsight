@@ -26,7 +26,13 @@ from .attendance import (
 # 成绩管理模块
 from .grade import (
     Grade, GradeStatistics, GradePrediction,
-    ExamType, RiskLevel
+    ExamType
+)
+
+# 预警预测模块
+from .prediction import (
+    Prediction, Intervention, PredictionConfig,
+    RiskLevel, InterventionType, PredictFrequency, PredictTrigger
 )
 
 # 课堂互动模块
@@ -63,7 +69,11 @@ __all__ = [
     
     # 成绩管理
     'Grade', 'GradeStatistics', 'GradePrediction',
-    'ExamType', 'RiskLevel',
+    'ExamType',
+    
+    # 预警预测
+    'Prediction', 'Intervention', 'PredictionConfig',
+    'RiskLevel', 'InterventionType', 'PredictFrequency', 'PredictTrigger',
     
     # 课堂互动
     'Poll', 'PollResponse', 'Question', 'QuestionAnswer', 'Barrage',
