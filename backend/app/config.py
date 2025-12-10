@@ -19,26 +19,8 @@ class Config:
     }
     
     # CORS配置
-    # 开发环境允许所有来源（支持手机访问）
-    # CORS配置
-    # 从环境变量获取允许的来源，如果是逗号分隔的字符串则转为列表
-    # 如果未设置，则默认允许本地开发地址和生产域名
-    _cors_origins_env = os.environ.get('CORS_ORIGINS')
-    if _cors_origins_env:
-        if _cors_origins_env == '*':
-            CORS_ORIGINS = '*'
-        else:
-            CORS_ORIGINS = [origin.strip() for origin in _cors_origins_env.split(',')]
-    else:
-        CORS_ORIGINS = [
-            'http://localhost:5173',
-            'http://127.0.0.1:5173',
-            'http://localhost:5174',
-            'http://127.0.0.1:5174',
-            'http://adcage.icu',
-            'http://www.adcage.icu'
-        ]
-    
+    # 如果未设置,则默认允许本地开发地址和生产域名
+    CORS_ORIGINS = '*'
     # Session配置
     PERMANENT_SESSION_LIFETIME = 86400 * 7  # 7天
     SESSION_COOKIE_SECURE = False  # 开发环境设为False，生产环境应设为True
