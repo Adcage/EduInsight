@@ -249,16 +249,38 @@ const handleUpload = async () => {
   uploading.value = true
   
   try {
+    // 调试：查看 Base64 数据格式
+    console.log('准备上传的数据长度:', previewUrl.value.length)
+    console.log('Base64 前缀:', previewUrl.value.substring(0, 50))
+    
     const response = await userApiUploadFaceImage({
       faceImageBase64: previewUrl.value
     })
     
-    if (response) {
-      message.success('人脸照片上传成功！')
+    // 提取响应数据
+    const data = response?.data || response
+    
+    if (data) {
+      message.success(data.message || '人脸照片上传成功！')
+      // 清空预览
+      previewUrl.value = ''
     }
   } catch (error: any) {
-    console.error('上传失败:', error)
-    message.error(error.message || '上传失败，请重试')
+    console.error('上传失败 - 完整错误:', error)
+    console.error('错误响应:', error.response)
+    console.error('错误数据:', error.response?.data)
+    console.error('错误状态:', error.response?.status)
+    
+    // 提取详细错误信息
+    let errorMsg = '上传失败，请重试'
+    
+    if (error.response?.data) {
+      errorMsg = error.response.data.message || error.response.data.error_code || errorMsg
+    } else if (error.message) {
+      errorMsg = error.message
+    }
+    
+    message.error(errorMsg)
   } finally {
     uploading.value = false
   }

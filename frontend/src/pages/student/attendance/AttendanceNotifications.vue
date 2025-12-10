@@ -18,11 +18,15 @@
         </a-tab-pane>
         <a-tab-pane key="pending" tab="待开始" />
         <a-tab-pane key="ended" tab="已结束" />
+        <a-tab-pane key="statistics" tab="数据统计" />
       </a-tabs>
     </div>
 
+    <!-- 数据统计Tab -->
+    <StudentStatistics v-if="activeTab === 'statistics'" />
+
     <!-- 加载状态 -->
-    <div v-if="loading" class="loading-container">
+    <div v-else-if="loading" class="loading-container">
       <a-spin size="large" tip="加载中..." />
     </div>
 
@@ -80,6 +84,7 @@ import { InboxOutlined } from '@ant-design/icons-vue'
 import AttendanceNotificationCard from './components/AttendanceNotificationCard.vue'
 import CheckInModal from './components/CheckInModal.vue'
 import WebSocketDebug from '@/components/WebSocketDebug.vue'
+import StudentStatistics from './StudentStatistics.vue'
 import { 
   getStudentAttendances, 
   type StudentAttendanceNotification,
@@ -117,14 +122,15 @@ const fetchAttendances = async () => {
     }
     
     // 根据标签页筛选状态
-    if (activeTab.value !== 'all') {
+    if (activeTab.value !== 'all' && activeTab.value !== 'statistics') {
       params.status = activeTab.value
     }
     
     const response = await getStudentAttendances(params)
+    const res = (response as any).data ? (response as any).data : response;
     
-    attendances.value = response.attendances || []
-    total.value = response.total || 0
+    attendances.value = res.attendances || []
+    total.value = res.total || 0
     
   } catch (error: any) {
     console.error('获取签到通知失败:', error)
@@ -138,7 +144,11 @@ const fetchAttendances = async () => {
 const handleTabChange = (key: string) => {
   activeTab.value = key
   currentPage.value = 1
-  fetchAttendances()
+  
+  // 如果切换到数据统计标签页，不需要加载签到通知列表
+  if (key !== 'statistics') {
+    fetchAttendances()
+  }
 }
 
 // 处理分页变化

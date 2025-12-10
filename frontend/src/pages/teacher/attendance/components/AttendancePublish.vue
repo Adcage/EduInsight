@@ -432,9 +432,6 @@ import {
 } from '@ant-design/icons-vue';
 import QRCode from 'qrcode';
 
-// Mock Data Imports
-import { MOCK_CLASSES } from '../mock';
-
 // Configure AMap Security Key
 (window as any)._AMapSecurityConfig = {
   securityJsCode: 'aacf0ee3cacbae04e8c60a4169eb6f9c',
@@ -463,10 +460,11 @@ const fetchCourseClasses = async (courseId: number) => {
   try {
     loading.value = true;
     const response = await getCourseClasses(courseId);
-    console.log('API Response:', response); // 调试日志
+    const res = (response as any).data ? (response as any).data : response;
+    console.log('API Response:', res); // 调试日志
     
-    if (response && response.classes && Array.isArray(response.classes)) {
-      classList.value = response.classes.map(cls => ({
+    if (res && res.classes && Array.isArray(res.classes)) {
+      classList.value = res.classes.map((cls: any) => ({
         id: (cls.classId || cls.class_id) as number,
         name: (cls.className || cls.class_name) as string,
         studentCount: (cls.studentCount || cls.student_count) as number,
@@ -474,7 +472,7 @@ const fetchCourseClasses = async (courseId: number) => {
       }));
       console.log('Mapped classList:', classList.value); // 调试日志
     } else {
-      console.warn('Invalid response structure:', response);
+      console.warn('Invalid response structure:', res);
       classList.value = [];
     }
   } catch (error) {
@@ -486,14 +484,29 @@ const fetchCourseClasses = async (courseId: number) => {
   }
 };
 
-// 当课程ID变化时获取班级
+// 监听 availableClasses 变化，优先使用 props 传入的数据
+watch(() => props.availableClasses, (newVal) => {
+  if (newVal && newVal.length > 0) {
+    classList.value = newVal.map(cls => ({
+      id: cls.classId,
+      name: cls.className,
+      studentCount: cls.studentCount,
+      selected: false
+    }));
+  } else if (props.courseId) {
+    // 如果没有传入 availableClasses，尝试自己获取
+    fetchCourseClasses(props.courseId);
+  }
+}, { immediate: true, deep: true });
+
+// 当课程ID变化时获取班级（仅当没有 availableClasses 时）
 watch(() => props.courseId, (newVal) => {
-  if (newVal) {
+  if (newVal && (!props.availableClasses || props.availableClasses.length === 0)) {
     fetchCourseClasses(newVal);
-  } else {
+  } else if (!newVal) {
     classList.value = [];
   }
-}, { immediate: true });
+});
 
 const toggleClassSelection = (item: any) => {
   item.selected = !item.selected;
@@ -520,7 +533,10 @@ watch(selectedClasses, async (newClasses) => {
   
   try {
     // 获取所有选中班级的学生
-    const studentPromises = newClasses.map(cls => getClassStudents(cls.id));
+    const studentPromises = newClasses.map(async (cls) => {
+        const response = await getClassStudents(cls.id);
+        return (response as any).data ? (response as any).data : response;
+    });
     const results = await Promise.all(studentPromises);
     
     // 合并所有班级的学生
@@ -532,12 +548,12 @@ watch(selectedClasses, async (newClasses) => {
       selected: boolean;
     }> = [];
     
-    results.forEach((result, index) => {
+    results.forEach((result: any, index) => {
       const currentClass = newClasses[index];
-      if (!currentClass) return;
+      if (!currentClass || !result || !result.students) return;
       
       const classId = currentClass.id;
-      result.students.forEach(student => {
+      result.students.forEach((student: any) => {
         students.push({
           id: student.id,
           name: student.realName || student.real_name || student.username,
@@ -901,13 +917,13 @@ const initMap = () => {
       timeout: 30000,               // 超时时间30秒（给GPS更多时间）
       maximumAge: 0,                // 不使用缓存位置，每次都重新定位
       convert: true,                // 自动转换为高德坐标系
-      needAddress: false,           // 不需要逆地理编码（加快定位速度）
-      extensions: 'all',            // 返回更多信息
-      GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
-      noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+      needAddress: true,            // 需要逆地理编码（返回详细地址）
+      extensions: 'base',           // 返回基本信息
+      GeoLocationFirst: false,      // 不强制优先使用浏览器定位，允许IP定位
+      noIpLocate: 0,                // 允许IP定位（0为允许）
       noGeoLocation: 0,             // 允许使用浏览器定位
       useNative: true,              // 使用浏览器原生定位API
-      zoomToAccuracy: true,         // 定位成功后调整地图视野
+      zoomToAccuracy: false,        // 禁用自动调整地图视野
       buttonPosition: 'RB'          // 定位按钮位置（右下角）
     });
   })
@@ -936,16 +952,16 @@ const locateCurrentPosition = () => {
   console.log('[AttendancePublish] 重新初始化geolocation对象');
   geolocation = new AMapObj.Geolocation({
     enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
-    timeout: 30000,               // 超时时间30秒（给GPS更多时间）
-    maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+    timeout: 10000,               // 超时时间10秒
+    maximumAge: 0,                // 不使用缓存位置
     convert: true,                // 自动转换为高德坐标系
-    needAddress: false,           // 不需要逆地理编码（加快定位速度）
-    extensions: 'all',            // 返回更多信息
-    GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
-    noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+    needAddress: true,            // 需要逆地理编码
+    extensions: 'base',           // 返回基本信息
+    GeoLocationFirst: false,      // 允许IP定位优先（如果GPS不可用）
+    noIpLocate: 0,                // 允许IP定位
     noGeoLocation: 0,             // 允许使用浏览器定位
     useNative: true,              // 使用浏览器原生定位API
-    zoomToAccuracy: true,         // 定位成功后调整地图视野
+    zoomToAccuracy: false,        // 禁用自动调整地图视野
     buttonPosition: 'RB'          // 定位按钮位置（右下角）
   });
   
@@ -969,6 +985,10 @@ const locateCurrentPosition = () => {
       console.log('[AttendancePublish] ================================');
       
       handleMapClick(result.position);
+      // 手动设置合适的缩放级别，防止过大
+      if (map) {
+        map.setZoom(17);
+      }
       
       // 根据精度给出提示
       const accuracy = result.accuracy ? Math.round(result.accuracy) : null;

@@ -8,7 +8,9 @@ from app.schemas.attendance_schemas import (
     AttendanceQueryModel, AttendancePathModel, AttendanceRecordListResponseModel,
     AttendanceRecordUpdateModel, AttendanceRecordPathModel, AttendanceRecordResponseModel,
     QRCodeGenerateRequestModel, QRCodeGenerateResponseModel, QRCodeVerifyModel,
-    FaceVerificationModel, FaceVerificationResponseModel
+    FaceVerificationModel, FaceVerificationResponseModel,
+    CourseAttendanceStatisticsResponseModel, CoursePathModel,
+    StudentAttendanceStatisticsResponseModel
 )
 from app.schemas.common_schemas import MessageResponseModel
 from app.services.attendance_service import AttendanceService
@@ -846,4 +848,93 @@ class AttendanceAPI:
                 'similarity': 0.0,
                 'message': f'人脸验证失败: {str(e)}',
                 'has_face_image': False
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.get('/courses/<int:course_id>/statistics',
+                          summary="获取课程考勤统计",
+                          tags=[attendance_tag],
+                          responses={200: CourseAttendanceStatisticsResponseModel, 400: MessageResponseModel})
+    @login_required
+    @teacher_or_admin_required
+    @log_user_action("获取课程考勤统计")
+    def get_course_statistics(path: CoursePathModel):
+        """
+        获取指定课程的考勤统计数据
+        
+        返回数据包括：
+        - 总体统计：签到人次、全勤学生、预警学生、平均出勤率
+        - 日期统计：最近7天的考勤趋势
+        - 方式统计：各种考勤方式的使用次数
+        - 学生列表：全勤学生和预警学生
+        """
+        try:
+            AttendanceAPI.log_request("GET_COURSE_STATISTICS")
+            
+            # 从路径参数模型获取 course_id
+            course_id = path.course_id
+            
+            # 调用服务层获取统计数据
+            statistics = AttendanceService.get_course_statistics(course_id)
+            
+            return statistics, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e),
+                'error_code': 'VALIDATION_ERROR'
+            }, 400
+        except Exception as e:
+            logger.error(f"Error getting course statistics: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {
+                'message': '获取统计数据失败',
+                'error_code': 'GET_STATISTICS_ERROR'
+            }, 500
+    
+    @staticmethod
+    @attendance_api_bp.get('/students/statistics',
+                          summary="获取学生考勤统计",
+                          tags=[attendance_tag],
+                          responses={200: StudentAttendanceStatisticsResponseModel, 400: MessageResponseModel})
+    @login_required
+    @student_required
+    @log_user_action("获取学生考勤统计")
+    def get_student_statistics():
+        """
+        获取当前登录学生的考勤统计数据
+        
+        返回数据包括：
+        - 总体统计：总考勤次数、出勤次数、迟到次数、缺勤次数、出勤率
+        - 日期统计：最近30天的考勤趋势
+        - 课程统计：各课程的出勤情况
+        - 最近记录：最近10条考勤记录
+        """
+        try:
+            AttendanceAPI.log_request("GET_STUDENT_STATISTICS")
+            
+            # 获取当前学生ID
+            current_user = get_current_user_info()
+            student_id = current_user['user_id']
+            
+            # 调用服务层获取统计数据
+            statistics = AttendanceService.get_student_statistics(student_id)
+            
+            return statistics, 200
+            
+        except ValueError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return {
+                'message': str(e),
+                'error_code': 'VALIDATION_ERROR'
+            }, 400
+        except Exception as e:
+            logger.error(f"Error getting student statistics: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return {
+                'message': '获取统计数据失败',
+                'error_code': 'GET_STATISTICS_ERROR'
             }, 500

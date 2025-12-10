@@ -28,6 +28,12 @@ const isPublicPage = computed(() => {
          currentPath.value === '/403'
 })
 
+// 判断是否为无布局页面（移动端签到、扫描页面等）
+const isNoLayoutPage = computed(() => {
+  return currentPath.value.startsWith('/attendance/mobile') ||
+         currentPath.value.startsWith('/attendance/scanner')
+})
+
 // 判断是否为教师页面
 const isTeacherPage = computed(() => {
   return currentPath.value.startsWith('/teacher')
@@ -56,7 +62,9 @@ const antdTheme = computed(() => ({
 
 <template>
   <ConfigProvider :theme="antdTheme">
-    <CommonLayout v-if="isPublicPage ?? false" />
+    <!-- 无布局页面（移动端签到等）直接渲染 -->
+    <router-view v-if="isNoLayoutPage ?? false" />
+    <CommonLayout v-else-if="isPublicPage ?? false" />
     <TeacherLayout v-else-if="isTeacherPage ?? false" />
     <StudentLayout v-else-if="isStudentPage ?? false" />
     <AdminLayout v-else-if="isAdminPage ?? false" />

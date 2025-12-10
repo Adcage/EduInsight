@@ -154,7 +154,12 @@ class AttendanceQueryModel(CamelCaseModel):
 
 class AttendancePathModel(CamelCaseModel):
     """考勤路径参数模型"""
-    attendance_id: int = Field(..., description="考勤ID", ge=1)
+    attendance_id: int = Field(..., description="考勤ID", alias="attendanceId")
+
+
+class CoursePathModel(CamelCaseModel):
+    """课程路径参数模型"""
+    course_id: int = Field(..., description="课程ID", alias="courseId")
 
 
 # ==================== 考勤记录 Schema ====================
@@ -277,3 +282,81 @@ class AttendanceStatisticsListResponseModel(CamelCaseModel):
     """考勤统计列表响应模型"""
     statistics: List[AttendanceStatisticsDetailResponseModel] = Field(..., description="统计列表")
     total: int = Field(..., description="统计总数")
+
+
+# ==================== 课程考勤统计 Schema ====================
+
+class DateStatisticsModel(CamelCaseModel):
+    """日期统计模型"""
+    date: str = Field(..., description="日期（ISO格式）")
+    date_display: str = Field(..., description="日期显示（MM/DD）")
+    present: int = Field(..., description="出勤人数")
+    late: int = Field(..., description="迟到人数")
+    absent: int = Field(..., description="缺勤人数")
+
+
+class TypeStatisticsItemModel(CamelCaseModel):
+    """考勤方式统计项模型"""
+    name: str = Field(..., description="考勤方式名称")
+    count: int = Field(..., description="使用次数")
+
+
+class StudentInfoModel(CamelCaseModel):
+    """学生信息模型"""
+    id: int = Field(..., description="学生ID")
+    name: str = Field(..., description="学生姓名")
+    user_code: str = Field(..., description="学号")
+    absent_count: Optional[int] = Field(None, description="缺勤次数（仅预警学生）")
+
+
+class CourseAttendanceStatisticsResponseModel(CamelCaseModel):
+    """课程考勤统计响应模型"""
+    total_check_ins: int = Field(..., description="累计签到人次")
+    present_count: int = Field(..., description="出勤次数")
+    late_count: int = Field(..., description="迟到次数")
+    absent_count: int = Field(..., description="缺勤次数")
+    perfect_attendance_count: int = Field(..., description="全勤学生数")
+    warning_count: int = Field(..., description="预警学生数")
+    attendance_rate: float = Field(..., description="平均出勤率（%）")
+    total_tasks: int = Field(..., description="考勤任务总数")
+    total_students: int = Field(..., description="学生总数")
+    date_statistics: List[DateStatisticsModel] = Field(..., description="日期统计（最近7天）")
+    type_statistics: dict = Field(..., description="考勤方式统计")
+    perfect_attendance_students: List[StudentInfoModel] = Field(..., description="全勤学生列表")
+    warning_students: List[StudentInfoModel] = Field(..., description="预警学生列表")
+
+
+# ==================== 学生考勤统计 Schema ====================
+
+class CourseStatisticsItemModel(CamelCaseModel):
+    """课程统计项模型"""
+    course_id: int = Field(..., description="课程ID")
+    course_name: str = Field(..., description="课程名称")
+    present: int = Field(..., description="出勤次数")
+    late: int = Field(..., description="迟到次数")
+    absent: int = Field(..., description="缺勤次数")
+    total: int = Field(..., description="总考勤次数")
+    attendance_rate: float = Field(..., description="出勤率（%）")
+
+
+class RecentRecordModel(CamelCaseModel):
+    """最近考勤记录模型"""
+    id: int = Field(..., description="记录ID")
+    title: str = Field(..., description="考勤标题")
+    course_name: str = Field(..., description="课程名称")
+    status: str = Field(..., description="签到状态")
+    check_in_time: Optional[str] = Field(None, description="签到时间")
+    created_at: Optional[str] = Field(None, description="创建时间")
+
+
+class StudentAttendanceStatisticsResponseModel(CamelCaseModel):
+    """学生考勤统计响应模型"""
+    total_records: int = Field(..., description="总考勤次数")
+    present_count: int = Field(..., description="出勤次数")
+    late_count: int = Field(..., description="迟到次数")
+    absent_count: int = Field(..., description="缺勤次数")
+    leave_count: int = Field(..., description="请假次数")
+    attendance_rate: float = Field(..., description="出勤率（%）")
+    date_statistics: List[DateStatisticsModel] = Field(..., description="日期统计（最近30天）")
+    course_statistics: List[CourseStatisticsItemModel] = Field(..., description="课程统计")
+    recent_records: List[RecentRecordModel] = Field(..., description="最近考勤记录")

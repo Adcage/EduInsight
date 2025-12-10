@@ -5,7 +5,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/attendance',
     name: 'AttendanceDemo',
-    component: () => import('@/pages/teacher/attendance/AttendanceDemo.vue'),
+    component: () => import('@/pages/teacher/attendance/AttendanceManager.vue'),
     meta: {
       title: '考勤演示',
       requiresAuth: true,
@@ -33,9 +33,9 @@ const routes: Array<RouteRecordRaw> = [
       role: 'student'
     }
   },
-  // 二维码扫描页面
+  // 二维码扫描页面（独立页面，不使用 StudentLayout）
   {
-    path: '/student/attendance/scanner',
+    path: '/attendance/scanner',
     name: 'QRCodeScanner',
     component: () => import('@/pages/student/attendance/QRCodeScanner.vue'),
     meta: {
@@ -43,9 +43,9 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false // 扫码前可能未登录，允许访问
     }
   },
-  // 移动端签到页面
+  // 移动端签到页面（独立页面，不使用 StudentLayout）
   {
-    path: '/student/attendance/mobile',
+    path: '/attendance/mobile',
     name: 'AttendanceMobile',
     component: () => import('@/pages/student/attendance/AttendanceMobile.vue'),
     meta: {

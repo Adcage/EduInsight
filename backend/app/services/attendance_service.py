@@ -1118,3 +1118,430 @@ class AttendanceService:
         distance = R * c
         
         return distance
+    
+    @staticmethod
+    def student_checkin(
+        student_id: int,
+        attendance_id: int,
+        face_image: Optional[str] = None,
+        face_similarity: Optional[float] = None
+    ) -> AttendanceRecord:
+        """
+        学生签到（人脸验证签到）
+        
+        Args:
+            student_id: 学生ID
+            attendance_id: 考勤ID
+            face_image: 人脸图片Base64（可选）
+            face_similarity: 人脸相似度（可选）
+            
+        Returns:
+            更新后的考勤记录
+        """
+        try:
+            # 验证考勤任务是否存在
+            attendance = Attendance.query.get(attendance_id)
+            if not attendance:
+                raise ValueError("考勤任务不存在")
+            
+            # 验证考勤时间
+            from datetime import datetime
+            import pytz
+            
+            # 获取当前本地时间
+            local_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(local_tz)
+            
+            # 确保考勤时间也是本地时区
+            start_time = attendance.start_time
+            end_time = attendance.end_time
+            
+            if start_time.tzinfo is None:
+                start_time = local_tz.localize(start_time)
+            if end_time.tzinfo is None:
+                end_time = local_tz.localize(end_time)
+            
+            # 验证考勤时间
+            if now < start_time:
+                raise ValueError(f"考勤未开始，开始时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            if now > end_time:
+                raise ValueError(f"考勤已结束，结束时间: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            logger.info(f"时间验证通过 - 当前时间: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # 验证学生是否存在
+            student = User.query.get(student_id)
+            if not student or student.role != UserRole.STUDENT:
+                raise ValueError("学生不存在")
+            
+            # 获取考勤记录
+            record = AttendanceRecord.query.filter_by(
+                attendance_id=attendance_id,
+                student_id=student_id
+            ).first()
+            
+            if not record:
+                raise ValueError("未找到该学生的考勤记录，请确认是否在考勤范围内")
+            
+            # 检查是否已经签到
+            if record.status in [CheckInStatus.PRESENT, CheckInStatus.LATE]:
+                raise ValueError("已经签到，请勿重复签到")
+            
+            # 判断是否迟到（开始时间后15分钟为迟到）
+            now_naive = datetime.now()
+            late_threshold = attendance.start_time + timedelta(minutes=15)
+            
+            if now_naive <= late_threshold:
+                record.status = CheckInStatus.PRESENT
+            else:
+                record.status = CheckInStatus.LATE
+            
+            # 记录签到信息
+            record.check_in_time = now_naive
+            record.check_in_method = 'face'
+            
+            # 如果有人脸相似度信息，保存到备注中
+            if face_similarity is not None:
+                record.remarks = f"人脸相似度: {face_similarity:.2%}"
+            
+            db.session.commit()
+            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via face recognition")
+            
+            # WebSocket通知：学生签到成功
+            try:
+                from app.websocket.attendance_events import notify_student_checked_in
+                student_data = {
+                    'id': student.id,
+                    'real_name': student.real_name,
+                    'user_code': student.user_code
+                }
+                record_data = record.to_dict()
+                notify_student_checked_in(attendance_id, student_data, record_data)
+            except Exception as e:
+                logger.error(f"Error sending WebSocket notification: {str(e)}")
+            
+            return record
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in face check-in: {str(e)}")
+            raise
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error in face check-in: {str(e)}")
+            raise
+    
+    @staticmethod
+    def get_course_statistics(course_id: int) -> dict:
+        """
+        获取指定课程的考勤统计数据
+        
+        Args:
+            course_id: 课程ID
+            
+        Returns:
+            统计数据字典
+        """
+        from app.models.course import Course
+        from sqlalchemy import func
+        from datetime import datetime, timedelta
+        
+        try:
+            # 验证课程是否存在
+            course = Course.query.get(course_id)
+            if not course:
+                raise ValueError("课程不存在")
+            
+            # 获取该课程的所有考勤任务
+            attendances = Attendance.query.filter_by(course_id=course_id).all()
+            
+            if not attendances:
+                # 返回空统计数据
+                return {
+                    'total_check_ins': 0,
+                    'present_count': 0,
+                    'late_count': 0,
+                    'absent_count': 0,
+                    'perfect_attendance_count': 0,
+                    'warning_count': 0,
+                    'attendance_rate': 0.0,
+                    'total_tasks': 0,
+                    'total_students': 0,
+                    'date_statistics': [],
+                    'type_statistics': {},
+                    'perfect_attendance_students': [],
+                    'warning_students': []
+                }
+            
+            attendance_ids = [a.id for a in attendances]
+            
+            # 1. 总体统计
+            total_records = AttendanceRecord.query.filter(
+                AttendanceRecord.attendance_id.in_(attendance_ids)
+            ).all()
+            
+            present_count = sum(1 for r in total_records if r.status == CheckInStatus.PRESENT)
+            late_count = sum(1 for r in total_records if r.status == CheckInStatus.LATE)
+            absent_count = sum(1 for r in total_records if r.status == CheckInStatus.ABSENT)
+            total_check_ins = present_count + late_count
+            
+            # 计算平均出勤率
+            total_expected = len(total_records)
+            attendance_rate = (total_check_ins / total_expected * 100) if total_expected > 0 else 0.0
+            
+            # 2. 学生统计
+            # 获取所有学生的考勤记录
+            from collections import defaultdict
+            student_stats = defaultdict(lambda: {'present': 0, 'late': 0, 'absent': 0, 'total': 0})
+            
+            for record in total_records:
+                student_id = record.student_id
+                student_stats[student_id]['total'] += 1
+                if record.status == CheckInStatus.PRESENT:
+                    student_stats[student_id]['present'] += 1
+                elif record.status == CheckInStatus.LATE:
+                    student_stats[student_id]['late'] += 1
+                elif record.status == CheckInStatus.ABSENT:
+                    student_stats[student_id]['absent'] += 1
+            
+            # 全勤学生（出勤+迟到=总次数）
+            perfect_students = []
+            warning_students = []
+            
+            for student_id, stats in student_stats.items():
+                student = User.query.get(student_id)
+                if not student:
+                    continue
+                
+                # 全勤：缺勤次数为0
+                if stats['absent'] == 0 and stats['total'] > 0:
+                    perfect_students.append({
+                        'id': student.id,
+                        'name': student.real_name,
+                        'user_code': student.user_code
+                    })
+                
+                # 预警：缺勤次数>=3
+                if stats['absent'] >= 3:
+                    warning_students.append({
+                        'id': student.id,
+                        'name': student.real_name,
+                        'user_code': student.user_code,
+                        'absent_count': stats['absent']
+                    })
+            
+            # 3. 日期统计（最近7天）
+            today = datetime.now().date()
+            date_stats = []
+            
+            for i in range(6, -1, -1):
+                target_date = today - timedelta(days=i)
+                
+                # 获取该日期的考勤记录
+                day_records = [
+                    r for r in total_records
+                    if r.check_in_time and r.check_in_time.date() == target_date
+                ]
+                
+                day_present = sum(1 for r in day_records if r.status == CheckInStatus.PRESENT)
+                day_late = sum(1 for r in day_records if r.status == CheckInStatus.LATE)
+                day_absent = sum(1 for r in day_records if r.status == CheckInStatus.ABSENT)
+                
+                date_stats.append({
+                    'date': target_date.isoformat(),
+                    'date_display': target_date.strftime('%m/%d'),
+                    'present': day_present,
+                    'late': day_late,
+                    'absent': day_absent
+                })
+            
+            # 4. 考勤方式统计
+            type_stats = defaultdict(lambda: {'name': '', 'count': 0})
+            
+            for record in total_records:
+                if record.check_in_method:
+                    method = record.check_in_method
+                    type_stats[method]['name'] = method
+                    type_stats[method]['count'] += 1
+            
+            # 转换为字典
+            type_statistics = {k: v for k, v in type_stats.items()}
+            
+            # 获取总学生数
+            total_students = len(student_stats)
+            
+            return {
+                'total_check_ins': total_check_ins,
+                'present_count': present_count,
+                'late_count': late_count,
+                'absent_count': absent_count,
+                'perfect_attendance_count': len(perfect_students),
+                'warning_count': len(warning_students),
+                'attendance_rate': round(attendance_rate, 2),
+                'total_tasks': len(attendances),
+                'total_students': total_students,
+                'date_statistics': date_stats,
+                'type_statistics': type_statistics,
+                'perfect_attendance_students': perfect_students,
+                'warning_students': warning_students
+            }
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in get_course_statistics: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"Error in get_course_statistics: {str(e)}")
+            raise
+    
+    @staticmethod
+    def get_student_statistics(student_id: int) -> dict:
+        """
+        获取学生的考勤统计数据
+        
+        Args:
+            student_id: 学生ID
+            
+        Returns:
+            统计数据字典
+        """
+        from app.models.course import Course
+        from datetime import datetime, timedelta
+        from collections import defaultdict
+        
+        try:
+            # 验证学生是否存在
+            student = User.query.get(student_id)
+            if not student or student.role != UserRole.STUDENT:
+                raise ValueError("学生不存在")
+            
+            # 获取该学生的所有考勤记录
+            all_records = AttendanceRecord.query.filter_by(student_id=student_id).all()
+            
+            if not all_records:
+                # 返回空统计数据
+                return {
+                    'total_records': 0,
+                    'present_count': 0,
+                    'late_count': 0,
+                    'absent_count': 0,
+                    'leave_count': 0,
+                    'attendance_rate': 0.0,
+                    'date_statistics': [],
+                    'course_statistics': [],
+                    'recent_records': []
+                }
+            
+            # 1. 总体统计
+            present_count = sum(1 for r in all_records if r.status == CheckInStatus.PRESENT)
+            late_count = sum(1 for r in all_records if r.status == CheckInStatus.LATE)
+            absent_count = sum(1 for r in all_records if r.status == CheckInStatus.ABSENT)
+            leave_count = sum(1 for r in all_records if r.status == CheckInStatus.LEAVE)
+            
+            # 计算出勤率（出勤+迟到）/总数
+            total_records = len(all_records)
+            attendance_rate = ((present_count + late_count) / total_records * 100) if total_records > 0 else 0.0
+            
+            # 2. 日期统计（最近30天）
+            today = datetime.now().date()
+            date_stats = []
+            
+            for i in range(29, -1, -1):
+                target_date = today - timedelta(days=i)
+                
+                # 获取该日期的考勤记录
+                day_records = [
+                    r for r in all_records
+                    if r.check_in_time and r.check_in_time.date() == target_date
+                ]
+                
+                day_present = sum(1 for r in day_records if r.status == CheckInStatus.PRESENT)
+                day_late = sum(1 for r in day_records if r.status == CheckInStatus.LATE)
+                day_absent = sum(1 for r in day_records if r.status == CheckInStatus.ABSENT)
+                
+                date_stats.append({
+                    'date': target_date.isoformat(),
+                    'date_display': target_date.strftime('%m/%d'),
+                    'present': day_present,
+                    'late': day_late,
+                    'absent': day_absent
+                })
+            
+            # 3. 按课程统计
+            course_stats_dict = defaultdict(lambda: {'present': 0, 'late': 0, 'absent': 0, 'total': 0})
+            
+            for record in all_records:
+                attendance = Attendance.query.get(record.attendance_id)
+                if not attendance:
+                    continue
+                
+                course_id = attendance.course_id
+                course_stats_dict[course_id]['total'] += 1
+                
+                if record.status == CheckInStatus.PRESENT:
+                    course_stats_dict[course_id]['present'] += 1
+                elif record.status == CheckInStatus.LATE:
+                    course_stats_dict[course_id]['late'] += 1
+                elif record.status == CheckInStatus.ABSENT:
+                    course_stats_dict[course_id]['absent'] += 1
+            
+            # 转换为列表并添加课程信息
+            course_statistics = []
+            for course_id, stats in course_stats_dict.items():
+                course = Course.query.get(course_id)
+                if not course:
+                    continue
+                
+                total = stats['total']
+                attendance_count = stats['present'] + stats['late']
+                course_rate = (attendance_count / total * 100) if total > 0 else 0.0
+                
+                course_statistics.append({
+                    'course_id': course_id,
+                    'course_name': course.name,
+                    'present': stats['present'],
+                    'late': stats['late'],
+                    'absent': stats['absent'],
+                    'total': total,
+                    'attendance_rate': round(course_rate, 2)
+                })
+            
+            # 按出勤率排序
+            course_statistics.sort(key=lambda x: x['attendance_rate'], reverse=True)
+            
+            # 4. 最近10条考勤记录
+            recent_records_data = sorted(all_records, key=lambda x: x.created_at, reverse=True)[:10]
+            recent_records = []
+            
+            for record in recent_records_data:
+                attendance = Attendance.query.get(record.attendance_id)
+                if not attendance:
+                    continue
+                
+                course = Course.query.get(attendance.course_id)
+                
+                recent_records.append({
+                    'id': record.id,
+                    'title': attendance.title,
+                    'course_name': course.name if course else '未知课程',
+                    'status': record.status.value if hasattr(record.status, 'value') else record.status,
+                    'check_in_time': record.check_in_time.isoformat() if record.check_in_time else None,
+                    'created_at': record.created_at.isoformat() if record.created_at else None
+                })
+            
+            return {
+                'total_records': total_records,
+                'present_count': present_count,
+                'late_count': late_count,
+                'absent_count': absent_count,
+                'leave_count': leave_count,
+                'attendance_rate': round(attendance_rate, 2),
+                'date_statistics': date_stats,
+                'course_statistics': course_statistics,
+                'recent_records': recent_records
+            }
+            
+        except ValueError as e:
+            logger.warning(f"Validation error in get_student_statistics: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"Error in get_student_statistics: {str(e)}")
+            raise

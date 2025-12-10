@@ -436,8 +436,9 @@ const validateStudentId = async () => {
       studentNumber: studentId.value  // 传递学号
     });
     
-    // 保存签到记录
-    checkInRecord.value = result.data;
+    // 保存签到记录 (兼容 AxiosResponse 和直接返回数据)
+    const resData = (result as any).data ? (result as any).data : result;
+    checkInRecord.value = resData.data ? resData.data : resData;
     
     // 签到成功，跳转到成功页面
     currentStep.value = 3;

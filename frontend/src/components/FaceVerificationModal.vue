@@ -311,13 +311,18 @@ const handleVerify = async () => {
       attendanceId: props.attendanceId
     })
     
-    if (response.verified) {
+    // 提取响应数据（Axios 返回的是完整 response 对象）
+    const data = (response as any)?.data || response
+    
+    console.log('人脸验证响应数据:', data)
+    
+    if (data.verified) {
       verificationResult.value = {
         success: true,
         title: '验证成功！',
-        message: response.message || '人脸验证通过',
-        similarity: response.similarity || 0,
-        hasFaceImage: response.hasFaceImage || false
+        message: data.message || '人脸验证通过',
+        similarity: data.similarity || 0,
+        hasFaceImage: data.has_face_image || data.hasFaceImage || false
       }
       message.success('人脸验证成功！')
       currentStep.value = 1
@@ -327,9 +332,9 @@ const handleVerify = async () => {
       verificationResult.value = {
         success: false,
         title: '验证失败',
-        message: response.message || '人脸验证未通过',
-        similarity: response.similarity || 0,
-        hasFaceImage: response.hasFaceImage || false
+        message: data.message || '人脸验证未通过',
+        similarity: data.similarity || 0,
+        hasFaceImage: data.has_face_image || data.hasFaceImage || false
       }
       currentStep.value = 1
     }

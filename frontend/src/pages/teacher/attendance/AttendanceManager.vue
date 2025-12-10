@@ -55,7 +55,7 @@
               v-if="currentCourse"
               :course-id="currentCourse.id"
               :course-name="currentCourse.name"
-              :available-classes="currentCourseClasses"
+              :available-classes="availableClasses"
               @success="handleCreateSuccess"
             />
             <div v-else class="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -84,27 +84,14 @@
 
         <!-- Tab 3: Data Dashboard -->
         <a-tab-pane key="dashboard" tab="数据看板">
-          <div class="p-8">
-             <!-- Placeholder Stats -->
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                 <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                     <div class="text-gray-500 mb-2">累计签到人次</div>
-                     <div class="text-3xl font-bold text-gray-900">1,280</div>
-                 </div>
-                 <div class="bg-green-50 p-6 rounded-xl border border-green-100">
-                     <div class="text-gray-500 mb-2">全勤学生数</div>
-                     <div class="text-3xl font-bold text-gray-900">42</div>
-                 </div>
-                 <div class="bg-red-50 p-6 rounded-xl border border-red-100">
-                     <div class="text-gray-500 mb-2">预警学生数</div>
-                     <div class="text-3xl font-bold text-gray-900">3</div>
-                 </div>
-             </div>
-             
-            <div class="bg-gray-50 rounded-xl p-10 text-center text-gray-500 border border-dashed border-gray-300">
-              <BarChartOutlined class="text-4xl mb-4" />
-              <p>详细数据图表开发中...</p>
-            </div>
+          <AttendanceDashboard 
+            v-if="currentCourse"
+            :course-id="currentCourse.id"
+            ref="dashboardRef"
+          />
+          <div v-else class="flex flex-col items-center justify-center py-20 text-gray-400">
+            <BarChartOutlined class="text-4xl mb-4" />
+            <p>请先在上方选择课程</p>
           </div>
         </a-tab-pane>
       </a-tabs>
@@ -142,7 +129,7 @@ import {
 import AttendanceList from './components/AttendanceList.vue';
 import AttendancePublish from './components/AttendancePublish.vue';
 import AttendanceDetail from './components/AttendanceDetail.vue';
-import { MOCK_TASKS } from './mock';
+import AttendanceDashboard from './components/AttendanceDashboard.vue';
 import type { AttendanceTask } from './types';
 import { getTeacherCourses, getCourseClasses } from '@/api/courseController';
 import { authApiGetLoginuserGet } from '@/api/authController';
@@ -160,6 +147,7 @@ const activeTab = ref('publish');
 const showDetailModal = ref(false);
 const currentTask = ref<AttendanceTask | null>(null);
 const loading = ref(false);
+const dashboardRef = ref<InstanceType<typeof AttendanceDashboard> | null>(null);
 
 // Computed
 const currentCourse = computed(() => 
@@ -175,6 +163,14 @@ const currentCourseClassCount = computed(() => {
 });
 
 const currentCourseTaskCount = computed(() => currentCourseTasks.value.length);
+
+const availableClasses = computed(() => {
+    return currentCourseClasses.value.map(cls => ({
+        classId: cls.classId || cls.class_id || 0,
+        className: cls.className || cls.class_name || '未命名班级',
+        studentCount: cls.studentCount || cls.student_count || 0
+    })).filter(cls => cls.classId !== 0);
+});
 
 // 根据时间计算任务状态
 const calculateTaskStatus = (startTime: string, endTime: string, backendStatus: string): AttendanceTask['status'] => {
@@ -200,10 +196,12 @@ const calculateTaskStatus = (startTime: string, endTime: string, backendStatus: 
 // 加载课程考勤任务
 const loadCourseTasks = async (courseId: number) => {
     try {
-        const res = await getAttendanceList({
+        const response = await getAttendanceList({
             courseId: courseId,
             teacherId: currentUser.value?.id
         });
+        const res = (response as any).data ? (response as any).data : response;
+        
         console.log('API Response:', res);
         // 后端返回的数据直接在根级别，不在data字段中
         if (res && res.attendances) {
@@ -261,7 +259,9 @@ const handleCourseChange = async () => {
     try {
         loading.value = true;
         // 获取课程班级
-        const res = await getCourseClasses(currentCourseId.value);
+        const response = await getCourseClasses(currentCourseId.value);
+        const res = (response as any).data ? (response as any).data : response;
+        
         if (res && res.classes) {
             currentCourseClasses.value = res.classes;
         }
@@ -296,10 +296,14 @@ const loadTeacherCourses = async () => {
     
     try {
         loading.value = true;
-        const res = await getTeacherCourses(currentUser.value.id, {
-            includeStats: true,
-            status: true // 只获取进行中的课程
+        // 尝试获取所有课程，不带筛选条件，以防参数问题
+        // 如果需要筛选，请确保参数名与后端API定义一致
+        const response = await getTeacherCourses(currentUser.value.id, {
+            includeStats: true
         });
+        
+        // 处理 Axios 响应结构，兼容 response.data 或直接返回 data 的情况
+        const res = (response as any).data ? (response as any).data : response;
         
         if (res && res.courses) {
             courses.value = res.courses;
@@ -309,6 +313,8 @@ const loadTeacherCourses = async () => {
                 currentCourseId.value = courses.value[0].id;
                 await handleCourseChange();
             }
+        } else {
+            console.warn('未获取到课程数据', res);
         }
     } catch (error) {
         console.error('获取教师课程失败:', error);
@@ -322,10 +328,14 @@ const loadTeacherCourses = async () => {
 onMounted(async () => {
     try {
         // 获取当前用户信息
-        const res = await authApiGetLoginuserGet() as unknown as API.UserProfileModel;
-        if (res) {
-            currentUser.value = res;
+        const response = await authApiGetLoginuserGet();
+        const res = (response as any).data ? (response as any).data : response;
+        
+        if (res && res.id) {
+            currentUser.value = res as unknown as API.UserProfileModel;
             await loadTeacherCourses();
+        } else {
+            console.warn('未获取到有效用户信息', res);
         }
     } catch (error) {
         console.error('获取用户信息失败:', error);

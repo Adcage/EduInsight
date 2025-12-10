@@ -44,13 +44,23 @@ const teacherRoutes: RouteRecordRaw[] = [
       requiresAuth: true,
       roles: ['teacher']
     }
-  }
+  },
 
   // 教师首页
 
   // 课程管理
 
   // 考勤管理
+  {
+    path: '/teacher/attendance',
+    name: 'TeacherAttendance',
+    component: () => import('@/pages/teacher/attendance/AttendanceManager.vue'),
+    meta: {
+      title: '考勤管理',
+      requiresAuth: true,
+      roles: ['teacher']
+    }
+  },
 
   // 成绩管理
 

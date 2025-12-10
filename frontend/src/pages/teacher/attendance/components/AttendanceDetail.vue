@@ -440,7 +440,8 @@ onMounted(async () => {
     const taskId = Number(props.task.id);
     console.log('Task ID:', taskId);
     if (!isNaN(taskId)) {
-      const res = await getAttendanceRecords(taskId);
+      const response = await getAttendanceRecords(taskId);
+      const res = (response as any).data ? (response as any).data : response;
       console.log('Records API response:', res);
       if (res && res.records) {
         // 转换后端数据格式为前端格式

@@ -15,6 +15,8 @@ from app.utils.auth_decorators import (
 from app.extensions import db
 from werkzeug.utils import secure_filename
 import os
+import base64
+from datetime import datetime
 from sqlalchemy import or_, func
 import logging
 
@@ -340,11 +342,20 @@ class UserAPI:
             try:
                 # 移除data:image/xxx;base64,前缀（如果有）
                 face_image_data = body.face_image_base64
+                logger.info(f"接收到的 Base64 数据长度: {len(face_image_data)}")
+                logger.info(f"Base64 数据前50字符: {face_image_data[:50]}")
+                
                 if ',' in face_image_data:
                     face_image_data = face_image_data.split(',')[1]
+                    logger.info(f"移除前缀后的数据长度: {len(face_image_data)}")
+                
+                # 清理 Base64 数据：移除空格、换行符等
+                face_image_data = face_image_data.strip().replace(' ', '').replace('\n', '').replace('\r', '')
+                logger.info(f"清理后的数据长度: {len(face_image_data)}")
 
                 # 解码Base64
                 image_bytes = base64.b64decode(face_image_data)
+                logger.info(f"解码后的图片大小: {len(image_bytes)} bytes")
 
                 # 验证文件大小（限制5MB）
                 max_size = 5 * 1024 * 1024
