@@ -54,6 +54,9 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'app-dev.db')
+    
+    # 开发环境允许所有来源（支持局域网访问）
+    CORS_ORIGINS = '*'
 
 class TestingConfig(Config):
     """测试环境配置"""
