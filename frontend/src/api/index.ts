@@ -8,6 +8,8 @@ import * as categoryController from './categoryController'
 import * as tagController from './tagController'
 import * as materialController from './materialController'
 import * as userController from './userController'
+import * as interactionController from './interactionController'
+
 export default {
   authController,
   chunkedUploadController,
@@ -15,4 +17,5 @@ export default {
   tagController,
   materialController,
   userController,
+  interactionController,
 }

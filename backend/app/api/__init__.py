@@ -6,6 +6,12 @@ from app.api.category_api import category_api_bp
 from app.api.tag_api import tag_api_bp
 from app.api.chunked_upload_api import chunked_upload_api_bp
 
+# 课堂互动模块API
+from app.api.poll_api import poll_api_bp
+from app.api.question_api import question_api_bp
+from app.api.barrage_api import barrage_api_bp
+from app.api.interaction_common_api import interaction_common_bp
+
 # 所有API蓝图列表
 __all__ = [
     'user_api_bp',
@@ -14,6 +20,10 @@ __all__ = [
     'category_api_bp',
     'tag_api_bp',
     'chunked_upload_api_bp',
+    'poll_api_bp',
+    'question_api_bp',
+    'barrage_api_bp',
+    'interaction_common_bp',
 ]
 
 # 蓝图列表（用于批量注册）
@@ -24,4 +34,8 @@ api_blueprints = [
     category_api_bp,
     tag_api_bp,
     chunked_upload_api_bp,
+    poll_api_bp,
+    question_api_bp,
+    barrage_api_bp,
+    interaction_common_bp,
 ]

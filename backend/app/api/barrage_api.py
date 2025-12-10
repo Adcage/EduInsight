@@ -6,7 +6,7 @@ from flask_openapi3 import APIBlueprint, Tag
 from app.schemas.interaction_schemas import (
     BarrageCreateModel, BarrageResponseModel,
     BarrageDetailResponseModel, BarragePathModel,
-    SensitiveWordModel, ContentCheckModel
+    SensitiveWordModel, SensitiveWordPathModel, ContentCheckModel
 )
 from app.schemas.common_schemas import MessageResponseModel, QueryModel
 from app.services.barrage_service import BarrageService
@@ -163,20 +163,30 @@ class BarrageAPI:
         获取最近N分钟的弹幕
         
         用于实时弹幕墙展示。
+        
+        参数说明：
+        - courseId: 课程ID（必填）
+        - minutes: 最近N分钟（可选，默认10分钟，最大1440分钟即24小时）
+        
+        示例：
+        - 获取最近10分钟的弹幕：?courseId=1&minutes=10
+        - 获取最近30分钟的弹幕：?courseId=1&minutes=30
+        - 获取最近1小时的弹幕：?courseId=1&minutes=60
         """
         try:
             user_id = session.get('user_id')
-            BarrageAPI.log_request("GET_RECENT_BARRAGES", f"user_id={user_id}")
             
             # 获取查询参数
-            course_id = query.course_id if hasattr(query, 'course_id') else None
-            minutes = query.minutes if hasattr(query, 'minutes') else 10
+            course_id = query.course_id
+            minutes = query.minutes if query.minutes else 10
             
             if not course_id:
                 return ResponseHandler.error(
                     message="缺少课程ID参数",
                     error_code="MISSING_PARAM"
                 ), 400
+            
+            BarrageAPI.log_request("GET_RECENT_BARRAGES", f"course_id={course_id}, minutes={minutes}, user_id={user_id}")
             
             # 获取最近的弹幕
             barrages = BarrageService.get_recent_barrages(course_id, minutes=minutes)
@@ -187,7 +197,8 @@ class BarrageAPI:
                 data={
                     'barrages': barrage_list,
                     'total': len(barrage_list),
-                    'minutes': minutes
+                    'minutes': minutes,
+                    'course_id': course_id
                 },
                 message=f"获取最近{minutes}分钟的弹幕成功"
             ), 200
@@ -210,13 +221,17 @@ class BarrageAPI:
         获取弹幕统计信息
         
         包含总弹幕数、答案弹幕数、自由弹幕数、最近弹幕数等。
+        
+        参数说明：
+        - courseId: 课程ID（必填）
+        - minutes: 最近N分钟（可选，默认10分钟，用于统计最近弹幕数）
         """
         try:
             user_id = session.get('user_id')
-            BarrageAPI.log_request("GET_STATISTICS", f"user_id={user_id}")
             
-            # 获取课程ID
-            course_id = query.course_id if hasattr(query, 'course_id') else None
+            # 获取参数
+            course_id = query.course_id
+            recent_minutes = query.minutes if query.minutes else 10
             
             if not course_id:
                 return ResponseHandler.error(
@@ -224,8 +239,10 @@ class BarrageAPI:
                     error_code="MISSING_PARAM"
                 ), 400
             
+            BarrageAPI.log_request("GET_STATISTICS", f"course_id={course_id}, recent_minutes={recent_minutes}, user_id={user_id}")
+            
             # 获取统计信息
-            statistics = BarrageService.get_barrage_statistics(course_id)
+            statistics = BarrageService.get_barrage_statistics(course_id, recent_minutes=recent_minutes)
             
             return ResponseHandler.success(
                 data=statistics,
@@ -240,7 +257,7 @@ class BarrageAPI:
             ), 500
     
     @staticmethod
-    @barrage_api_bp.delete('/<int:barrage_id>',
+    @barrage_api_bp.delete('/<int:barrageId>',
                           summary="删除弹幕",
                           tags=[barrage_tag],
                           responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -248,6 +265,9 @@ class BarrageAPI:
     def delete_barrage(path: BarragePathModel):
         """
         删除弹幕（软删除）
+        
+        参数说明：
+        - barrageId: 弹幕ID（在URL路径中）
         
         权限：
         - 弹幕发送者本人可以删除
@@ -384,14 +404,22 @@ class BarrageAPI:
     @barrage_api_bp.delete('/sensitive-words/<string:word>',
                           summary="删除敏感词",
                           tags=[barrage_tag],
-                          responses={200: MessageResponseModel, 403: MessageResponseModel})
+                          responses={200: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    def remove_sensitive_word(word: str):
+    def remove_sensitive_word(path: SensitiveWordPathModel):
         """
         删除敏感词（教师/管理员）
+        
+        参数说明：
+        - word: 要删除的敏感词（在URL路径中）
+        
+        示例：
+        - DELETE /api/v1/barrages/sensitive-words/测试敏感词
         """
         try:
             user_id = session.get('user_id')
+            word = path.word
+            
             BarrageAPI.log_request("REMOVE_SENSITIVE_WORD", f"user_id={user_id}, word={word}")
             
             # 删除敏感词

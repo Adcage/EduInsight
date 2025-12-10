@@ -158,7 +158,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.get('/<int:poll_id>',
+    @poll_api_bp.get('/<int:pollId>',
                     summary="获取投票详情",
                     tags=[poll_tag],
                     responses={200: PollDetailResponseModel, 404: MessageResponseModel})
@@ -212,7 +212,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.put('/<int:poll_id>',
+    @poll_api_bp.put('/<int:pollId>',
                     summary="更新投票",
                     tags=[poll_tag],
                     responses={200: PollResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -267,7 +267,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.delete('/<int:poll_id>',
+    @poll_api_bp.delete('/<int:pollId>',
                        summary="删除投票",
                        tags=[poll_tag],
                        responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -294,7 +294,7 @@ class PollAPI:
             
             # 验证权限
             if poll.teacher_id != user_id and user_role != UserRole.ADMIN.value:
-                logger.warning(f"User {user_id} attempted to delete poll {path.poll_id} without permission")
+                logger.warning(f"User {user_id} attempted to delete poll {poll_id} without permission")
                 return ResponseHandler.error(
                     message="无权限删除此投票",
                     error_code="PERMISSION_DENIED"
@@ -315,7 +315,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.post('/<int:poll_id>/vote',
+    @poll_api_bp.post('/<int:pollId>/vote',
                      summary="学生投票",
                      tags=[poll_tag],
                      responses={201: MessageResponseModel, 400: MessageResponseModel, 403: MessageResponseModel})
@@ -366,7 +366,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.get('/<int:poll_id>/results',
+    @poll_api_bp.get('/<int:pollId>/results',
                     summary="获取投票结果",
                     tags=[poll_tag],
                     responses={200: MessageResponseModel, 404: MessageResponseModel})
@@ -411,7 +411,7 @@ class PollAPI:
             ), 500
     
     @staticmethod
-    @poll_api_bp.put('/<int:poll_id>/close',
+    @poll_api_bp.put('/<int:pollId>/close',
                     summary="关闭投票",
                     tags=[poll_tag],
                     responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -455,6 +455,77 @@ class PollAPI:
             
         except Exception as e:
             logger.error(f"Error closing poll: {str(e)}")
+            return ResponseHandler.error(
+                message="服务器内部错误",
+                error_code="INTERNAL_ERROR"
+            ), 500
+    
+    @staticmethod
+    @poll_api_bp.get('/<int:pollId>/responses',
+                    summary="获取投票响应列表",
+                    tags=[poll_tag],
+                    responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
+    @login_required
+    def get_poll_responses(path: PollPathModel):
+        """
+        获取投票的所有响应记录（教师）
+        
+        返回该投票的所有学生投票记录，包括学生信息和选择的选项。
+        只有创建投票的教师或管理员可以查看。
+        """
+        try:
+            from app.models.interaction import PollResponse
+            from app.models.user import User
+            
+            user_id = session.get('user_id')
+            user_role = session.get('role')
+            
+            PollAPI.log_request("GET_POLL_RESPONSES", f"poll_id={path.poll_id}, user_id={user_id}")
+            
+            # 获取投票
+            poll = PollService.get_poll_by_id(path.poll_id)
+            if not poll:
+                return ResponseHandler.error(
+                    message="投票不存在",
+                    error_code="NOT_FOUND"
+                ), 404
+            
+            # 验证权限（只有教师或管理员可以查看）
+            if poll.teacher_id != user_id and user_role != UserRole.ADMIN.value:
+                logger.warning(f"User {user_id} attempted to view poll responses {path.poll_id} without permission")
+                return ResponseHandler.error(
+                    message="无权限查看投票响应",
+                    error_code="PERMISSION_DENIED"
+                ), 403
+            
+            # 获取所有响应
+            responses = PollResponse.get_by_poll(path.poll_id)
+            
+            # 构建响应数据
+            response_list = []
+            for resp in responses:
+                # 获取学生信息
+                student = User.query.get(resp.student_id)
+                
+                response_list.append({
+                    'id': resp.id,
+                    'student_id': resp.student_id,
+                    'student_name': student.real_name if student else f'学生{resp.student_id}',
+                    'student_username': student.username if student else '',
+                    'selected_options': resp.selected_options,
+                    'created_at': resp.created_at.isoformat() if resp.created_at else None
+                })
+            
+            return ResponseHandler.success(
+                data={
+                    'responses': response_list,
+                    'total': len(response_list)
+                },
+                message="获取投票响应成功"
+            ), 200
+            
+        except Exception as e:
+            logger.error(f"Error getting poll responses: {str(e)}")
             return ResponseHandler.error(
                 message="服务器内部错误",
                 error_code="INTERNAL_ERROR"

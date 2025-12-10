@@ -1,5 +1,6 @@
 from datetime import datetime
 from app.extensions import db
+from enum import Enum
 
 class BaseModel(db.Model):
     """基础模型类"""
@@ -13,13 +14,16 @@ class BaseModel(db.Model):
         """
         转换为字典
         
-        自动将 datetime 对象转换为字符串格式
+        自动处理枚举类型和 datetime 对象
         """
         result = {}
         for c in self.__table__.columns:
             value = getattr(self, c.name)
+            # 处理枚举类型 - 转换为枚举的值
+            if isinstance(value, Enum):
+                result[c.name] = value.value
             # 自动转换 datetime 为字符串
-            if isinstance(value, datetime):
+            elif isinstance(value, datetime):
                 result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
             else:
                 result[c.name] = value

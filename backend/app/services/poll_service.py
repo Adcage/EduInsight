@@ -118,6 +118,17 @@ class PollService:
         # 分页
         pagination = query.paginate(page=page, per_page=per_page, error_out=False)
         
+        # 自动更新过期投票的状态
+        current_time = datetime.utcnow()
+        for poll in pagination.items:
+            if poll.status == PollStatus.ACTIVE and poll.end_time < current_time:
+                poll.status = PollStatus.ENDED
+                db.session.add(poll)
+        
+        # 提交状态更新
+        if db.session.dirty:
+            db.session.commit()
+        
         return pagination.items, pagination.total
     
     @staticmethod

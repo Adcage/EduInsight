@@ -20,10 +20,47 @@ class BarrageService:
     # ==================== 敏感词库 ====================
     # 实际项目中应该从数据库或配置文件加载
     SENSITIVE_WORDS = {
-        # 示例敏感词（实际使用时需要完善）
-        '敏感词1', '敏感词2', '违禁词', '不良信息',
-        '政治敏感', '暴力', '色情', '赌博',
-        # 可以添加更多敏感词
+        # ========== 政治类 ==========
+        '政治敏感', '反动', '颠覆',
+        
+        # ========== 暴力类 ==========
+        '暴力', '杀人', '伤害', '打架', '斗殴',
+        '恐怖', '爆炸', '袭击',
+        
+        # ========== 色情类 ==========
+        '色情', '黄色', '裸露', '淫秽', '操', 
+        '妈逼', ''
+        
+        # ========== 赌博类 ==========
+        '赌博', '赌钱', '赌场', '博彩',
+        '六合彩', '时时彩', '赌球',
+        
+        # ========== 毒品类 ==========
+        '毒品', '吸毒', '贩毒', '大麻',
+        '海洛因', '冰毒', 'K粉',
+        
+        # ========== 诈骗类 ==========
+        '诈骗', '骗钱', '传销', '非法集资',
+        '刷单', '兼职骗局', '网络诈骗',
+        
+        # ========== 侮辱谩骂类 ==========
+        '傻逼', '草泥马', '去死', '智障',
+        '垃圾', '废物', '白痴', '蠢货',
+        '滚蛋', 'SB', 'NM', 'TMD',
+        
+        # ========== 广告类 ==========
+        '加微信', '加QQ', '代购', '刷赞',
+        '办证', '贷款', '发票', '私聊',
+        '点击链接', '扫码关注',
+        
+        # ========== 作弊类 ==========
+        '代考', '代写', '答案', '作弊',
+        '买卖试题', '论文代写',
+        
+        # ========== 其他违规 ==========
+        '翻墙', 'VPN', '代理服务器',
+        '盗版', '破解', '外挂',
+        '人肉搜索', '隐私泄露',
     }
     
     # ==================== 敏感词过滤 ====================
@@ -419,13 +456,21 @@ class BarrageService:
         """
         from datetime import datetime, timedelta
         
+        # 使用 UTC 时间计算阈值（与数据库存储的时间格式一致）
         time_threshold = datetime.utcnow() - timedelta(minutes=minutes)
         
-        return Barrage.query.filter(
+        # 调试日志
+        logger.info(f"Getting recent barrages: course_id={course_id}, minutes={minutes}, threshold={time_threshold}")
+        
+        barrages = Barrage.query.filter(
             Barrage.course_id == course_id,
             Barrage.status == True,
             Barrage.created_at >= time_threshold
         ).order_by(Barrage.created_at.desc()).all()
+        
+        logger.info(f"Found {len(barrages)} recent barrages")
+        
+        return barrages
     
     # ==================== 统计操作 ====================
     
@@ -469,16 +514,19 @@ class BarrageService:
         return Barrage.query.filter_by(user_id=user_id, status=True).count()
     
     @staticmethod
-    def get_barrage_statistics(course_id: int) -> Dict[str, Any]:
+    def get_barrage_statistics(course_id: int, recent_minutes: int = 10) -> Dict[str, Any]:
         """
         获取课程的弹幕统计信息
         
         Args:
             course_id: 课程ID
+            recent_minutes: 最近N分钟（默认10分钟）
             
         Returns:
             统计信息字典
         """
+        from datetime import datetime
+        
         total_barrages = BarrageService.get_barrage_count_by_course(course_id)
         
         # 答案弹幕数量
@@ -495,14 +543,29 @@ class BarrageService:
             status=True
         ).count()
         
-        # 最近10分钟的弹幕数量
-        recent_barrages = len(BarrageService.get_recent_barrages(course_id, minutes=10))
+        # 最近N分钟的弹幕数量
+        recent_barrages_list = BarrageService.get_recent_barrages(course_id, minutes=recent_minutes)
+        recent_barrages = len(recent_barrages_list)
+        
+        # 调试信息：记录当前时间和最新弹幕时间
+        current_time = datetime.utcnow()
+        latest_barrage = Barrage.query.filter_by(
+            course_id=course_id,
+            status=True
+        ).order_by(Barrage.created_at.desc()).first()
+        
+        logger.info(f"Statistics - Current UTC time: {current_time}")
+        if latest_barrage:
+            logger.info(f"Statistics - Latest barrage time: {latest_barrage.created_at}")
+            time_diff = (current_time - latest_barrage.created_at).total_seconds() / 60
+            logger.info(f"Statistics - Time difference: {time_diff:.2f} minutes")
         
         return {
             'total_barrages': total_barrages,
             'answer_barrages': answer_barrages,
             'free_barrages': free_barrages,
-            'recent_barrages': recent_barrages
+            'recent_barrages': recent_barrages,
+            'recent_minutes': recent_minutes
         }
     
     # ==================== 敏感词管理 ====================

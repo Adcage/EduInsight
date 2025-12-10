@@ -7,7 +7,8 @@ from app.schemas.interaction_schemas import (
     QuestionCreateModel, QuestionUpdateModel, QuestionResponseModel,
     QuestionDetailResponseModel, QuestionPathModel,
     QuestionAnswerCreateModel, QuestionAnswerUpdateModel,
-    QuestionAnswerResponseModel, QuestionAnswerPathModel
+    QuestionAnswerResponseModel, QuestionAnswerPathModel,
+    QuestionAnswerCombinedPathModel
 )
 from app.schemas.common_schemas import MessageResponseModel, QueryModel
 from app.services.question_service import QuestionService
@@ -157,7 +158,7 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.get('/<int:question_id>',
+    @question_api_bp.get('/<int:questionId>',
                         summary="获取问题详情",
                         tags=[question_tag],
                         responses={200: QuestionDetailResponseModel, 404: MessageResponseModel})
@@ -194,7 +195,7 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.put('/<int:question_id>',
+    @question_api_bp.put('/<int:questionId>',
                         summary="更新问题",
                         tags=[question_tag],
                         responses={200: QuestionResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -249,7 +250,7 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.delete('/<int:question_id>',
+    @question_api_bp.delete('/<int:questionId>',
                            summary="删除问题",
                            tags=[question_tag],
                            responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
@@ -299,7 +300,7 @@ class QuestionAPI:
     # ==================== 回答管理接口 ====================
     
     @staticmethod
-    @question_api_bp.post('/<int:question_id>/answers',
+    @question_api_bp.post('/<int:questionId>/answers',
                          summary="回答问题",
                          tags=[question_tag],
                          responses={201: QuestionAnswerResponseModel, 400: MessageResponseModel, 403: MessageResponseModel})
@@ -367,7 +368,7 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.get('/<int:question_id>/answers',
+    @question_api_bp.get('/<int:questionId>/answers',
                         summary="获取问题的所有回答",
                         tags=[question_tag],
                         responses={200: QuestionAnswerResponseModel, 404: MessageResponseModel})
@@ -411,12 +412,12 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.put('/<int:question_id>/answers/<int:answer_id>/accept',
+    @question_api_bp.put('/<int:questionId>/answers/<int:answerId>/accept',
                         summary="采纳答案",
                         tags=[question_tag],
                         responses={200: QuestionAnswerResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    def accept_answer(path: QuestionPathModel, answer_path: QuestionAnswerPathModel):
+    def accept_answer(path: QuestionAnswerCombinedPathModel):
         """
         采纳答案（教师）
         
@@ -426,7 +427,7 @@ class QuestionAPI:
             user_id = session.get('user_id')
             user_role = session.get('role')
             
-            QuestionAPI.log_request("ACCEPT_ANSWER", f"question_id={path.question_id}, answer_id={answer_path.answer_id}")
+            QuestionAPI.log_request("ACCEPT_ANSWER", f"question_id={path.question_id}, answer_id={path.answer_id}")
             
             # 获取问题
             question = QuestionService.get_question_by_id(path.question_id)
@@ -445,7 +446,7 @@ class QuestionAPI:
                 ), 403
             
             # 采纳答案
-            accepted_answer = QuestionService.accept_answer(answer_path.answer_id)
+            accepted_answer = QuestionService.accept_answer(path.answer_id)
             
             if not accepted_answer:
                 return ResponseHandler.error(
@@ -466,12 +467,12 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.delete('/<int:question_id>/answers/<int:answer_id>',
+    @question_api_bp.delete('/<int:questionId>/answers/<int:answerId>',
                            summary="删除回答",
                            tags=[question_tag],
                            responses={200: MessageResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    def delete_answer(path: QuestionPathModel, answer_path: QuestionAnswerPathModel):
+    def delete_answer(path: QuestionAnswerCombinedPathModel):
         """
         删除回答
         
@@ -481,10 +482,10 @@ class QuestionAPI:
             user_id = session.get('user_id')
             user_role = session.get('role')
             
-            QuestionAPI.log_request("DELETE_ANSWER", f"question_id={path.question_id}, answer_id={answer_path.answer_id}")
+            QuestionAPI.log_request("DELETE_ANSWER", f"question_id={path.question_id}, answer_id={path.answer_id}")
             
             # 获取答案
-            answer = QuestionService.get_answer_by_id(answer_path.answer_id)
+            answer = QuestionService.get_answer_by_id(path.answer_id)
             if not answer:
                 return ResponseHandler.error(
                     message="答案不存在",
@@ -505,7 +506,7 @@ class QuestionAPI:
                 ), 403
             
             # 删除回答
-            QuestionService.delete_answer(answer_path.answer_id)
+            QuestionService.delete_answer(path.answer_id)
             
             return ResponseHandler.success(
                 message="回答删除成功"
@@ -521,7 +522,7 @@ class QuestionAPI:
     # ==================== 互动接口 ====================
     
     @staticmethod
-    @question_api_bp.post('/<int:question_id>/like',
+    @question_api_bp.post('/<int:questionId>/like',
                          summary="点赞问题",
                          tags=[question_tag],
                          responses={200: MessageResponseModel, 404: MessageResponseModel})
@@ -558,7 +559,7 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.delete('/<int:question_id>/like',
+    @question_api_bp.delete('/<int:questionId>/like',
                            summary="取消点赞问题",
                            tags=[question_tag],
                            responses={200: MessageResponseModel, 404: MessageResponseModel})
@@ -595,12 +596,12 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.post('/<int:question_id>/answers/<int:answer_id>/like',
+    @question_api_bp.post('/<int:questionId>/answers/<int:answerId>/like',
                          summary="点赞回答",
                          tags=[question_tag],
                          responses={200: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    def like_answer(path: QuestionPathModel, answer_path: QuestionAnswerPathModel):
+    def like_answer(path: QuestionAnswerCombinedPathModel):
         """
         点赞回答
         
@@ -608,10 +609,10 @@ class QuestionAPI:
         """
         try:
             user_id = session.get('user_id')
-            QuestionAPI.log_request("LIKE_ANSWER", f"answer_id={answer_path.answer_id}, user_id={user_id}")
+            QuestionAPI.log_request("LIKE_ANSWER", f"answer_id={path.answer_id}, user_id={user_id}")
             
             # 点赞回答
-            answer = QuestionService.like_answer(answer_path.answer_id)
+            answer = QuestionService.like_answer(path.answer_id)
             
             if not answer:
                 return ResponseHandler.error(
@@ -632,12 +633,12 @@ class QuestionAPI:
             ), 500
     
     @staticmethod
-    @question_api_bp.delete('/<int:question_id>/answers/<int:answer_id>/like',
+    @question_api_bp.delete('/<int:questionId>/answers/<int:answerId>/like',
                            summary="取消点赞回答",
                            tags=[question_tag],
                            responses={200: MessageResponseModel, 404: MessageResponseModel})
     @login_required
-    def unlike_answer(path: QuestionPathModel, answer_path: QuestionAnswerPathModel):
+    def unlike_answer(path: QuestionAnswerCombinedPathModel):
         """
         取消点赞回答
         
@@ -645,10 +646,10 @@ class QuestionAPI:
         """
         try:
             user_id = session.get('user_id')
-            QuestionAPI.log_request("UNLIKE_ANSWER", f"answer_id={answer_path.answer_id}, user_id={user_id}")
+            QuestionAPI.log_request("UNLIKE_ANSWER", f"answer_id={path.answer_id}, user_id={user_id}")
             
             # 取消点赞
-            answer = QuestionService.unlike_answer(answer_path.answer_id)
+            answer = QuestionService.unlike_answer(path.answer_id)
             
             if not answer:
                 return ResponseHandler.error(

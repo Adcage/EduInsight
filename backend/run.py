@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from app import create_app
+from app.extensions import socketio
 
 # 加载环境变量
 # 1. 先加载 .env (团队共享的默认配置)
@@ -13,9 +14,11 @@ config_name = os.environ.get('FLASK_ENV', 'development')
 app = create_app(config_name)
 
 if __name__ == '__main__':
-    # 开发服务器配置
-    app.run(
+    # 使用socketio.run代替app.run，支持WebSocket
+    socketio.run(
+        app,
         host='0.0.0.0',
         port=int(os.environ.get('PORT', 5030)),
-        debug=app.config.get('DEBUG', False)
+        debug=app.config.get('DEBUG', False),
+        allow_unsafe_werkzeug=True  # 开发环境允许使用Werkzeug
     )

@@ -3,7 +3,7 @@
 
 包含投票、提问、回答、弹幕相关的请求和响应模型。
 """
-from pydantic import Field, validator
+from pydantic import Field, validator, BaseModel
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -225,6 +225,12 @@ class QuestionAnswerPathModel(CamelCaseModel):
     answer_id: int = Field(..., description="回答ID", ge=1)
 
 
+class QuestionAnswerCombinedPathModel(CamelCaseModel):
+    """问题和回答组合路径参数模型（用于需要两个路径参数的接口）"""
+    question_id: int = Field(..., description="问题ID", ge=1)
+    answer_id: int = Field(..., description="回答ID", ge=1)
+
+
 # ==================== 弹幕 Schema ====================
 
 class BarrageCreateModel(CamelCaseModel):
@@ -265,3 +271,18 @@ class BarrageListResponseModel(CamelCaseModel):
 class BarragePathModel(CamelCaseModel):
     """弹幕路径参数模型"""
     barrage_id: int = Field(..., description="弹幕ID", ge=1)
+
+
+class SensitiveWordModel(CamelCaseModel):
+    """敏感词模型"""
+    word: str = Field(..., description="敏感词", min_length=1, max_length=50)
+
+
+class SensitiveWordPathModel(CamelCaseModel):
+    """敏感词路径参数模型"""
+    word: str = Field(..., description="要删除的敏感词", min_length=1, max_length=50)
+
+
+class ContentCheckModel(CamelCaseModel):
+    """内容检测模型"""
+    content: str = Field(..., description="待检测的内容", min_length=1)
