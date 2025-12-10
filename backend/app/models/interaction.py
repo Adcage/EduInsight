@@ -294,6 +294,9 @@ class Barrage(BaseModel):
     """弹幕模型
     
     课堂弹幕功能。
+    支持两种类型：
+    1. 答案弹幕：学生回答问题时自动生成（question_id不为空）
+    2. 自由弹幕：用户自由发送（question_id为空）
     """
     __tablename__ = 'barrages'
     
@@ -304,6 +307,7 @@ class Barrage(BaseModel):
     # 外键关联
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    question_id = db.Column(db.Integer, nullable=True, index=True)  # FK→questions.id，关联问题ID（答案弹幕）
     
     # 设置
     is_anonymous = db.Column(db.Boolean, default=False, nullable=False)
@@ -315,6 +319,10 @@ class Barrage(BaseModel):
     def is_active(self):
         """检查是否正常"""
         return self.status
+    
+    def is_answer_barrage(self):
+        """检查是否为答案弹幕"""
+        return self.question_id is not None
     
     def delete_barrage(self):
         """删除弹幕（软删除）"""
@@ -329,6 +337,20 @@ class Barrage(BaseModel):
         if not include_deleted:
             query = query.filter_by(status=True)
         return query.order_by(cls.created_at.desc()).all()
+    
+    @classmethod
+    def get_by_question(cls, question_id):
+        """获取问题的答案弹幕"""
+        return cls.query.filter_by(question_id=question_id, status=True).order_by(
+            cls.created_at.desc()
+        ).all()
+    
+    @classmethod
+    def get_free_barrages(cls, course_id):
+        """获取自由弹幕（不关联问题）"""
+        return cls.query.filter_by(course_id=course_id, question_id=None, status=True).order_by(
+            cls.created_at.desc()
+        ).all()
     
     @classmethod
     def get_by_user(cls, user_id):

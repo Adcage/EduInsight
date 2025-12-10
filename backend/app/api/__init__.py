@@ -28,6 +28,10 @@ __all__ = [
     'student_attendance_api_bp',
     'course_api_bp',
     'class_api_bp',
+    'poll_api_bp',
+    'question_api_bp',
+    'barrage_api_bp',
+    'interaction_common_bp',
 ]
 
 # 蓝图列表（用于批量注册）
@@ -45,4 +49,8 @@ api_blueprints = [
     student_attendance_api_bp,
     course_api_bp,
     class_api_bp,
+    poll_api_bp,
+    question_api_bp,
+    barrage_api_bp,
+    interaction_common_bp,
 ]

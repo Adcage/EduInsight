@@ -15,6 +15,7 @@ class BaseModel(db.Model):
         转换为字典
         
         自动将 datetime 对象转换为字符串格式（不带时区信息）
+        自动处理枚举类型和 datetime 对象
         """
         result = {}
         for c in self.__table__.columns:
@@ -22,6 +23,12 @@ class BaseModel(db.Model):
             # 自动转换 datetime 为字符串（ISO格式，不带时区标记）
             if isinstance(value, datetime):
                 result[c.name] = value.strftime('%Y-%m-%d %H:%M:%S')
+            # 处理枚举类型 - 转换为枚举的值
+            if isinstance(value, Enum):
+                result[c.name] = value.value
+            # 自动转换 datetime 为字符串
+            elif isinstance(value, datetime):
+                result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
             else:
                 result[c.name] = value
         return result

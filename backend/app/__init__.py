@@ -18,6 +18,9 @@ def create_app(config_name='development'):
         doc_ui=True  # 启用文档UI
     )
     
+    # 禁用严格的尾部斜杠检查，避免308重定向
+    app.url_map.strict_slashes = False
+
     # 加载配置
     app.config.from_object(config[config_name])
     
@@ -34,6 +37,9 @@ def create_app(config_name='development'):
     # 注册错误处理器
     register_error_handlers(app)
     
+    # 注册WebSocket事件处理器
+    register_websocket_events()
+    
     return app
 
 def register_apis(app):
@@ -48,3 +54,11 @@ def register_error_handlers(app):
     """注册错误处理器"""
     from app.exceptions.handlers import register_handlers
     register_handlers(app)
+
+def register_websocket_events():
+    """注册WebSocket事件处理器"""
+    # 导入事件处理器模块，使装饰器生效
+    from app.websocket import interaction_events
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("WebSocket事件处理器已注册")

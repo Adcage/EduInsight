@@ -15,6 +15,8 @@ import * as materialController from './materialController'
 import * as predictionController from './predictionController'
 import * as statisticsController from './statisticsController'
 import * as userController from './userController'
+import * as interactionController from './interactionController'
+
 export default {
   authController,
   chunkedUploadController,
@@ -29,4 +31,5 @@ export default {
   predictionController,
   statisticsController,
   userController,
+  interactionController,
 }
