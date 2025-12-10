@@ -2,7 +2,7 @@
   <div class="face-upload-container">
     <div class="face-upload-card">
       <div class="card-header">
-        <camera-outlined class="header-icon"/>
+        <camera-outlined class="header-icon" />
         <h2 class="header-title">上传人脸照片</h2>
         <p class="header-subtitle">用于人脸识别签到，请确保照片清晰且正面</p>
       </div>
@@ -10,46 +10,42 @@
       <div class="card-body">
         <!-- 预览区域 -->
         <div class="preview-section">
-          <div :class="{ 'has-image': previewUrl }" class="preview-box">
-            <img v-if="previewUrl" :src="previewUrl" alt="人脸预览" class="preview-image"/>
+          <div class="preview-box" :class="{ 'has-image': previewUrl }">
+            <img v-if="previewUrl" :src="previewUrl" alt="人脸预览" class="preview-image" />
             <div v-else class="preview-placeholder">
-              <user-outlined class="placeholder-icon"/>
+              <user-outlined class="placeholder-icon" />
               <p class="placeholder-text">暂无照片</p>
             </div>
           </div>
 
           <!-- 拍照/上传按钮 -->
           <div class="action-buttons">
-            <a-button
-                :loading="cameraLoading"
-                class="action-btn"
-                size="large"
-                type="primary"
-                @click="openCamera"
+            <a-button 
+              type="primary" 
+              size="large" 
+              @click="openCamera"
+              :loading="cameraLoading"
+              class="action-btn"
             >
-              <template #icon>
-                <camera-outlined/>
-              </template>
+              <template #icon><camera-outlined /></template>
               拍照上传
             </a-button>
-
-            <a-button
-                class="action-btn"
-                size="large"
-                @click="selectFile"
+            
+            <a-button 
+              size="large" 
+              @click="selectFile"
+              class="action-btn"
             >
-              <template #icon>
-                <upload-outlined/>
-              </template>
+              <template #icon><upload-outlined /></template>
               选择文件
             </a-button>
-
-            <input
-                ref="fileInput"
-                accept="image/*"
-                style="display: none"
-                type="file"
-                @change="handleFileSelect"
+            
+            <input 
+              ref="fileInput" 
+              type="file" 
+              accept="image/*" 
+              @change="handleFileSelect"
+              style="display: none"
             />
           </div>
         </div>
@@ -57,9 +53,9 @@
         <!-- 提示信息 -->
         <div class="tips-section">
           <a-alert
-              message="拍照提示"
-              show-icon
-              type="info"
+            message="拍照提示"
+            type="info"
+            show-icon
           >
             <template #description>
               <ul class="tips-list">
@@ -74,18 +70,16 @@
 
         <!-- 上传按钮 -->
         <div class="submit-section">
-          <a-button
-              :disabled="!previewUrl"
-              :loading="uploading"
-              block
-              class="submit-btn"
-              size="large"
-              type="primary"
-              @click="handleUpload"
+          <a-button 
+            type="primary" 
+            size="large" 
+            block
+            :disabled="!previewUrl"
+            :loading="uploading"
+            @click="handleUpload"
+            class="submit-btn"
           >
-            <template #icon>
-              <check-outlined/>
-            </template>
+            <template #icon><check-outlined /></template>
             确认上传
           </a-button>
         </div>
@@ -94,36 +88,34 @@
 
     <!-- 相机模态框 -->
     <a-modal
-        v-model:open="cameraModalVisible"
-        :footer="null"
-        title="拍照上传"
-        width="800px"
-        @cancel="closeCamera"
+      v-model:open="cameraModalVisible"
+      title="拍照上传"
+      width="800px"
+      :footer="null"
+      @cancel="closeCamera"
     >
       <div class="camera-container">
-        <video
-            ref="videoElement"
-            autoplay
-            class="camera-video"
-            playsinline
+        <video 
+          ref="videoElement" 
+          autoplay 
+          playsinline
+          class="camera-video"
         ></video>
         <canvas ref="canvasElement" style="display: none;"></canvas>
-
+        
         <div class="camera-controls">
-          <a-button
-              class="capture-btn"
-              size="large"
-              type="primary"
-              @click="capturePhoto"
+          <a-button 
+            type="primary" 
+            size="large"
+            @click="capturePhoto"
+            class="capture-btn"
           >
-            <template #icon>
-              <camera-outlined/>
-            </template>
+            <template #icon><camera-outlined /></template>
             拍照
           </a-button>
-          <a-button
-              size="large"
-              @click="closeCamera"
+          <a-button 
+            size="large"
+            @click="closeCamera"
           >
             取消
           </a-button>
@@ -133,11 +125,16 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import {onUnmounted, ref} from 'vue'
-import {message} from 'ant-design-vue'
-import {CameraOutlined, CheckOutlined, UploadOutlined, UserOutlined} from '@ant-design/icons-vue'
-import {userApiUploadFaceImage} from '@/api/userController'
+<script setup lang="ts">
+import { ref, onUnmounted } from 'vue'
+import { message } from 'ant-design-vue'
+import { 
+  CameraOutlined, 
+  UploadOutlined, 
+  UserOutlined,
+  CheckOutlined 
+} from '@ant-design/icons-vue'
+import { userApiUploadFaceImage } from '@/api/userController'
 
 // 响应式数据
 const previewUrl = ref<string>('')
@@ -158,22 +155,22 @@ const selectFile = () => {
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-
+  
   if (!file) return
-
+  
   // 验证文件类型
   if (!file.type.startsWith('image/')) {
     message.error('请选择图片文件')
     return
   }
-
+  
   // 验证文件大小（5MB）
   const maxSize = 5 * 1024 * 1024
   if (file.size > maxSize) {
     message.error('图片大小不能超过5MB')
     return
   }
-
+  
   // 读取文件并预览
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -186,17 +183,17 @@ const handleFileSelect = (event: Event) => {
 const openCamera = async () => {
   cameraLoading.value = true
   cameraModalVisible.value = true
-
+  
   try {
     // 请求摄像头权限
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
         facingMode: 'user',
-        width: {ideal: 1280},
-        height: {ideal: 720}
-      }
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      } 
     })
-
+    
     if (videoElement.value) {
       videoElement.value.srcObject = mediaStream
     }
@@ -221,22 +218,22 @@ const closeCamera = () => {
 // 拍照
 const capturePhoto = () => {
   if (!videoElement.value || !canvasElement.value) return
-
+  
   const video = videoElement.value
   const canvas = canvasElement.value
-
+  
   // 设置canvas尺寸与视频一致
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
-
+  
   // 绘制当前视频帧到canvas
   const ctx = canvas.getContext('2d')
   if (ctx) {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-
+    
     // 转换为base64
     previewUrl.value = canvas.toDataURL('image/jpeg', 0.9)
-
+    
     message.success('拍照成功')
     closeCamera()
   }
@@ -248,20 +245,42 @@ const handleUpload = async () => {
     message.warning('请先选择或拍摄照片')
     return
   }
-
+  
   uploading.value = true
-
+  
   try {
+    // 调试：查看 Base64 数据格式
+    console.log('准备上传的数据长度:', previewUrl.value.length)
+    console.log('Base64 前缀:', previewUrl.value.substring(0, 50))
+    
     const response = await userApiUploadFaceImage({
       faceImageBase64: previewUrl.value
     })
-
-    if (response) {
-      message.success('人脸照片上传成功！')
+    
+    // 提取响应数据
+    const data = response?.data || response
+    
+    if (data) {
+      message.success(data.message || '人脸照片上传成功！')
+      // 清空预览
+      previewUrl.value = ''
     }
   } catch (error: any) {
-    console.error('上传失败:', error)
-    message.error(error.message || '上传失败，请重试')
+    console.error('上传失败 - 完整错误:', error)
+    console.error('错误响应:', error.response)
+    console.error('错误数据:', error.response?.data)
+    console.error('错误状态:', error.response?.status)
+    
+    // 提取详细错误信息
+    let errorMsg = '上传失败，请重试'
+    
+    if (error.response?.data) {
+      errorMsg = error.response.data.message || error.response.data.error_code || errorMsg
+    } else if (error.message) {
+      errorMsg = error.message
+    }
+    
+    message.error(errorMsg)
   } finally {
     uploading.value = false
   }
@@ -273,7 +292,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .face-upload-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-color-light, #e6f4ff) 0%, var(--background-color, #f5f5f5) 100%);
@@ -387,7 +406,7 @@ onUnmounted(() => {
 .tips-list {
   margin: 8px 0 0 0;
   padding-left: 20px;
-
+  
   li {
     margin-bottom: 4px;
     color: var(--text-color-secondary, #595959);

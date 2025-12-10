@@ -8,7 +8,7 @@
     <!-- 筛选器 -->
     <div class="filter-section">
       <a-tabs v-model:activeKey="activeTab" @change="handleTabChange">
-        <a-tab-pane key="all" tab="全部"/>
+        <a-tab-pane key="all" tab="全部" />
         <a-tab-pane key="active" tab="进行中">
           <template #tab>
             <a-badge :count="activeCount" :offset="[10, 0]">
@@ -16,21 +16,25 @@
             </a-badge>
           </template>
         </a-tab-pane>
-        <a-tab-pane key="pending" tab="待开始"/>
-        <a-tab-pane key="ended" tab="已结束"/>
+        <a-tab-pane key="pending" tab="待开始" />
+        <a-tab-pane key="ended" tab="已结束" />
+        <a-tab-pane key="statistics" tab="数据统计" />
       </a-tabs>
     </div>
 
+    <!-- 数据统计Tab -->
+    <StudentStatistics v-if="activeTab === 'statistics'" />
+
     <!-- 加载状态 -->
-    <div v-if="loading" class="loading-container">
-      <a-spin size="large" tip="加载中..."/>
+    <div v-else-if="loading" class="loading-container">
+      <a-spin size="large" tip="加载中..." />
     </div>
 
     <!-- 空状态 -->
     <div v-else-if="attendances.length === 0" class="empty-container">
       <a-empty description="暂无签到通知">
         <template #image>
-          <InboxOutlined style="font-size: 64px; color: #d9d9d9"/>
+          <InboxOutlined style="font-size: 64px; color: #d9d9d9" />
         </template>
       </a-empty>
     </div>
@@ -39,49 +43,54 @@
     <div v-else class="attendance-list">
       <div class="list-grid">
         <AttendanceNotificationCard
-            v-for="attendance in attendances"
-            :key="attendance.id"
-            :attendance="attendance"
-            @check-in="handleCheckIn"
-            @view-detail="handleViewDetail"
+          v-for="attendance in attendances"
+          :key="attendance.id"
+          :attendance="attendance"
+          @check-in="handleCheckIn"
+          @view-detail="handleViewDetail"
         />
       </div>
 
       <!-- 分页 -->
       <div v-if="total > perPage" class="pagination-container">
         <a-pagination
-            v-model:current="currentPage"
-            v-model:page-size="perPage"
-            :show-size-changer="false"
-            :show-total="(total: number) => `共 ${total} 条`"
-            :total="total"
-            @change="handlePageChange"
+          v-model:current="currentPage"
+          v-model:page-size="perPage"
+          :total="total"
+          :show-size-changer="false"
+          :show-total="(total: number) => `共 ${total} 条`"
+          @change="handlePageChange"
         />
       </div>
     </div>
 
     <!-- 签到模态框 -->
     <CheckInModal
-        v-model:visible="checkInModalVisible"
-        :attendance="selectedAttendance"
-        @success="handleCheckInSuccess"
+      v-model:visible="checkInModalVisible"
+      :attendance="selectedAttendance"
+      @success="handleCheckInSuccess"
     />
 
     <!-- WebSocket调试组件 -->
-    <WebSocketDebug/>
+    <WebSocketDebug />
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, onUnmounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {message} from 'ant-design-vue'
-import {InboxOutlined} from '@ant-design/icons-vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import { InboxOutlined } from '@ant-design/icons-vue'
 import AttendanceNotificationCard from './components/AttendanceNotificationCard.vue'
 import CheckInModal from './components/CheckInModal.vue'
 import WebSocketDebug from '@/components/WebSocketDebug.vue'
-import {AttendanceStatus, getStudentAttendances, type StudentAttendanceNotification} from '@/api/attendanceController'
-import {useWebSocketStore} from '@/stores/websocket'
+import StudentStatistics from './StudentStatistics.vue'
+import { 
+  getStudentAttendances, 
+  type StudentAttendanceNotification,
+  AttendanceStatus 
+} from '@/api/attendanceController'
+import { useWebSocketStore } from '@/stores/websocket'
 
 const router = useRouter()
 
@@ -106,22 +115,23 @@ const activeCount = computed(() => {
 const fetchAttendances = async () => {
   try {
     loading.value = true
-
+    
     const params: any = {
       page: currentPage.value,
       perPage: perPage.value
     }
-
+    
     // 根据标签页筛选状态
-    if (activeTab.value !== 'all') {
+    if (activeTab.value !== 'all' && activeTab.value !== 'statistics') {
       params.status = activeTab.value
     }
-
+    
     const response = await getStudentAttendances(params)
-
-    attendances.value = response.attendances || []
-    total.value = response.total || 0
-
+    const res = (response as any).data ? (response as any).data : response;
+    
+    attendances.value = res.attendances || []
+    total.value = res.total || 0
+    
   } catch (error: any) {
     console.error('获取签到通知失败:', error)
     message.error(error.message || '获取签到通知失败')
@@ -134,7 +144,11 @@ const fetchAttendances = async () => {
 const handleTabChange = (key: string) => {
   activeTab.value = key
   currentPage.value = 1
-  fetchAttendances()
+  
+  // 如果切换到数据统计标签页，不需要加载签到通知列表
+  if (key !== 'statistics') {
+    fetchAttendances()
+  }
 }
 
 // 处理分页变化
@@ -142,7 +156,7 @@ const handlePageChange = (page: number) => {
   currentPage.value = page
   fetchAttendances()
   // 滚动到顶部
-  window.scrollTo({top: 0, behavior: 'smooth'})
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 处理签到
@@ -157,7 +171,7 @@ const handleCheckIn = (attendance: StudentAttendanceNotification) => {
 const handleViewDetail = (attendance: StudentAttendanceNotification) => {
   router.push({
     name: 'StudentAttendanceDetail',
-    params: {id: attendance.id}
+    params: { id: attendance.id }
   })
 }
 
@@ -187,7 +201,7 @@ const handleAttendanceUpdated = (data: any) => {
   // 更新列表中的对应项
   const index = attendances.value.findIndex(a => a.id === data.attendance.id)
   if (index !== -1) {
-    attendances.value[index] = {...attendances.value[index], ...data.attendance}
+    attendances.value[index] = { ...attendances.value[index], ...data.attendance }
   }
 }
 
@@ -202,11 +216,11 @@ const handleCheckInSuccessWS = (data: any) => {
 onMounted(() => {
   console.log('[Student Page] 页面加载，初始化WebSocket连接...')
   fetchAttendances()
-
+  
   // 连接WebSocket
   wsStore.connect()
   console.log('[Student Page] WebSocket连接状态:', wsStore.isConnected)
-
+  
   // 注册事件监听
   console.log('[Student Page] 注册WebSocket事件监听器...')
   wsStore.on('attendance_created', handleNewAttendance)
@@ -224,7 +238,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .attendance-notifications-page {
   min-height: 100vh;
   background: var(--background-color, #f5f5f5);

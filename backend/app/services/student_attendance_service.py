@@ -49,9 +49,15 @@ class StudentAttendanceService:
             # 构建查询 - 查询学生所在班级的考勤
             query = Attendance.query.filter_by(class_id=student.class_id)
             
-            # 状态筛选
+            # 状态筛选 - 将字符串转换为枚举
             if status:
-                query = query.filter_by(status=status)
+                try:
+                    # 将小写字符串转换为大写枚举值
+                    status_enum = AttendanceStatus[status.upper()]
+                    query = query.filter_by(status=status_enum)
+                except (KeyError, AttributeError):
+                    # 如果状态值无效，忽略筛选
+                    logger.warning(f"Invalid status filter: {status}")
             
             # 按创建时间倒序排列
             query = query.order_by(Attendance.created_at.desc())

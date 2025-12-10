@@ -56,6 +56,7 @@ const antdTheme = computed(() => ({
 
 <template>
   <ConfigProvider :theme="antdTheme">
+    <router-view v-if="isNoLayoutPage ?? false" />
     <CommonLayout v-if="isPublicPage ?? false"/>
     <TeacherLayout v-else-if="isTeacherPage ?? false"/>
     <StudentLayout v-else-if="isStudentPage ?? false"/>

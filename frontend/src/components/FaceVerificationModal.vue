@@ -1,60 +1,60 @@
 <template>
   <a-modal
-      :footer="null"
-      :maskClosable="false"
-      :open="visible"
-      title="人脸验证签到"
-      width="700px"
-      @cancel="handleCancel"
+    :open="visible"
+    title="人脸验证签到"
+    width="700px"
+    :footer="null"
+    :maskClosable="false"
+    @cancel="handleCancel"
   >
     <div class="face-verification-container">
       <!-- 步骤指示器 -->
-      <a-steps :current="currentStep" class="steps-indicator" size="small">
-        <a-step title="拍照验证"/>
-        <a-step title="完成验证"/>
+      <a-steps :current="currentStep" size="small" class="steps-indicator">
+        <a-step title="拍照验证" />
+        <a-step title="完成验证" />
       </a-steps>
 
       <!-- 学号信息显示 -->
       <a-alert
-          :message="`学号: ${props.studentNumber}`"
-          class="student-info-alert"
-          description="系统将使用您预先上传的人脸照片进行验证"
-          show-icon
-          type="info"
+        :message="`学号: ${props.studentNumber}`"
+        description="系统将使用您预先上传的人脸照片进行验证"
+        type="info"
+        show-icon
+        class="student-info-alert"
       />
 
       <!-- 步骤1: 拍照验证 -->
       <div v-if="currentStep === 0" class="step-content">
         <div class="camera-section">
           <!-- 预览区域 -->
-          <div :class="{ 'has-image': capturedImage }" class="preview-box">
+          <div class="preview-box" :class="{ 'has-image': capturedImage }">
             <img
-                v-if="capturedImage"
-                :src="capturedImage"
-                alt="拍摄的照片"
-                class="captured-image"
+              v-if="capturedImage"
+              :src="capturedImage"
+              alt="拍摄的照片"
+              class="captured-image"
             />
             <video
-                v-else
-                ref="videoElement"
-                autoplay
-                class="camera-video"
-                playsinline
+              v-else
+              ref="videoElement"
+              autoplay
+              playsinline
+              class="camera-video"
             ></video>
-
+            
             <div v-if="!cameraReady && !capturedImage" class="camera-loading">
-              <a-spin size="large"/>
+              <a-spin size="large" />
               <p>正在启动摄像头...</p>
             </div>
           </div>
 
           <!-- 提示信息 -->
           <a-alert
-              v-if="!capturedImage"
-              class="camera-tips"
-              message="拍照提示"
-              show-icon
-              type="warning"
+            v-if="!capturedImage"
+            message="拍照提示"
+            type="warning"
+            show-icon
+            class="camera-tips"
           >
             <template #description>
               <ul class="tips-list">
@@ -67,39 +67,33 @@
 
           <!-- 操作按钮 -->
           <div class="button-group">
-            <a-button :disabled="verifying" size="large" @click="handleCancel">
+            <a-button size="large" @click="handleCancel" :disabled="verifying">
               取消
             </a-button>
-
+            
             <a-button
-                v-if="!capturedImage"
-                :disabled="!cameraReady"
-                size="large"
-                type="primary"
-                @click="capturePhoto"
+              v-if="!capturedImage"
+              type="primary"
+              size="large"
+              @click="capturePhoto"
+              :disabled="!cameraReady"
             >
-              <template #icon>
-                <camera-outlined/>
-              </template>
+              <template #icon><camera-outlined /></template>
               拍照
             </a-button>
-
+            
             <template v-else>
               <a-button size="large" @click="retakePhoto">
-                <template #icon>
-                  <redo-outlined/>
-                </template>
+                <template #icon><redo-outlined /></template>
                 重拍
               </a-button>
               <a-button
-                  :loading="verifying"
-                  size="large"
-                  type="primary"
-                  @click="handleVerify"
+                type="primary"
+                size="large"
+                :loading="verifying"
+                @click="handleVerify"
               >
-                <template #icon>
-                  <check-outlined/>
-                </template>
+                <template #icon><check-outlined /></template>
                 验证
               </a-button>
             </template>
@@ -111,47 +105,47 @@
       <div v-if="currentStep === 1" class="step-content">
         <div class="result-section">
           <a-result
-              :status="verificationResult.success ? 'success' : 'error'"
-              :sub-title="verificationResult.message"
-              :title="verificationResult.title"
+            :status="verificationResult.success ? 'success' : 'error'"
+            :title="verificationResult.title"
+            :sub-title="verificationResult.message"
           >
             <template #icon>
-              <check-circle-outlined v-if="verificationResult.success" class="success-icon"/>
-              <close-circle-outlined v-else class="error-icon"/>
+              <check-circle-outlined v-if="verificationResult.success" class="success-icon" />
+              <close-circle-outlined v-else class="error-icon" />
             </template>
-
+            
             <template #extra>
               <div v-if="verificationResult.similarity > 0" class="similarity-info">
                 <p class="similarity-label">相似度</p>
                 <a-progress
-                    :percent="Math.round(verificationResult.similarity * 100)"
-                    :status="verificationResult.success ? 'success' : 'exception'"
-                    :width="120"
-                    type="circle"
+                  type="circle"
+                  :percent="Math.round(verificationResult.similarity * 100)"
+                  :status="verificationResult.success ? 'success' : 'exception'"
+                  :width="120"
                 />
               </div>
-
+              
               <div class="action-buttons">
                 <a-button
-                    v-if="!verificationResult.success"
-                    size="large"
-                    type="primary"
-                    @click="handleRetry"
+                  v-if="!verificationResult.success"
+                  type="primary"
+                  size="large"
+                  @click="handleRetry"
                 >
                   重新验证
                 </a-button>
                 <a-button
-                    v-if="!verificationResult.success && !verificationResult.hasFaceImage"
-                    size="large"
-                    @click="handleGoToUpload"
+                  v-if="!verificationResult.success && !verificationResult.hasFaceImage"
+                  size="large"
+                  @click="handleGoToUpload"
                 >
                   去上传人脸照片
                 </a-button>
                 <a-button
-                    v-if="verificationResult.success"
-                    size="large"
-                    type="primary"
-                    @click="handleFinish"
+                  v-if="verificationResult.success"
+                  type="primary"
+                  size="large"
+                  @click="handleFinish"
                 >
                   完成
                 </a-button>
@@ -166,18 +160,19 @@
   </a-modal>
 </template>
 
-<script lang="ts" setup>
-import {onUnmounted, ref, watch} from 'vue'
-import {message} from 'ant-design-vue'
+<script setup lang="ts">
+import { ref, watch, onUnmounted } from 'vue'
+import { message } from 'ant-design-vue'
 import {
+  UserOutlined,
   CameraOutlined,
-  CheckCircleOutlined,
   CheckOutlined,
-  CloseCircleOutlined,
-  RedoOutlined
+  RedoOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons-vue'
-import {attendanceApiFaceVerificationPost} from '@/api/attendanceController'
-import {useRouter} from 'vue-router'
+import { attendanceApiFaceVerificationPost } from '@/api/attendanceController'
+import { useRouter } from 'vue-router'
 
 interface Props {
   visible: boolean
@@ -187,7 +182,6 @@ interface Props {
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
-
   (e: 'success'): void
 }
 
@@ -250,11 +244,11 @@ const openCamera = async () => {
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: 'user',
-        width: {ideal: 1280},
-        height: {ideal: 720}
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
       }
     })
-
+    
     if (videoElement.value) {
       videoElement.value.srcObject = mediaStream
       videoElement.value.onloadedmetadata = () => {
@@ -280,13 +274,13 @@ const closeCamera = () => {
 // 拍照
 const capturePhoto = () => {
   if (!videoElement.value || !canvasElement.value) return
-
+  
   const video = videoElement.value
   const canvas = canvasElement.value
-
+  
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
-
+  
   const ctx = canvas.getContext('2d')
   if (ctx) {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
@@ -307,23 +301,28 @@ const handleVerify = async () => {
     message.warning('请先拍照')
     return
   }
-
+  
   verifying.value = true
-
+  
   try {
     const response = await attendanceApiFaceVerificationPost({
       studentNumber: props.studentNumber,
       faceImageBase64: capturedImage.value,
       attendanceId: props.attendanceId
     })
-
-    if (response.verified) {
+    
+    // 提取响应数据（Axios 返回的是完整 response 对象）
+    const data = (response as any)?.data || response
+    
+    console.log('人脸验证响应数据:', data)
+    
+    if (data.verified) {
       verificationResult.value = {
         success: true,
         title: '验证成功！',
-        message: response.message || '人脸验证通过',
-        similarity: response.similarity || 0,
-        hasFaceImage: response.hasFaceImage || false
+        message: data.message || '人脸验证通过',
+        similarity: data.similarity || 0,
+        hasFaceImage: data.has_face_image || data.hasFaceImage || false
       }
       message.success('人脸验证成功！')
       currentStep.value = 1
@@ -333,9 +332,9 @@ const handleVerify = async () => {
       verificationResult.value = {
         success: false,
         title: '验证失败',
-        message: response.message || '人脸验证未通过',
-        similarity: response.similarity || 0,
-        hasFaceImage: response.hasFaceImage || false
+        message: data.message || '人脸验证未通过',
+        similarity: data.similarity || 0,
+        hasFaceImage: data.has_face_image || data.hasFaceImage || false
       }
       currentStep.value = 1
     }
@@ -346,15 +345,15 @@ const handleVerify = async () => {
     console.error('错误数据:', error.response?.data)
     console.error('状态码:', error.response?.status)
     console.error('请求配置:', error.config)
-
+    
     // 从响应中提取错误信息
     const errorData = error.response?.data || error.data || {}
     const errorMessage = errorData.message || error.message || '人脸验证失败，请重试'
-
+    
     console.error('提取的错误信息:', errorMessage)
     console.error('相似度:', errorData.similarity)
     console.error('是否有人脸照片:', errorData.hasFaceImage || errorData.has_face_image)
-
+    
     verificationResult.value = {
       success: false,
       title: '验证失败',
@@ -362,7 +361,7 @@ const handleVerify = async () => {
       similarity: errorData.similarity || 0,
       hasFaceImage: errorData.hasFaceImage || errorData.has_face_image || false
     }
-
+    
     currentStep.value = 1
   } finally {
     verifying.value = false
@@ -398,7 +397,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .face-verification-container {
   padding: 16px 0;
 }

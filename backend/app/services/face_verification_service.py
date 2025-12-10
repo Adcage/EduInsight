@@ -24,8 +24,18 @@ def get_deepface():
             _deepface = DeepFace
             logger.info("DeepFace loaded successfully")
         except ImportError as e:
-            logger.error(f"Failed to import DeepFace: {e}")
-            raise ImportError("DeepFace library is not installed. Please install it with: pip install deepface")
+            error_msg = str(e)
+            logger.error(f"Failed to import DeepFace: {error_msg}")
+            
+            # 提供详细的错误信息
+            if "DLL load failed" in error_msg or "TensorFlow" in error_msg:
+                raise ImportError(
+                    "TensorFlow DLL 加载失败。请安装 Microsoft Visual C++ 2015-2022 Redistributable (x64)。\n"
+                    "下载地址: https://aka.ms/vs/17/release/vc_redist.x64.exe\n"
+                    f"原始错误: {error_msg}"
+                )
+            else:
+                raise ImportError(f"DeepFace library is not installed. Please install it with: pip install deepface\n原始错误: {error_msg}")
     return _deepface
 
 
@@ -236,8 +246,10 @@ class FaceVerificationService:
             # 处理常见错误
             if "Face could not be detected" in error_msg:
                 return False, 0.0, "未检测到人脸，请确保照片清晰且正面拍摄"
+            elif "DLL load failed" in error_msg or "TensorFlow" in error_msg:
+                return False, 0.0, "人脸识别服务配置错误：缺少 Microsoft Visual C++ 运行库，请联系管理员"
             elif "not installed" in error_msg.lower():
-                return False, 0.0, "人脸识别服务未正确配置"
+                return False, 0.0, "人脸识别服务未正确配置，请联系管理员"
             else:
                 return False, 0.0, f"人脸验证失败: {error_msg}"
             

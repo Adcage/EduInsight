@@ -7,29 +7,29 @@
           <!-- Attendance Range Section -->
           <section class="bg-white rounded-xl shadow-sm p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-6">考勤范围</h2>
-
+            
             <div class="step-indicator space-y-8">
-
+              
               <!-- Step 2: Class Selection -->
               <div class="active pb-6 border-b border-gray-100">
                 <div class="flex items-center mb-4">
                   <span class="text-base font-medium text-gray-700">选择班级</span>
                 </div>
-
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div
-                      v-for="item in classList"
-                      v-if="!loading"
-                      :key="item.id"
-                      :class="{ 'border-2 border-blue-500 bg-blue-50': item.selected }"
-                      class="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors cursor-pointer"
-                      @click="toggleClassSelection(item)"
+                  <div 
+                    v-for="item in classList" 
+                    v-if="!loading"
+                    :key="item.id"
+                    class="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition-colors cursor-pointer"
+                    :class="{ 'border-2 border-blue-500 bg-blue-50': item.selected }"
+                    @click="toggleClassSelection(item)"
                   >
                     <div class="flex items-start">
-                      <a-checkbox
-                          :checked="item.selected"
-                          @change="() => toggleClassSelection(item)"
-                          @click.stop
+                      <a-checkbox 
+                        :checked="item.selected"
+                        @change="() => toggleClassSelection(item)"
+                        @click.stop
                       />
                       <div class="ml-3">
                         <h3 class="font-medium text-gray-900">{{ item.name }}</h3>
@@ -39,36 +39,36 @@
                   </div>
                 </div>
               </div>
-
+              
               <!-- Step 3: Student Selection -->
               <div class="pb-2">
                 <div class="flex items-center mb-4">
                   <span class="text-base font-medium text-gray-700">选择学生 (可选)</span>
                 </div>
-
+                
                 <div class="mb-4 relative">
-                  <a-input
-                      v-model:value="studentSearch"
-                      allow-clear
-                      placeholder="搜索学生姓名或学号..."
+                  <a-input 
+                    v-model:value="studentSearch" 
+                    placeholder="搜索学生姓名或学号..." 
+                    allow-clear
                   >
                     <template #prefix>
-                      <SearchOutlined class="text-gray-400"/>
+                      <SearchOutlined class="text-gray-400" />
                     </template>
                   </a-input>
                 </div>
-
+                
                 <div class="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
                   <ul class="divide-y divide-gray-200">
-                    <li
-                        v-for="student in filteredStudents"
-                        :key="student.id"
-                        class="p-3 hover:bg-gray-50 flex items-center cursor-pointer"
-                        @click="toggleStudentSelection(student)"
+                    <li 
+                      v-for="student in filteredStudents" 
+                      :key="student.id"
+                      class="p-3 hover:bg-gray-50 flex items-center cursor-pointer"
+                      @click="toggleStudentSelection(student)"
                     >
-                      <a-checkbox
-                          :checked="student.selected"
-                          @click.stop="toggleStudentSelection(student)"
+                      <a-checkbox 
+                        :checked="student.selected"
+                        @click.stop="toggleStudentSelection(student)"
                       />
                       <div class="flex-1 min-w-0 ml-3">
                         <p class="text-sm font-medium text-gray-900 truncate">{{ student.name }}</p>
@@ -80,11 +80,11 @@
               </div>
             </div>
           </section>
-
+          
           <!-- Attendance Time Section -->
           <section class="bg-white rounded-xl shadow-sm p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-6">考勤时间</h2>
-
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Date Picker -->
               <div>
@@ -92,14 +92,14 @@
                 <div class="bg-gray-50 rounded-lg p-4">
                   <div class="flex justify-between items-center mb-4">
                     <button class="p-2 rounded-full hover:bg-white transition-colors" @click="prevMonth">
-                      <CaretLeftOutlined class="text-gray-600"/>
+                      <CaretLeftOutlined class="text-gray-600" />
                     </button>
                     <h4 class="font-medium text-gray-900">{{ currentMonthYear }}</h4>
                     <button class="p-2 rounded-full hover:bg-white transition-colors" @click="nextMonth">
-                      <CaretRightOutlined class="text-gray-600"/>
+                      <CaretRightOutlined class="text-gray-600" />
                     </button>
                   </div>
-
+                  
                   <div class="grid grid-cols-7 gap-1 mb-2">
                     <div class="text-center text-xs font-medium text-gray-500 py-2">日</div>
                     <div class="text-center text-xs font-medium text-gray-500 py-2">一</div>
@@ -109,45 +109,45 @@
                     <div class="text-center text-xs font-medium text-gray-500 py-2">五</div>
                     <div class="text-center text-xs font-medium text-gray-500 py-2">六</div>
                   </div>
-
+                  
                   <div class="grid grid-cols-7 gap-1">
-                    <div
-                        v-for="(day, index) in calendarDays"
-                        :key="index"
-                        :class="{
+                    <div 
+                      v-for="(day, index) in calendarDays" 
+                      :key="index"
+                      class="calendar-day text-center py-2 text-sm rounded cursor-pointer transition-colors"
+                      :class="{
                         'text-gray-400 cursor-not-allowed': day.disabled,
                         'hover:bg-gray-200': !day.disabled && !day.selected,
                         'bg-blue-500 text-white': day.selected
                       }"
-                        class="calendar-day text-center py-2 text-sm rounded cursor-pointer transition-colors"
-                        @click="!day.disabled && selectDate(day.date)"
+                      @click="!day.disabled && selectDate(day.date)"
                     >
                       {{ day.text }}
                     </div>
                   </div>
                 </div>
               </div>
-
+              
               <!-- Time Selection -->
               <div>
                 <h3 class="text-base font-medium text-gray-700 mb-4">选择时间</h3>
-
+                
                 <div class="space-y-6">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">开始时间</label>
-                    <a-time-picker
-                        v-model:value="startTime"
-                        class="w-full"
-                        format="HH:mm"
+                    <a-time-picker 
+                      v-model:value="startTime" 
+                      format="HH:mm"
+                      class="w-full" 
                     />
                   </div>
-
+                  
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">结束时间</label>
-                    <a-time-picker
-                        v-model:value="endTime"
-                        class="w-full"
-                        format="HH:mm"
+                    <a-time-picker 
+                      v-model:value="endTime" 
+                      format="HH:mm"
+                      class="w-full" 
                     />
                   </div>
                 </div>
@@ -155,25 +155,24 @@
             </div>
           </section>
         </div>
-
+        
         <!-- Right Column - Attendance Method & Preview -->
         <div class="lg:col-span-1">
           <div class="sticky top-6 space-y-6">
             <section class="bg-white rounded-xl shadow-sm p-6">
               <h2 class="text-lg font-medium text-gray-900 mb-6">考勤方式</h2>
-
+              
               <div class="space-y-4">
-                <div
-                    v-for="method in attendanceMethods"
-                    :key="method.id"
-                    :class="{ 'border-2 border-blue-500 bg-blue-50': method.selected }"
-                    class="attendance-method-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all"
-                    @click="selectAttendanceMethod(method)"
+                <div 
+                  v-for="method in attendanceMethods" 
+                  :key="method.id"
+                  class="attendance-method-card border border-gray-200 rounded-lg p-4 cursor-pointer transition-all"
+                  :class="{ 'border-2 border-blue-500 bg-blue-50': method.selected }"
+                  @click="selectAttendanceMethod(method)"
                 >
                   <div class="flex items-center">
-                    <div :class="method.bgColor"
-                         class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4">
-                      <component :is="method.icon" :class="method.iconColor" class="text-lg"/>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4" :class="method.bgColor">
+                      <component :is="method.icon" :class="method.iconColor" class="text-lg" />
                     </div>
                     <div>
                       <h3 class="font-medium text-gray-900">{{ method.name }}</h3>
@@ -212,12 +211,12 @@
                   <span class="font-medium text-gray-900 text-right ml-4">{{ selectedMethodName }}</span>
                 </div>
               </div>
-
+              
               <div class="mt-6 pt-6 border-t border-gray-200 flex flex-col space-y-3">
-                <a-button :loading="publishing" block size="large" type="primary" @click="handlePublish">
+                <a-button type="primary" size="large" block @click="handlePublish" :loading="publishing">
                   发布考勤
                 </a-button>
-                <a-button block size="large" @click="$emit('cancel')">
+                <a-button size="large" block @click="$emit('cancel')">
                   取消
                 </a-button>
               </div>
@@ -228,29 +227,29 @@
     </div>
     <!-- Location Selection Modal -->
     <a-modal
-        v-model:open="showLocationModal"
-        :bodyStyle="{ padding: '0' }"
-        :footer="null"
-        :maskClosable="false"
-        title="选择签到位置与范围"
-        width="800px"
-        @afterClose="destroyMap"
+      v-model:open="showLocationModal"
+      title="选择签到位置与范围"
+      :footer="null"
+      :maskClosable="false"
+      width="800px"
+      :bodyStyle="{ padding: '0' }"
+      @afterClose="destroyMap"
     >
       <div class="relative h-[500px]">
         <!-- Search Box -->
         <div class="absolute top-4 left-4 z-10 w-72 bg-white rounded shadow p-2">
           <a-input-search
-              v-model:value="locationSearchKeyword"
-              allow-clear
-              placeholder="搜索地点..."
-              @search="searchLocation"
+            v-model:value="locationSearchKeyword"
+            placeholder="搜索地点..."
+            @search="searchLocation"
+            allow-clear
           />
           <div v-if="searchResults.length > 0" class="mt-2 max-h-60 overflow-y-auto bg-white border-t">
             <div
-                v-for="(item, index) in searchResults"
-                :key="index"
-                class="p-2 hover:bg-gray-100 cursor-pointer text-sm"
-                @click="selectSearchResult(item)"
+              v-for="(item, index) in searchResults"
+              :key="index"
+              class="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+              @click="selectSearchResult(item)"
             >
               <div class="font-medium">{{ item.name }}</div>
               <div class="text-xs text-gray-500">{{ item.address }}</div>
@@ -259,34 +258,33 @@
         </div>
 
         <!-- Location Button -->
-        <div
-            class="absolute top-4 right-4 z-10 bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-50 flex items-center justify-center w-10 h-10"
-            title="定位当前位置"
-            @click="locateCurrentPosition"
+        <div 
+          class="absolute top-4 right-4 z-10 bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-50 flex items-center justify-center w-10 h-10" 
+          @click="locateCurrentPosition" 
+          title="定位当前位置"
         >
-          <AimOutlined class="text-xl text-gray-600"/>
+          <AimOutlined class="text-xl text-gray-600" />
         </div>
 
         <!-- Map Container -->
         <div id="amap-container" class="w-full h-full"></div>
 
         <!-- Radius Control -->
-        <div
-            class="absolute bottom-4 left-4 right-4 z-10 bg-white rounded shadow p-4 flex items-center justify-between">
+        <div class="absolute bottom-4 left-4 right-4 z-10 bg-white rounded shadow p-4 flex items-center justify-between">
           <div class="flex-1 mr-8">
             <span class="text-sm font-medium text-gray-700 mr-2">签到范围半径:</span>
             <a-slider
-                v-model:value="locationRadius"
-                :marks="{ 100: '100m', 500: '500m', 1000: '1000m' }"
-                :max="1000"
-                :min="100"
-                :step="50"
-                @change="updateCircleRadius"
+              v-model:value="locationRadius"
+              :min="100"
+              :max="1000"
+              :step="50"
+              :marks="{ 100: '100m', 500: '500m', 1000: '1000m' }"
+              @change="updateCircleRadius"
             />
           </div>
           <div class="flex space-x-3">
             <a-button @click="showLocationModal = false">取消</a-button>
-            <a-button :disabled="!selectedLocation" type="primary" @click="confirmLocation">确认位置</a-button>
+            <a-button type="primary" @click="confirmLocation" :disabled="!selectedLocation">确认位置</a-button>
           </div>
         </div>
       </div>
@@ -294,88 +292,88 @@
 
     <!-- Gesture Password Modal -->
     <a-modal
-        v-model:open="showGestureModal"
-        :footer="null"
-        :maskClosable="false"
-        title="设置手势密码"
-        width="400px"
+      v-model:open="showGestureModal"
+      title="设置手势密码"
+      :footer="null"
+      :maskClosable="false"
+      width="400px"
     >
       <div class="flex flex-col items-center py-4">
         <p class="text-gray-500 mb-4">请绘制解锁图案（至少连接4个点）</p>
-
-        <div
-            class="gesture-box relative bg-white select-none"
-            style="width: 300px; height: 300px;"
-            @mouseleave="endGesture"
-            @mouseup="endGesture"
+        
+        <div 
+          class="gesture-box relative bg-white select-none" 
+          style="width: 300px; height: 300px;"
+          @mouseleave="endGesture"
+          @mouseup="endGesture"
         >
           <!-- Lines -->
           <svg class="absolute inset-0 w-full h-full pointer-events-none z-10">
-            <line
-                v-for="(line, idx) in gestureLines"
-                :key="idx"
-                :x1="line.start.x"
-                :x2="line.end.x"
-                :y1="line.start.y"
-                :y2="line.end.y"
-                stroke="#1890ff"
-                stroke-linecap="round"
-                stroke-width="4"
+            <line 
+              v-for="(line, idx) in gestureLines" 
+              :key="idx"
+              :x1="line.start.x" 
+              :y1="line.start.y" 
+              :x2="line.end.x" 
+              :y2="line.end.y"
+              stroke="#1890ff" 
+              stroke-width="4" 
+              stroke-linecap="round" 
             />
-            <line
-                v-if="currentLine"
-                :x1="currentLine.start.x"
-                :x2="currentLine.end.x"
-                :y1="currentLine.start.y"
-                :y2="currentLine.end.y"
-                opacity="0.5"
-                stroke="#1890ff"
-                stroke-linecap="round"
-                stroke-width="4"
+            <line 
+              v-if="currentLine"
+              :x1="currentLine.start.x" 
+              :y1="currentLine.start.y" 
+              :x2="currentLine.end.x" 
+              :y2="currentLine.end.y"
+              stroke="#1890ff" 
+              stroke-width="4" 
+              stroke-linecap="round" 
+              opacity="0.5"
             />
           </svg>
 
           <!-- Points -->
-          <div
-              v-for="(point, index) in gesturePoints"
-              :key="index"
-              :class="isPointSelected(index) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'"
-              :style="{
+          <div 
+            v-for="(point, index) in gesturePoints" 
+            :key="index"
+            class="absolute rounded-full border-2 flex items-center justify-center transition-colors z-20"
+            :class="isPointSelected(index) ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'"
+            :style="{
               width: '60px',
               height: '60px',
               left: point.x - 30 + 'px',
               top: point.y - 30 + 'px',
               cursor: 'pointer'
             }"
-              class="absolute rounded-full border-2 flex items-center justify-center transition-colors z-20"
-              @mouseenter="enterPoint(index)"
-              @mousedown.prevent="startGesture(index)"
+            @mousedown.prevent="startGesture(index)"
+            @mouseenter="enterPoint(index)"
           >
-            <div
-                :class="isPointSelected(index) ? 'bg-blue-500' : 'bg-gray-300'"
-                class="w-4 h-4 rounded-full transition-colors"
+            <div 
+              class="w-4 h-4 rounded-full transition-colors"
+              :class="isPointSelected(index) ? 'bg-blue-500' : 'bg-gray-300'"
             ></div>
           </div>
         </div>
 
         <div class="mt-6 flex space-x-4">
           <a-button @click="resetGesture">重置</a-button>
-          <a-button :disabled="gesturePath.length < 4" type="primary" @click="confirmGesture">确认使用</a-button>
+          <a-button type="primary" @click="confirmGesture" :disabled="gesturePath.length < 4">确认使用</a-button>
         </div>
       </div>
     </a-modal>
 
     <!-- QR Code Modal -->
     <a-modal
-        v-model:open="showQRCodeModal"
-        :footer="null"
-        :maskClosable="false"
-        title="二维码签到"
-        width="500px"
+      v-model:open="showQRCodeModal"
+      title="二维码签到"
+      :footer="null"
+      :maskClosable="false"
+      width="500px"
     >
       <div class="flex flex-col items-center py-6">
         <p class="text-gray-500 mb-6 text-center">学生需要扫描此二维码完成签到</p>
-
+        
         <!-- QR Code Display -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <canvas ref="qrcodeCanvas" class="mx-auto"></canvas>
@@ -399,13 +397,11 @@
 
         <!-- Action Buttons -->
         <div class="mt-6 flex space-x-4 w-full">
-          <a-button :loading="qrCodeRefreshing" block @click="refreshQRCode">
-            <template #icon>
-              <ReloadOutlined/>
-            </template>
+          <a-button block @click="refreshQRCode" :loading="qrCodeRefreshing">
+            <template #icon><ReloadOutlined /></template>
             手动刷新
           </a-button>
-          <a-button block type="primary" @click="confirmQRCode">
+          <a-button type="primary" block @click="confirmQRCode">
             确认使用
           </a-button>
         </div>
@@ -415,27 +411,26 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onUnmounted, ref, watch} from 'vue';
+import { ref, computed, reactive, nextTick, watch, onUnmounted, onMounted } from 'vue';
 import AMapLoader from '@amap/amap-jsapi-loader';
-import {getCourseClasses} from '@/api/courseController';
-import {getClassStudents} from '@/api/classController';
-import {AttendanceType, createAttendance} from '@/api/attendanceController';
-import {message} from 'ant-design-vue';
-import dayjs, {type Dayjs} from 'dayjs';
-import {
-  AimOutlined,
-  CaretLeftOutlined,
+import { getCourseClasses } from '@/api/courseController';
+import { getClassStudents } from '@/api/classController';
+import { createAttendance, AttendanceType } from '@/api/attendanceController';
+import { message } from 'ant-design-vue';
+import dayjs, { type Dayjs } from 'dayjs';
+import { 
+  SearchOutlined, 
+  CaretDownOutlined, 
+  CaretLeftOutlined, 
   CaretRightOutlined,
-  EnvironmentOutlined,
   FormOutlined,
+  EnvironmentOutlined,
   QrcodeOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  UserOutlined
+  UserOutlined,
+  AimOutlined,
+  ReloadOutlined
 } from '@ant-design/icons-vue';
 import QRCode from 'qrcode';
-
-// Mock Data Imports
 
 // Configure AMap Security Key
 (window as any)._AMapSecurityConfig = {
@@ -457,7 +452,7 @@ const emits = defineEmits(['success', 'cancel']);
 // --- 1. 考勤范围 Logic ---
 
 // Class Selection
-const classList = ref<Array<{ id: number, name: string, studentCount: number, selected: boolean }>>([]);
+const classList = ref<Array<{id: number, name: string, studentCount: number, selected: boolean}>>([]);
 const loading = ref(false);
 
 // 获取课程关联的班级
@@ -465,10 +460,11 @@ const fetchCourseClasses = async (courseId: number) => {
   try {
     loading.value = true;
     const response = await getCourseClasses(courseId);
-    console.log('API Response:', response); // 调试日志
-
-    if (response && response.classes && Array.isArray(response.classes)) {
-      classList.value = response.classes.map(cls => ({
+    const res = (response as any).data ? (response as any).data : response;
+    console.log('API Response:', res); // 调试日志
+    
+    if (res && res.classes && Array.isArray(res.classes)) {
+      classList.value = res.classes.map((cls: any) => ({
         id: (cls.classId || cls.class_id) as number,
         name: (cls.className || cls.class_name) as string,
         studentCount: (cls.studentCount || cls.student_count) as number,
@@ -476,7 +472,7 @@ const fetchCourseClasses = async (courseId: number) => {
       }));
       console.log('Mapped classList:', classList.value); // 调试日志
     } else {
-      console.warn('Invalid response structure:', response);
+      console.warn('Invalid response structure:', res);
       classList.value = [];
     }
   } catch (error) {
@@ -488,14 +484,29 @@ const fetchCourseClasses = async (courseId: number) => {
   }
 };
 
-// 当课程ID变化时获取班级
+// 监听 availableClasses 变化，优先使用 props 传入的数据
+watch(() => props.availableClasses, (newVal) => {
+  if (newVal && newVal.length > 0) {
+    classList.value = newVal.map(cls => ({
+      id: cls.classId,
+      name: cls.className,
+      studentCount: cls.studentCount,
+      selected: false
+    }));
+  } else if (props.courseId) {
+    // 如果没有传入 availableClasses，尝试自己获取
+    fetchCourseClasses(props.courseId);
+  }
+}, { immediate: true, deep: true });
+
+// 当课程ID变化时获取班级（仅当没有 availableClasses 时）
 watch(() => props.courseId, (newVal) => {
-  if (newVal) {
+  if (newVal && (!props.availableClasses || props.availableClasses.length === 0)) {
     fetchCourseClasses(newVal);
-  } else {
+  } else if (!newVal) {
     classList.value = [];
   }
-}, {immediate: true});
+});
 
 const toggleClassSelection = (item: any) => {
   item.selected = !item.selected;
@@ -519,12 +530,15 @@ watch(selectedClasses, async (newClasses) => {
     allStudents.value = [];
     return;
   }
-
+  
   try {
     // 获取所有选中班级的学生
-    const studentPromises = newClasses.map(cls => getClassStudents(cls.id));
+    const studentPromises = newClasses.map(async (cls) => {
+        const response = await getClassStudents(cls.id);
+        return (response as any).data ? (response as any).data : response;
+    });
     const results = await Promise.all(studentPromises);
-
+    
     // 合并所有班级的学生
     const students: Array<{
       id: number;
@@ -533,13 +547,13 @@ watch(selectedClasses, async (newClasses) => {
       classId: number;
       selected: boolean;
     }> = [];
-
-    results.forEach((result, index) => {
+    
+    results.forEach((result: any, index) => {
       const currentClass = newClasses[index];
-      if (!currentClass) return;
-
+      if (!currentClass || !result || !result.students) return;
+      
       const classId = currentClass.id;
-      result.students.forEach(student => {
+      result.students.forEach((student: any) => {
         students.push({
           id: student.id,
           name: student.realName || student.real_name || student.username,
@@ -549,7 +563,7 @@ watch(selectedClasses, async (newClasses) => {
         });
       });
     });
-
+    
     allStudents.value = students;
     console.log('Loaded students:', students.length);
   } catch (error) {
@@ -557,7 +571,7 @@ watch(selectedClasses, async (newClasses) => {
     message.error('获取学生列表失败');
     allStudents.value = [];
   }
-}, {deep: true});
+}, { deep: true });
 
 const filteredStudents = computed(() => {
   const selectedClassIds = selectedClasses.value.map(c => c.id);
@@ -567,9 +581,9 @@ const filteredStudents = computed(() => {
 
   if (studentSearch.value) {
     const search = studentSearch.value.toLowerCase();
-    students = students.filter(s =>
-        s.name.toLowerCase().includes(search) ||
-        s.studentId.includes(search)
+    students = students.filter(s => 
+      s.name.toLowerCase().includes(search) || 
+      s.studentId.includes(search)
     );
   }
   return students;
@@ -579,12 +593,12 @@ const toggleStudentSelection = (student: { selected: boolean }) => {
   student.selected = !student.selected;
 };
 
-const selectedStudents = computed(() =>
-    filteredStudents.value.filter(s => s.selected)
+const selectedStudents = computed(() => 
+  filteredStudents.value.filter(s => s.selected)
 );
 
-const selectedStudentsCount = computed(() =>
-    selectedStudents.value.length
+const selectedStudentsCount = computed(() => 
+  selectedStudents.value.length
 );
 
 // --- 2. 考勤时间 Logic ---
@@ -612,24 +626,24 @@ const calendarDays = computed(() => {
   const lastDay = current.endOf('month');
   const startDayOfWeek = firstDay.day();
   const daysInMonth = current.daysInMonth();
-
+  
   const days = [];
 
   for (let i = 0; i < startDayOfWeek; i++) {
     const d = firstDay.subtract(startDayOfWeek - i, 'day');
-    days.push({date: d.toDate(), text: d.date(), disabled: true, selected: false});
+    days.push({ date: d.toDate(), text: d.date(), disabled: true, selected: false });
   }
 
   for (let i = 1; i <= daysInMonth; i++) {
     const d = dayjs(new Date(current.year(), current.month(), i));
     const isSelected = d.isSame(dayjs(selectedDate.value), 'day');
-    days.push({date: d.toDate(), text: i, disabled: false, selected: isSelected});
+    days.push({ date: d.toDate(), text: i, disabled: false, selected: isSelected });
   }
 
   const remainingCells = 42 - days.length;
   for (let i = 1; i <= remainingCells; i++) {
     const d = lastDay.add(i, 'day');
-    days.push({date: d.toDate(), text: d.date(), disabled: true, selected: false});
+    days.push({ date: d.toDate(), text: d.date(), disabled: true, selected: false });
   }
 
   return days;
@@ -648,36 +662,36 @@ const formattedTimeRange = computed(() => {
 // --- 3. 考勤方式 Logic ---
 
 const attendanceMethods = ref([
-  {
-    id: 'gesture',
-    name: '手势签到',
+  { 
+    id: 'gesture', 
+    name: '手势签到', 
     description: '学生通过特定手势完成签到',
     icon: FormOutlined,
     bgColor: 'bg-blue-50',
     iconColor: 'text-blue-500',
     selected: false
   },
-  {
-    id: 'location',
-    name: '位置签到',
+  { 
+    id: 'location', 
+    name: '位置签到', 
     description: '限定地理位置范围内签到',
     icon: EnvironmentOutlined,
     bgColor: 'bg-green-50',
     iconColor: 'text-green-500',
     selected: false
   },
-  {
-    id: 'qrcode',
-    name: '二维码签到',
+  { 
+    id: 'qrcode', 
+    name: '二维码签到', 
     description: '扫描二维码完成签到',
     icon: QrcodeOutlined,
     bgColor: 'bg-purple-50',
     iconColor: 'text-purple-500',
     selected: true
   },
-  {
-    id: 'face',
-    name: '人脸签到',
+  { 
+    id: 'face', 
+    name: '人脸签到', 
     description: '通过人脸识别完成签到',
     icon: UserOutlined,
     bgColor: 'bg-yellow-50',
@@ -703,7 +717,7 @@ const gesturePoints = computed(() => {
   const positions = [50, 150, 250];
   for (let r of positions) {
     for (let c of positions) {
-      points.push({x: c, y: r});
+      points.push({ x: c, y: r });
     }
   }
   return points; // 0-8
@@ -713,7 +727,7 @@ const gestureLines = computed(() => {
   const lines = [];
   for (let i = 0; i < gesturePath.value.length - 1; i++) {
     const startIdx = gesturePath.value[i];
-    const endIdx = gesturePath.value[i + 1];
+    const endIdx = gesturePath.value[i+1];
     if (startIdx !== undefined && endIdx !== undefined && gesturePoints.value[startIdx] && gesturePoints.value[endIdx]) {
       lines.push({
         start: gesturePoints.value[startIdx],
@@ -733,7 +747,7 @@ const startGesture = (index: number) => {
 
 const enterPoint = (index: number) => {
   if (!isDrawing.value) return;
-
+  
   // Prevent selecting the same point immediately again (simple loop prevention)
   // Or standard pattern logic: can revisit if passing through? 
   // Simple version: cannot select already selected point
@@ -785,12 +799,12 @@ const generateQRCode = async () => {
       // 后续会在发布时替换为实际的考勤ID
       attendanceId: 'pending'
     };
-
+    
     qrCodeData.value = JSON.stringify(qrData);
-
+    
     // 等待canvas元素渲染
     await nextTick();
-
+    
     if (qrcodeCanvas.value) {
       await QRCode.toCanvas(qrcodeCanvas.value, qrCodeData.value, {
         width: 280,
@@ -800,7 +814,7 @@ const generateQRCode = async () => {
           light: '#FFFFFF'
         }
       });
-
+      
       qrCodeStatus.value = '已生成';
       startQRCodeCountdown();
     }
@@ -815,12 +829,12 @@ const startQRCodeCountdown = () => {
   if (qrCodeTimer) {
     clearInterval(qrCodeTimer);
   }
-
+  
   qrCodeCountdown.value = 300; // 重置为5分钟
-
+  
   qrCodeTimer = window.setInterval(() => {
     qrCodeCountdown.value--;
-
+    
     if (qrCodeCountdown.value <= 0) {
       // 自动刷新二维码
       refreshQRCode();
@@ -877,90 +891,90 @@ const initMap = () => {
     version: '2.0',
     plugins: ['AMap.AutoComplete', 'AMap.PlaceSearch', 'AMap.Circle', 'AMap.Marker', 'AMap.Geolocation'],
   })
-      .then((AMap) => {
-        AMapObj = AMap;
-        map = new AMap.Map('amap-container', {
-          zoom: 15,
-          center: [116.397428, 39.90923], // Default Beijing
-          resizeEnable: true
-        });
+  .then((AMap) => {
+    AMapObj = AMap;
+    map = new AMap.Map('amap-container', {
+      zoom: 15,
+      center: [116.397428, 39.90923], // Default Beijing
+      resizeEnable: true
+    });
 
-        // Click event
-        map.on('click', (e: any) => {
-          handleMapClick(e.lnglat);
-        });
+    // Click event
+    map.on('click', (e: any) => {
+      handleMapClick(e.lnglat);
+    });
 
-        // Init PlaceSearch
-        placeSearch = new AMap.PlaceSearch({
-          pageSize: 10,
-          pageIndex: 1,
-          city: '全国', // city code or name
-        });
+    // Init PlaceSearch
+    placeSearch = new AMap.PlaceSearch({
+      pageSize: 10,
+      pageIndex: 1,
+      city: '全国', // city code or name
+    });
 
-        // Init Geolocation - 高精度配置（优化版）
-        geolocation = new AMap.Geolocation({
-          enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
-          timeout: 30000,               // 超时时间30秒（给GPS更多时间）
-          maximumAge: 0,                // 不使用缓存位置，每次都重新定位
-          convert: true,                // 自动转换为高德坐标系
-          needAddress: false,           // 不需要逆地理编码（加快定位速度）
-          extensions: 'all',            // 返回更多信息
-          GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
-          noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
-          noGeoLocation: 0,             // 允许使用浏览器定位
-          useNative: true,              // 使用浏览器原生定位API
-          zoomToAccuracy: true,         // 定位成功后调整地图视野
-          buttonPosition: 'RB'          // 定位按钮位置（右下角）
-        });
-      })
-      .catch((e) => {
-        console.error(e);
-        message.error('地图加载失败');
-      });
+    // Init Geolocation - 高精度配置（优化版）
+    geolocation = new AMap.Geolocation({
+      enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
+      timeout: 30000,               // 超时时间30秒（给GPS更多时间）
+      maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+      convert: true,                // 自动转换为高德坐标系
+      needAddress: true,            // 需要逆地理编码（返回详细地址）
+      extensions: 'base',           // 返回基本信息
+      GeoLocationFirst: false,      // 不强制优先使用浏览器定位，允许IP定位
+      noIpLocate: 0,                // 允许IP定位（0为允许）
+      noGeoLocation: 0,             // 允许使用浏览器定位
+      useNative: true,              // 使用浏览器原生定位API
+      zoomToAccuracy: false,        // 禁用自动调整地图视野
+      buttonPosition: 'RB'          // 定位按钮位置（右下角）
+    });
+  })
+  .catch((e) => {
+    console.error(e);
+    message.error('地图加载失败');
+  });
 };
 
 const locateCurrentPosition = () => {
   console.log('[AttendancePublish] 开始定位...');
-
+  
   if (!map) {
     console.error('[AttendancePublish] map对象未初始化');
     message.warning('地图未加载完成，请稍后再试');
     return;
   }
-
+  
   if (!AMapObj) {
     console.error('[AttendancePublish] AMapObj未初始化');
     message.warning('地图组件未就绪，请稍后再试');
     return;
   }
-
+  
   // 每次定位都重新初始化geolocation对象（与学生端保持一致）
   console.log('[AttendancePublish] 重新初始化geolocation对象');
   geolocation = new AMapObj.Geolocation({
     enableHighAccuracy: true,    // 启用高精度定位（使用GPS）
-    timeout: 30000,               // 超时时间30秒（给GPS更多时间）
-    maximumAge: 0,                // 不使用缓存位置，每次都重新定位
+    timeout: 10000,               // 超时时间10秒
+    maximumAge: 0,                // 不使用缓存位置
     convert: true,                // 自动转换为高德坐标系
-    needAddress: false,           // 不需要逆地理编码（加快定位速度）
-    extensions: 'all',            // 返回更多信息
-    GeoLocationFirst: true,       // 优先使用浏览器原生定位（GPS）
-    noIpLocate: 3,                // 禁用IP定位（只用GPS/WiFi精确定位）
+    needAddress: true,            // 需要逆地理编码
+    extensions: 'base',           // 返回基本信息
+    GeoLocationFirst: false,      // 允许IP定位优先（如果GPS不可用）
+    noIpLocate: 0,                // 允许IP定位
     noGeoLocation: 0,             // 允许使用浏览器定位
     useNative: true,              // 使用浏览器原生定位API
-    zoomToAccuracy: true,         // 定位成功后调整地图视野
+    zoomToAccuracy: false,        // 禁用自动调整地图视野
     buttonPosition: 'RB'          // 定位按钮位置（右下角）
   });
-
+  
   message.loading({
     content: '正在高精度定位中，请稍候...',
     duration: 0,
     key: 'locating'
   });
-
+  
   console.log('[AttendancePublish] 调用 geolocation.getCurrentPosition');
   geolocation.getCurrentPosition((status: string, result: any) => {
     message.destroy();
-
+    
     if (status === 'complete') {
       console.log('[AttendancePublish] ========== 定位成功 ==========');
       console.log('[AttendancePublish] 经度:', result.position.lng);
@@ -969,9 +983,13 @@ const locateCurrentPosition = () => {
       console.log('[AttendancePublish] 定位类型:', result.location_type);
       console.log('[AttendancePublish] 完整结果:', result);
       console.log('[AttendancePublish] ================================');
-
+      
       handleMapClick(result.position);
-
+      // 手动设置合适的缩放级别，防止过大
+      if (map) {
+        map.setZoom(17);
+      }
+      
       // 根据精度给出提示
       const accuracy = result.accuracy ? Math.round(result.accuracy) : null;
       if (accuracy !== null) {
@@ -995,9 +1013,9 @@ const locateCurrentPosition = () => {
 };
 
 const handleMapClick = (lnglat: any) => {
-  const {lng, lat} = lnglat;
+  const { lng, lat } = lnglat;
   updateLocationOnMap(lng, lat);
-
+  
   selectedLocation.value = {
     lng,
     lat,
@@ -1034,7 +1052,7 @@ const updateLocationOnMap = (lng: number, lat: number) => {
       map: map
     });
   }
-
+  
   map.setCenter(center);
 };
 
@@ -1053,7 +1071,7 @@ const searchLocation = () => {
 const selectSearchResult = (item: any) => {
   searchResults.value = [];
   locationSearchKeyword.value = item.name;
-  const {lng, lat} = item.location;
+  const { lng, lat } = item.location;
   updateLocationOnMap(lng, lat);
   selectedLocation.value = {
     lng,
@@ -1106,7 +1124,7 @@ const selectAttendanceMethod = (method: any) => {
     showQRCodeModal.value = true;
     generateQRCode();
   }
-
+  
   attendanceMethods.value.forEach(m => m.selected = false);
   method.selected = true;
 };
@@ -1137,8 +1155,8 @@ const handlePublish = async () => {
 
   // 获取选中的班级ID列表
   const selectedClassIds = classList.value
-      .filter(cls => cls.selected)
-      .map(cls => cls.id);
+    .filter(cls => cls.selected)
+    .map(cls => cls.id);
 
   if (selectedClassIds.length === 0) {
     message.error('请至少选择一个班级');
@@ -1147,8 +1165,8 @@ const handlePublish = async () => {
 
   // 获取选中的学生ID列表（如果有）
   const selectedStudentIds = allStudents.value
-      .filter(student => student.selected)
-      .map(student => student.id);
+    .filter(student => student.selected)
+    .map(student => student.id);
 
   // 获取选中的考勤方式
   const selectedMethod = attendanceMethods.value.find(m => m.selected);
@@ -1162,7 +1180,7 @@ const handlePublish = async () => {
     message.error('请绘制手势路径');
     return;
   }
-
+  
   if (selectedMethod.id === 'location' && !selectedLocation.value) {
     message.error('请选择签到位置');
     return;
@@ -1187,9 +1205,9 @@ const handlePublish = async () => {
       // 手势签到 - 将点索引转换为坐标
       const gestureCoords = gesturePath.value.map(pointIndex => {
         const point = gesturePoints.value[pointIndex];
-        return point ? {x: point.x, y: point.y} : {x: 0, y: 0};
+        return point ? { x: point.x, y: point.y } : { x: 0, y: 0 };
       });
-
+      
       attendanceData.gesturePattern = {
         points: gestureCoords,
         width: 300,
@@ -1213,12 +1231,12 @@ const handlePublish = async () => {
     }
 
     console.log('Publishing attendance:', attendanceData);
-
+    
     // 调用API发布考勤
     const response = await createAttendance(attendanceData);
-
+    
     message.success('考勤发布成功');
-
+    
     // 发送成功事件，包含前端需要的数据
     emits('success', {
       ...response.data,
@@ -1230,7 +1248,7 @@ const handlePublish = async () => {
       startTime: attendanceData.startTime,
       endTime: attendanceData.endTime
     });
-
+    
   } catch (error: any) {
     console.error('Failed to publish attendance:', error);
     message.error(error.response?.data?.message || '考勤发布失败，请稍后重试');
