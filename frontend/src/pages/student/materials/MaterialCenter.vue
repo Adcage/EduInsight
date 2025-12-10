@@ -108,10 +108,12 @@
     <!-- 预览弹窗 -->
     <a-modal
         v-model:open="previewModalVisible"
+        :bodyStyle="{ height: '80vh', padding: 0, overflow: 'auto' }"
         :destroy-on-close="true"
         :footer="null"
         :title="previewMaterial?.title || '文件预览'"
-        :width="900"
+        :width="'90%'"
+        centered
         class="preview-modal"
     >
       <div class="preview-container">
@@ -194,7 +196,7 @@ const pagination = reactive({
 })
 
 // 支持预览的文件类型
-const previewSupportedTypes = ['pdf', 'image', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']
+const previewSupportedTypes = ['pdf', 'image', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']
 
 // 是否有激活的筛选条件
 const hasActiveFilters = computed(() => {
@@ -367,10 +369,13 @@ const handlePreview = async (material: any) => {
     // 获取预览URL
     const response = await materialApiIntMaterialIdPreviewGet({
       materialId: material.id,
+    }, {
+      responseType: 'blob'
     })
 
-    // 创建blob URL用于预览
-    const blob = new Blob([response.data], {type: getContentType(material.fileType)})
+    // 从axios响应中提取blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data], {type: getContentType(material.fileType)})
+    
     previewUrl.value = window.URL.createObjectURL(blob)
     previewModalVisible.value = true
   } catch (error: any) {
@@ -383,6 +388,8 @@ const handlePreview = async (material: any) => {
 const getContentType = (fileType: string): string => {
   const typeMap: Record<string, string> = {
     pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     image: 'image/*',
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -481,12 +488,6 @@ onMounted(() => {
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
-}
-
-.preview-modal :deep(.ant-modal-body) {
-  padding: 0;
-  height: 70vh;
-  overflow: hidden;
 }
 
 .preview-container {

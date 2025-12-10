@@ -7,7 +7,7 @@
     </template>
 
     <template #actions>
-      <a-tooltip title="预览">
+      <a-tooltip v-if="canPreview" title="预览">
         <EyeOutlined key="preview" @click.stop="handlePreview"/>
       </a-tooltip>
       <a-tooltip title="下载">
@@ -131,6 +131,13 @@ const fileTypeText = computed(() => {
   return fileTypeTextMap[props.material.fileType] || '其他'
 })
 
+// 判断是否可以预览
+const canPreview = computed(() => {
+  const supportedTypes = ['pdf', 'image', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+  const fileType = props.material.fileType?.toLowerCase() || ''
+  return supportedTypes.includes(fileType)
+})
+
 // 格式化文件大小
 const formatFileSize = (bytes: number): string => {
   if (!bytes) return '0 B'
@@ -212,6 +219,7 @@ const handleMore = () => {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   margin-bottom: 8px;
   color: rgba(0, 0, 0, 0.65);

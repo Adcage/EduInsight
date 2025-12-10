@@ -61,7 +61,6 @@ const emit = defineEmits<{
   download: []
   back: []
 }>()
-
 const loading = ref(false)
 
 // 图片类型
@@ -86,7 +85,6 @@ const isText = computed(() => {
   if (!props.fileType) return false
   return textTypes.includes(props.fileType.toLowerCase())
 })
-  console.log(props.fileType)
 
 // 判断是否为Word文档
 const isDocx = computed(() => {
@@ -158,7 +156,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
-  overflow: hidden;
+  overflow: auto;
   min-height: 0;
   min-width: 0;
 }

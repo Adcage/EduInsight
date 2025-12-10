@@ -134,11 +134,10 @@
     <!-- 预览模态框 -->
     <a-modal
         v-model:open="previewModalVisible"
-        :bodyStyle="{ height: '70vh', padding: 0, maxHeight: '70vh' }"
+        :bodyStyle="{ height: '70vh', padding: 0, overflow: 'auto' }"
         :destroyOnClose="true"
         :footer="null"
         :title="`预览 - ${material?.fileName}`"
-        :wrapStyle="{ maxHeight: '90vh' }"
         centered
         width="85%"
     >
@@ -197,7 +196,17 @@ const loading = computed(() => materialStore.loading)
 // 是否可以预览
 const canPreview = computed(() => {
   if (!material.value) return false
-  return material.value.fileType === 'pdf' || material.value.fileType === 'image'
+  
+  console.log('检查是否可预览:', material.value.fileType)
+  
+  // PDF、图片和Word文档支持预览
+  const supportedTypes = ['pdf', 'image', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+  const fileType = material.value.fileType?.toLowerCase() || ''
+  
+  const canPreviewResult = supportedTypes.includes(fileType)
+  console.log('canPreview结果:', canPreviewResult, '文件类型:', fileType)
+  
+  return canPreviewResult
 })
 
 // 打开预览模态框
@@ -326,8 +335,9 @@ const loadMaterialDetail = async () => {
     await materialStore.fetchMaterialDetail(materialId.value)
 
     // 检查是否需要自动打开预览
-    if (route.query.preview === 'true') {
-      previewModalVisible.value = true
+    if (route.query.preview === 'true' && canPreview.value) {
+      // 调用togglePreview来获取blob数据并打开预览
+      await togglePreview()
     }
 
     // 加载相关资料

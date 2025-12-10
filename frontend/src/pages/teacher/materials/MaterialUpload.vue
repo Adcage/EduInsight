@@ -144,13 +144,13 @@
         <!-- 右侧：智能分类面板（上传完成后显示） -->
         <a-col v-if="uploadedMaterialId" :span="8">
           <!-- 智能分类 -->
-          <ClassificationPanel
+          <!-- <ClassificationPanel
               ref="classificationPanelRef"
               :auto-analyze="true"
               :material-id="uploadedMaterialId"
               @accepted="handleCategoryAccepted"
               @classified="handleClassified"
-          />
+          /> -->
 
           <!-- 标签推荐 -->
           <TagSuggestions
