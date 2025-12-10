@@ -17,31 +17,6 @@
     <div class="pt-16 pb-20 px-4 flex-1">
       <!-- Step 1: Student ID Input -->
       <div v-if="currentStep === 1" class="space-y-6">
-        <!-- 调试信息卡片 -->
-        <div class="bg-blue-50 rounded-xl p-4 shadow-sm border border-blue-200">
-          <h3 class="text-sm font-bold mb-2 text-blue-800">调试信息</h3>
-          <div class="text-xs text-blue-700 space-y-1">
-            <p><strong>考勤ID:</strong> {{ attendanceId || '未获取' }}</p>
-            <p><strong>二维码Token长度:</strong> {{ qrCodeToken ? qrCodeToken.length : 0 }}</p>
-            <p class="break-all"><strong>二维码Token:</strong> {{ qrCodeToken || '未获取' }}</p>
-            <p><strong>后端API:</strong> {{ apiBaseUrl }}</p>
-            <p><strong>网络状态:</strong> <span :class="isOnline ? 'text-green-600' : 'text-red-600'">{{ isOnline ? '在线' : '离线' }}</span></p>
-          </div>
-        </div>
-        
-        <!-- 错误信息卡片 -->
-        <div v-if="lastError" class="bg-red-50 rounded-xl p-4 shadow-sm border border-red-200">
-          <h3 class="text-sm font-bold mb-2 text-red-800">错误详情</h3>
-          <div class="text-xs text-red-700 space-y-1">
-            <p><strong>错误信息:</strong> {{ lastError.message }}</p>
-            <p v-if="lastError.status"><strong>状态码:</strong> {{ lastError.status }}</p>
-            <p v-if="lastError.url"><strong>请求地址:</strong> {{ lastError.url }}</p>
-            <div v-if="lastError.detail" class="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto max-h-32">
-              <pre>{{ lastError.detail }}</pre>
-            </div>
-          </div>
-        </div>
-        
         <div class="bg-white rounded-xl p-6 shadow-sm">
           <h2 class="text-xl font-bold mb-2">请输入学号</h2>
           <p class="text-gray-500 mb-6">验证学号后将进行人脸识别验证</p>
@@ -252,10 +227,13 @@ const isOnline = ref(navigator.onLine);
 // 获取实际的API地址
 const getApiBaseUrl = () => {
   const hostname = window.location.hostname;
+  const protocol = window.location.protocol; // 获取当前协议 (http: 或 https:)
+  
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:5030';
   } else {
-    return `http://${hostname}:5030`;
+    // 生产环境：使用当前协议和域名（不加端口，由反向代理处理）
+    return `${protocol}//${hostname}`;
   }
 };
 

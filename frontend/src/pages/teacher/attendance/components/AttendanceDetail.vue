@@ -343,14 +343,14 @@ const generateQRCode = async () => {
 
     console.log('已将token同步到后端:', randomStr);
 
-    const qrData = {
-      type: 'attendance_qrcode',
-      timestamp,
-      token: randomStr,
-      attendanceId: props.task.id
-    };
+    // 生成完整的签到页面URL（手机扫码后直接访问）
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    const mobileUrl = `${baseUrl}/attendance/mobile?attendanceId=${props.task.id}&token=${randomStr}`;
+    
+    console.log('生成的签到URL:', mobileUrl);
 
-    qrCodeData.value = JSON.stringify(qrData);
+    // 二维码内容为完整URL，手机扫码后可直接打开
+    qrCodeData.value = mobileUrl;
 
     await nextTick();
 
