@@ -1,7 +1,7 @@
 <template>
   <a-layout-footer class="global-footer">
     <div class="footer-content">
-      <p>&copy; 2024 Learning Study. All rights reserved.</p>
+      <p>&copy; 20225 EduInsight. All rights reserved.</p>
     </div>
   </a-layout-footer>
 </template>

@@ -7,15 +7,6 @@
         </router-link>
       </div>
 
-      <a-menu v-model:selectedKeys="selectedKeys" mode="horizontal" class="header-menu">
-        <a-menu-item key="home">
-          <router-link to="/">首页</router-link>
-        </a-menu-item>
-        <a-menu-item key="about">
-          <router-link to="/about">关于</router-link>
-        </a-menu-item>
-      </a-menu>
-
       <div class="header-actions">
         <ThemeToggle />
         <UserAvatar />
