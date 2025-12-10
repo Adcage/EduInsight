@@ -66,6 +66,11 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'app.db')
+    
+    # 生产环境 Session 配置(HTTPS)
+    SESSION_COOKIE_SECURE = True  # HTTPS环境必须设为True
+    SESSION_COOKIE_SAMESITE = 'None'  # 跨域场景必须设为None
+    SESSION_COOKIE_HTTPONLY = True
 
 config = {
     'development': DevelopmentConfig,
