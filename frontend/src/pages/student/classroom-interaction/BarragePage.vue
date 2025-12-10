@@ -1,13 +1,11 @@
 <template>
   <div class="barrage-page">
-    <a-page-header sub-title="发送弹幕，参与课堂互动" title="弹幕互动">
+    <a-page-header title="弹幕互动" sub-title="发送弹幕，参与课堂互动">
       <template #extra>
         <a-space>
-          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'"/>
+          <a-badge :status="isConnected ? 'success' : 'error'" :text="isConnected ? '已连接' : '未连接'" />
           <a-button @click="loadBarrages">
-            <template #icon>
-              <ReloadOutlined/>
-            </template>
+            <template #icon><ReloadOutlined /></template>
             刷新
           </a-button>
         </a-space>
@@ -16,57 +14,53 @@
 
     <div class="content-container">
       <!-- 弹幕墙 -->
-      <a-card :bordered="false" style="margin-bottom: 16px" title="弹幕墙">
+      <a-card title="弹幕墙" :bordered="false" style="margin-bottom: 16px">
         <template #extra>
           <a-space>
             <a-tag color="green">
-              <CheckCircleOutlined/>
-              绿色 = 答案弹幕
+              <CheckCircleOutlined /> 绿色 = 答案弹幕
             </a-tag>
             <a-tag color="blue">
-              <CommentOutlined/>
-              蓝色 = 自由弹幕
+              <CommentOutlined /> 蓝色 = 自由弹幕
             </a-tag>
           </a-space>
         </template>
 
-        <BarrageWall ref="barrageWallRef" :course-id="courseId" :height="500"/>
+        <BarrageWall ref="barrageWallRef" :course-id="courseId" :height="500" />
       </a-card>
 
       <!-- 发送弹幕 -->
-      <a-card :bordered="false" style="margin-bottom: 16px" title="发送弹幕">
+      <a-card title="发送弹幕" :bordered="false" style="margin-bottom: 16px">
         <a-alert
-            description="回答问题的答案会自动转为绿色弹幕，这里发送的是蓝色自由弹幕"
-            message="提示"
-            show-icon
-            style="margin-bottom: 16px"
-            type="info"
+          message="提示"
+          description="回答问题的答案会自动转为绿色弹幕，这里发送的是蓝色自由弹幕"
+          type="info"
+          show-icon
+          style="margin-bottom: 16px"
         />
 
         <a-input-search
-            v-model:value="barrageContent"
-            :loading="sendLoading"
-            :maxlength="100"
-            enter-button="发送"
-            placeholder="输入弹幕内容，按回车或点击发送..."
-            show-count
-            size="large"
-            @search="handleSendBarrage"
+          v-model:value="barrageContent"
+          placeholder="输入弹幕内容，按回车或点击发送..."
+          enter-button="发送"
+          size="large"
+          :loading="sendLoading"
+          @search="handleSendBarrage"
         >
           <template #prefix>
-            <MessageOutlined/>
+            <MessageOutlined />
           </template>
         </a-input-search>
 
         <div style="margin-top: 12px">
-          <a-checkbox v-model:checked="isAnonymous"> 匿名发送</a-checkbox>
+          <a-checkbox v-model:checked="isAnonymous"> 匿名发送 </a-checkbox>
         </div>
       </a-card>
 
       <!-- 我的弹幕 -->
-      <a-card :bordered="false" title="我的弹幕">
+      <a-card title="我的弹幕" :bordered="false">
         <a-spin :spinning="loading">
-          <a-empty v-if="myBarrages.length === 0 && !loading" description="你还没有发送过弹幕"/>
+          <a-empty v-if="myBarrages.length === 0 && !loading" description="你还没有发送过弹幕" />
 
           <a-list v-else :data-source="myBarrages" :pagination="paginationConfig">
             <template #renderItem="{ item }">
@@ -74,21 +68,19 @@
                 <a-list-item-meta>
                   <template #avatar>
                     <a-avatar :style="{ backgroundColor: item.question_id ? '#52c41a' : '#1890ff' }">
-                      <MessageOutlined/>
+                      <MessageOutlined />
                     </a-avatar>
                   </template>
 
                   <template #title>
                     <a-space>
                       <a-tag v-if="item.question_id" color="green">
-                        <CheckCircleOutlined/>
-                        答案弹幕
+                        <CheckCircleOutlined /> 答案弹幕
                       </a-tag>
                       <a-tag v-else color="blue">
-                        <CommentOutlined/>
-                        自由弹幕
+                        <CommentOutlined /> 自由弹幕
                       </a-tag>
-                      <a-tag v-if="item.is_anonymous" color="orange"> 匿名</a-tag>
+                      <a-tag v-if="item.is_anonymous" color="orange"> 匿名 </a-tag>
                     </a-space>
                   </template>
 
@@ -102,8 +94,7 @@
 
                 <template #actions>
                   <a @click="resendBarrage(item)">
-                    <ReloadOutlined/>
-                    重发
+                    <ReloadOutlined /> 重发
                   </a>
                 </template>
               </a-list-item>
@@ -115,13 +106,18 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue'
-import {message} from 'ant-design-vue'
-import {CheckCircleOutlined, CommentOutlined, MessageOutlined, ReloadOutlined,} from '@ant-design/icons-vue'
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue'
+import { message } from 'ant-design-vue'
+import {
+  ReloadOutlined,
+  MessageOutlined,
+  CheckCircleOutlined,
+  CommentOutlined,
+} from '@ant-design/icons-vue'
 import BarrageWall from '@/components/interaction/BarrageWall.vue'
-import {barrageApiGet, barrageApiPost} from '@/api/interactionController'
-import {useBarrageSocket} from '@/composables/useSocket'
+import { barrageApiPost, barrageApiGet } from '@/api/interactionController'
+import { useBarrageSocket } from '@/composables/useSocket'
 import dayjs from 'dayjs'
 
 // 用户信息
@@ -130,7 +126,7 @@ const userName = ref('学生')
 const courseId = ref(1)
 
 // WebSocket
-const {isConnected, onNewBarrage, sendBarrage} = useBarrageSocket(courseId.value, userId.value, userName.value)
+const { isConnected, onNewBarrage, sendBarrage } = useBarrageSocket(courseId.value, userId.value, userName.value)
 
 // 数据
 const loading = ref(false)
@@ -247,7 +243,7 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .barrage-page {
   min-height: 100vh;
   background: var(--bg-color);

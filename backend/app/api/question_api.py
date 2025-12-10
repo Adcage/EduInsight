@@ -394,7 +394,18 @@ class QuestionAPI:
             # 获取所有回答
             answers = QuestionService.get_answers_by_question(path.question_id)
             
-            answer_list = [answer.to_dict() for answer in answers]
+            # 添加用户姓名信息
+            answer_list = []
+            for answer in answers:
+                answer_dict = answer.to_dict()
+                # 获取用户信息
+                from app.models.user import User
+                user = User.query.get(answer.user_id)
+                if user:
+                    answer_dict['user_name'] = user.real_name or user.username
+                else:
+                    answer_dict['user_name'] = f'用户{answer.user_id}'
+                answer_list.append(answer_dict)
             
             return ResponseHandler.success(
                 data={
