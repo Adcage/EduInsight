@@ -2,6 +2,12 @@
 数据库初始化脚本
 用于创建所有数据库表并插入测试数据
 """
+import sys
+import io
+
+# 设置 UTF-8 编码输出，避免 Windows 控制台编码问题
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 from app import create_app
 from app.extensions import db
 from app.models import (
@@ -26,8 +32,8 @@ def init_database():
     with app.app_context():
         # 创建所有表
         db.create_all()
-        print("✅ 数据库表创建成功!")
-        print(f"📁 数据库位置: {app.config['SQLALCHEMY_DATABASE_URI']}")
+        print("[成功] 数据库表创建成功!")
+        print(f"[信息] 数据库位置: {app.config['SQLALCHEMY_DATABASE_URI']}")
         
         # 显示创建的表
         from sqlalchemy import inspect
@@ -35,11 +41,11 @@ def init_database():
         tables = inspector.get_table_names()
         
         if tables:
-            print(f"\n📊 已创建 {len(tables)} 个数据表:")
+            print(f"\n[信息] 已创建 {len(tables)} 个数据表:")
             for table in tables:
                 print(f"   - {table}")
         else:
-            print("\n⚠️  警告: 没有找到任何数据表!")
+            print("\n[警告] 没有找到任何数据表!")
 
 
 def create_test_data():

@@ -44,7 +44,7 @@ class UserAPI:
         logger.info(f"[{cls.request_count}] {action}{user_desc}")
     
     @staticmethod
-    @user_api_bp.get('/list', 
+    @user_api_bp.get('/list',
                     summary="获取用户列表", 
                     tags=[user_tag],
                     responses={200: UserListResponseModel, 401: MessageResponseModel})
@@ -92,7 +92,7 @@ class UserAPI:
             
             users = [user.to_dict() for user in pagination.items]
             logger.info(f"用户列表:{users}")
-            
+
             # 使用 Schema 序列化，自动转换为驼峰格式
             response = UserListResponseModel(
                 users=users,
@@ -101,7 +101,7 @@ class UserAPI:
                 per_page=query.per_page,
                 pages=pagination.pages
             )
-            
+
             return response.model_dump(by_alias=True), 200
             
         except Exception as e:
@@ -144,7 +144,7 @@ class UserAPI:
                 active_users=active_users,
                 inactive_users=inactive_users
             )
-            
+
             return response.model_dump(by_alias=True), 200
             
         except Exception as e:
@@ -300,10 +300,106 @@ class UserAPI:
                 'message': '激活用户账户失败',
                 'error_code': 'ACTIVATE_USER_ERROR'
             }, 500
-    
+
+
     @staticmethod
-    @user_api_bp.post('/create', 
-                     summary="创建用户", 
+    @user_api_bp.post('/face-image',
+                     summary="上传人脸照片",
+                     tags=[user_tag],
+                     responses={200: MessageResponseModel, 400: MessageResponseModel})
+    @login_required
+    @log_user_action("上传人脸照片")
+    def upload_face_image(body: FaceImageUploadModel):
+        """
+        上传人脸照片
+
+        学生上传人脸照片用于人脸识别签到。
+        照片以Base64格式上传，后端保存为文件并更新用户表。
+        """
+        try:
+            UserAPI.log_request("UPLOAD_FACE_IMAGE")
+
+            # 获取当前用户信息
+            current_user = get_current_user_info()
+            if not current_user:
+                return {
+                    'message': '用户未登录',
+                    'error_code': 'USER_NOT_LOGGED_IN'
+                }, 401
+
+            user_id = current_user.get('user_id')
+            user = User.query.get(user_id)
+            if not user:
+                return {
+                    'message': '用户不存在',
+                    'error_code': 'USER_NOT_FOUND'
+                }, 404
+
+            # 解析Base64图片数据
+            try:
+                # 移除data:image/xxx;base64,前缀（如果有）
+                face_image_data = body.face_image_base64
+                if ',' in face_image_data:
+                    face_image_data = face_image_data.split(',')[1]
+
+                # 解码Base64
+                image_bytes = base64.b64decode(face_image_data)
+
+                # 验证文件大小（限制5MB）
+                max_size = 5 * 1024 * 1024
+                if len(image_bytes) > max_size:
+                    return {
+                        'message': '图片大小超过限制（最大5MB）',
+                        'error_code': 'FILE_TOO_LARGE'
+                    }, 400
+
+            except Exception as e:
+                logger.error(f"Base64 decode error: {str(e)}")
+                return {
+                    'message': '图片数据格式错误',
+                    'error_code': 'INVALID_IMAGE_DATA'
+                }, 400
+
+            # 创建上传目录
+            upload_dir = os.path.join('uploads', 'face_images')
+            os.makedirs(upload_dir, exist_ok=True)
+
+            # 生成文件名：user_id_timestamp.jpg
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"user_{user_id}_{timestamp}.jpg"
+            file_path = os.path.join(upload_dir, filename)
+
+            # 删除旧的人脸照片（如果存在）
+            if user.face_image and os.path.exists(user.face_image):
+                try:
+                    os.remove(user.face_image)
+                except Exception as e:
+                    logger.warning(f"Failed to delete old face image: {str(e)}")
+
+            # 保存文件
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+
+            # 更新用户表
+            user.face_image = file_path
+            db.session.commit()
+
+            return {
+                'message': '人脸照片上传成功',
+                'face_image_path': file_path
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Upload face image error: {str(e)}")
+            return {
+                'message': '上传人脸照片失败',
+                'error_code': 'UPLOAD_FACE_IMAGE_ERROR'
+            }, 500
+
+    @staticmethod
+    @user_api_bp.post('/create',
+                     summary="创建用户",
                      tags=[user_tag],
                      responses={200: UserResponseModel, 400: MessageResponseModel})
     @admin_required
@@ -311,21 +407,21 @@ class UserAPI:
     def create_user(body: UserCreateModel):
         """
         创建新用户
-        
+
         只有管理员可以创建用户。
         """
         try:
             UserAPI.log_request("CREATE_USER", body.email)
-            
+
             user = UserService.create_user(body)
-            
+
             # 使用 Schema 序列化，自动转换为驼峰格式
             user_response = UserResponseModel.model_validate(user)
             return {
                 'message': '用户创建成功',
                 'user': user_response.model_dump(by_alias=True)
             }, 200
-            
+
         except ValueError as e:
             logger.error(str(e))
             return {
@@ -338,10 +434,10 @@ class UserAPI:
                 'message': '创建用户失败',
                 'error_code': 'CREATE_USER_ERROR'
             }, 500
-    
+
     @staticmethod
-    @user_api_bp.post('/batch-import', 
-                     summary="批量导入用户", 
+    @user_api_bp.post('/batch-import',
+                     summary="批量导入用户",
                      tags=[user_tag],
                      responses={200: BatchImportResponseModel, 400: MessageResponseModel})
     @admin_required
@@ -349,50 +445,50 @@ class UserAPI:
     def batch_import_users():
         """
         从Excel文件批量导入用户
-        
+
         只有管理员可以批量导入用户。
         Excel文件应包含列: username, user_code, email, real_name, role, phone(可选), class_id(学生必填)
         """
         try:
             from flask import request
-            
+
             UserAPI.log_request("BATCH_IMPORT_USERS")
-            
+
             # 检查文件是否存在
             if 'file' not in request.files:
                 return {
                     'message': '未找到上传的文件',
                     'error_code': 'NO_FILE'
                 }, 400
-            
+
             file = request.files['file']
             if file.filename == '':
                 return {
                     'message': '未选择文件',
                     'error_code': 'NO_FILE_SELECTED'
                 }, 400
-            
+
             # 验证文件类型
             if not file.filename.endswith(('.xlsx', '.xls')):
                 return {
                     'message': '只支持Excel文件(.xlsx, .xls)',
                     'error_code': 'INVALID_FILE_TYPE'
                 }, 400
-            
+
             # 保存文件
             filename = secure_filename(file.filename)
             upload_folder = 'uploads/temp'
             os.makedirs(upload_folder, exist_ok=True)
             file_path = os.path.join(upload_folder, filename)
             file.save(file_path)
-            
+
             try:
                 # 批量导入
                 result = UserService.batch_import_users(file_path)
-                
+
                 # 删除临时文件
                 os.remove(file_path)
-                
+
                 # 使用 Schema 序列化，自动转换为驼峰格式
                 response = BatchImportResponseModel(
                     success_count=result['success_count'],
@@ -401,15 +497,15 @@ class UserAPI:
                     errors=result['errors'],
                     message=f"导入完成: 成功{result['success_count']}条, 失败{result['failed_count']}条"
                 )
-                
+
                 return response.model_dump(by_alias=True), 200
-                
+
             except Exception as e:
                 # 删除临时文件
                 if os.path.exists(file_path):
                     os.remove(file_path)
                 raise e
-                
+
         except ValueError as e:
             return {
                 'message': str(e),
@@ -421,10 +517,10 @@ class UserAPI:
                 'message': '批量导入失败',
                 'error_code': 'BATCH_IMPORT_ERROR'
             }, 500
-    
+
     @staticmethod
-    @user_api_bp.delete('/batch-delete', 
-                       summary="批量删除用户", 
+    @user_api_bp.delete('/batch-delete',
+                       summary="批量删除用户",
                        tags=[user_tag],
                        responses={200: BatchImportResponseModel, 400: MessageResponseModel})
     @admin_required
@@ -432,14 +528,14 @@ class UserAPI:
     def batch_delete_users(body: BatchDeleteModel):
         """
         批量删除用户(软删除)
-        
+
         只有管理员可以批量删除用户。
         """
         try:
             UserAPI.log_request("BATCH_DELETE_USERS", f"{len(body.user_ids)} users")
-            
+
             result = UserService.batch_delete_users(body.user_ids)
-            
+
             # 使用 Schema 序列化，自动转换为驼峰格式
             response = BatchImportResponseModel(
                 success_count=result['success_count'],
@@ -448,9 +544,9 @@ class UserAPI:
                 errors=result['errors'],
                 message=f"删除完成: 成功{result['success_count']}条, 失败{result['failed_count']}条"
             )
-            
+
             return response.model_dump(by_alias=True), 200
-            
+
         except ValueError as e:
             return {
                 'message': str(e),

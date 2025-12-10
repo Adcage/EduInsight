@@ -12,10 +12,15 @@ load_dotenv('.env.local', override=True)
 config_name = os.environ.get('FLASK_ENV', 'development')
 app = create_app(config_name)
 
+# 获取socketio实例（在create_app中已经初始化）
+from app.websocket import socketio
+
 if __name__ == '__main__':
-    # 开发服务器配置
-    app.run(
+    # 使用socketio.run启动服务器以支持WebSocket
+    socketio.run(
+        app,
         host='0.0.0.0',
         port=int(os.environ.get('PORT', 5030)),
-        debug=app.config.get('DEBUG', False)
+        debug=app.config.get('DEBUG', False),
+        allow_unsafe_werkzeug=True  # 允许在开发模式下使用
     )

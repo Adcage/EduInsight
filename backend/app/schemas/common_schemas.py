@@ -7,6 +7,11 @@ from pydantic import Field
 from app.schemas.base_schemas import CamelCaseModel
 
 
+class MessageResponseModel(CamelCaseModel):
+    """消息响应模型"""
+    message: str = Field(..., description="响应消息")
+
+
 class BaseResponseModel(CamelCaseModel):
     """基础响应模型"""
     message: str = Field(..., description="响应消息")

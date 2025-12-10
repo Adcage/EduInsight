@@ -6,21 +6,22 @@ class BaseModel(db.Model):
     __abstract__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    # 使用本地时间而不是UTC时间
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
     
     def to_dict(self):
         """
         转换为字典
         
-        自动将 datetime 对象转换为字符串格式
+        自动将 datetime 对象转换为字符串格式（不带时区信息）
         """
         result = {}
         for c in self.__table__.columns:
             value = getattr(self, c.name)
-            # 自动转换 datetime 为字符串
+            # 自动转换 datetime 为字符串（ISO格式，不带时区标记）
             if isinstance(value, datetime):
-                result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
+                result[c.name] = value.strftime('%Y-%m-%d %H:%M:%S')
             else:
                 result[c.name] = value
         return result

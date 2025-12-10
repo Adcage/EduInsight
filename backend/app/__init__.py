@@ -14,7 +14,8 @@ def create_app(config_name='development'):
     # 创建 OpenAPI 应用
     app = OpenAPI(
         __name__, 
-        info=info
+        info=info,
+        doc_ui=True  # 启用文档UI
     )
     
     # 加载配置

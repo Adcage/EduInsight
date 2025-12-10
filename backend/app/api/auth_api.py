@@ -106,7 +106,12 @@ class AuthAPI:
                 'error_code': 'LOGIN_FAILED'
             }, 401
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logger.error(f"Login error: {str(e)}")
+            logger.error(f"Traceback: {error_details}")
+            print(f"[ERROR] Login exception: {str(e)}")
+            print(f"[ERROR] Traceback:\n{error_details}")
             return {
                 'message': '服务器内部错误',
                 'error_code': 'INTERNAL_ERROR'

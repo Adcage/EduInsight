@@ -435,6 +435,8 @@ declare namespace API {
   }
 
   type UserProfileModel = {
+    /** Id 用户ID */
+    id: number
     /** Avatar 头像URL */
     avatar?: string | null
     /** Classid 班级ID */

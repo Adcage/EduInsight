@@ -8,6 +8,10 @@ from app.api.chunked_upload_api import chunked_upload_api_bp
 from app.api.grade_api import grade_api_bp
 from app.api.statistics_api import statistics_api_bp
 from .prediction_api import prediction_api_bp
+from app.api.attendance_api import attendance_api_bp
+from app.api.student_attendance_api import student_attendance_api_bp
+from app.api.course_api import course_api_bp
+from app.api.class_api import class_api_bp
 
 # 所有API蓝图列表
 __all__ = [
@@ -20,6 +24,10 @@ __all__ = [
     'grade_api_bp',
     'statistics_api_bp',
     'prediction_api_bp',
+    'attendance_api_bp',
+    'student_attendance_api_bp',
+    'course_api_bp',
+    'class_api_bp',
 ]
 
 # 蓝图列表（用于批量注册）
@@ -33,4 +41,8 @@ api_blueprints = [
     grade_api_bp,
     statistics_api_bp,
     prediction_api_bp,
+    attendance_api_bp,
+    student_attendance_api_bp,
+    course_api_bp,
+    class_api_bp,
 ]

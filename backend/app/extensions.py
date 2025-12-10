@@ -14,3 +14,9 @@ def init_extensions(app):
                   allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
                   methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
                   expose_headers=['Content-Type', 'X-Total-Count'])
+                  origins=app.config['CORS_ORIGINS'])
+
+    # 初始化WebSocket
+    from app.websocket import init_socketio
+    socketio = init_socketio(app)
+    return socketio

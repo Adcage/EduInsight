@@ -122,3 +122,18 @@ export async function userApiStatsGet(options?: { [key: string]: any }) {
     ...(options || {}),
   })
 }
+
+/** 上传人脸照片 学生上传人脸照片用于人脸识别签到 POST /api/v1/users/face-image */
+export async function userApiUploadFaceImage(
+  body: { faceImageBase64: string },
+  options?: { [key: string]: any }
+) {
+  return request<{ message: string; faceImagePath?: string }>('/api/v1/users/face-image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
