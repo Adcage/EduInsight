@@ -1,4 +1,36 @@
 declare namespace API {
+  type AddInterventionModel = {
+    /** Description 干预内容描述 */
+    description: string
+    /** Expectedeffect 预期效果 */
+    expectedEffect?: string | null
+    /** Interventiondate 干预日期(默认今天) */
+    interventionDate?: string | null
+    /** Interventiontype 干预方式(talk/tutoring/homework/other) */
+    interventionType: string
+    /** Predictionid 预警ID */
+    predictionId: number
+  }
+
+  type BasicStatisticsModel = {
+    /** Averagescore 平均分 */
+    averageScore: number
+    /** Excellentrate 优秀率(%) */
+    excellentRate: number
+    /** Maxscore 最高分 */
+    maxScore: number
+    /** Medianscore 中位数 */
+    medianScore: number
+    /** Minscore 最低分 */
+    minScore: number
+    /** Passrate 及格率(%) */
+    passRate: number
+    /** Stddeviation 标准差 */
+    stdDeviation: number
+    /** Totalcount 总人数 */
+    totalCount: number
+  }
+
   type BatchDeleteModel = {
     /** Userids 要删除的用户ID列表 */
     userIds: number[]
@@ -56,6 +88,218 @@ declare namespace API {
     suggestedCategoryId?: number | null
     /** Suggestedcategoryname 建议的分类名称 */
     suggestedCategoryName?: string | null
+  }
+
+  type ExamTypeEnum = 'daily' | 'midterm' | 'final' | 'homework'
+
+  type GeneratePredictionModel = {
+    /** Classid 班级ID(可选) */
+    classId?: number | null
+    /** Courseid 课程ID */
+    courseId: number
+  }
+
+  type GeneratePredictionResponseModel = {
+    /** Highriskcount 高风险人数 */
+    highRiskCount: number
+    /** Lowriskcount 低风险人数 */
+    lowRiskCount: number
+    /** Mediumriskcount 中风险人数 */
+    mediumRiskCount: number
+    /** Noriskcount 无风险人数 */
+    noRiskCount: number
+    /** Predictedcount 成功预测数 */
+    predictedCount: number
+    /** Predictions 预测详情列表 */
+    predictions: Record<string, any>[]
+    /** Skippedcount 跳过人数(成绩不足) */
+    skippedCount: number
+    /** Totalstudents 总学生数 */
+    totalStudents: number
+  }
+
+  type gradeApiCourseStudentsGetParams = {
+    /** 课程ID */
+    courseId: number
+  }
+
+  type gradeApiExportGetParams = {
+    /** 课程ID */
+    courseId: number
+    /** 考试类型筛选 */
+    examType?: ExamTypeEnum | null
+  }
+
+  type gradeApiGetParams = {
+    /** 页码 */
+    page?: number
+    /** 每页数量 */
+    perPage?: number
+    /** 课程ID筛选 */
+    courseId?: number | null
+    /** 学生ID筛选 */
+    studentId?: number | null
+    /** 考试类型筛选 */
+    examType?: ExamTypeEnum | null
+  }
+
+  type gradeApiIntGradeIdDeleteParams = {
+    /** 成绩ID */
+    gradeId: number
+  }
+
+  type gradeApiIntGradeIdPutParams = {
+    /** 成绩ID */
+    gradeId: number
+  }
+
+  type gradeApiStudentMyGradesGetParams = {
+    /** 页码 */
+    page?: number
+    /** 每页数量 */
+    perPage?: number
+    /** 课程ID筛选 */
+    courseId?: number | null
+    /** 考试类型筛选 */
+    examType?: ExamTypeEnum | null
+  }
+
+  type gradeApiTemplateGetParams = {
+    /** 课程名称 */
+    courseName?: string | null
+  }
+
+  type GradeCreateModel = {
+    /** Courseid 课程ID */
+    courseId: number
+    /** Examdate 考试日期 */
+    examDate?: string | null
+    /** Examname 考试名称 */
+    examName?: string | null
+    /** 考试类型 */
+    examType: ExamTypeEnum
+    /** Fullscore 满分 */
+    fullScore?: number
+    /** Remark 备注 */
+    remark?: string | null
+    /** Score 分数 */
+    score: number
+    /** Studentid 学生ID */
+    studentId: number
+    /** Weight 权重 */
+    weight?: number
+  }
+
+  type GradeDetailResponseModel = {
+    /** Courseid 课程ID */
+    courseId: number
+    /** Coursename 课程名称 */
+    courseName?: string | null
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Examdate 考试日期 */
+    examDate?: string | null
+    /** Examname 考试名称 */
+    examName?: string | null
+    /** Examtype 考试类型 */
+    examType: string
+    /** Fullscore 满分 */
+    fullScore: number
+    /** Id 成绩ID */
+    id: number
+    /** Ispass 是否及格 */
+    isPass: boolean
+    /** Percentage 百分比 */
+    percentage: number
+    /** Remark 备注 */
+    remark?: string | null
+    /** Score 分数 */
+    score: number
+    /** Studentcode 学号 */
+    studentCode?: string | null
+    /** Studentid 学生ID */
+    studentId: number
+    /** Studentname 学生姓名 */
+    studentName?: string | null
+    /** Updatedat 更新时间 */
+    updatedAt: string
+    /** Weight 权重 */
+    weight: number
+  }
+
+  type GradeImportResultModel = {
+    /** Errors 错误列表 */
+    errors?: Record<string, any>[]
+    /** Failcount 失败数量 */
+    failCount: number
+    /** Skipcount 跳过重复数量 */
+    skipCount: number
+    /** Successcount 成功导入数量 */
+    successCount: number
+    /** Totalrows 总行数 */
+    totalRows: number
+    /** Warnings 警告列表 */
+    warnings?: Record<string, any>[]
+  }
+
+  type GradeListResponseModel = {
+    /** Grades 成绩列表 */
+    grades: GradeDetailResponseModel[]
+    /** Page 当前页码 */
+    page?: number
+    /** Pages 总页数 */
+    pages: number
+    /** Perpage 每页数量 */
+    perPage?: number
+    /** Total 成绩总数 */
+    total: number
+  }
+
+  type GradeUpdateModel = {
+    /** Fullscore 满分 */
+    fullScore?: number | null
+    /** Remark 备注 */
+    remark?: string | null
+    /** Score 分数 */
+    score?: number | null
+    /** Weight 权重 */
+    weight?: number | null
+  }
+
+  type HistoricalGradeModel = {
+    /** Examdate 考试日期 */
+    examDate: string
+    /** Examname 考试名称 */
+    examName?: string | null
+    /** Examtype 考试类型 */
+    examType: string
+    /** Score 分数 */
+    score: number
+  }
+
+  type InterventionModel = {
+    /** Actualeffect 实际效果 */
+    actualEffect?: string | null
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Description 干预内容 */
+    description: string
+    /** Expectedeffect 预期效果 */
+    expectedEffect?: string | null
+    /** Id 干预ID */
+    id: number
+    /** Interventiondate 干预日期 */
+    interventionDate: string
+    /** Interventiontype 干预方式 */
+    interventionType: string
+    /** Predictionid 预警ID */
+    predictionId: number
+    /** Studentfeedback 学生反馈 */
+    studentFeedback?: string | null
+    /** Teacherid 教师ID */
+    teacherId: number
+    /** Teachername 教师姓名 */
+    teacherName: string
   }
 
   type KeywordResponseModel = {
@@ -328,7 +572,7 @@ declare namespace API {
   }
 
   type MessageResponseModel = {
-    /** Message 响应消息 */
+    /** Message 消息内容 */
     message: string
   }
 
@@ -339,6 +583,124 @@ declare namespace API {
     newPassword: string
     /** Oldpassword 原密码 */
     oldPassword: string
+  }
+
+  type predictionApiInterventionsIntInterventionIdPutParams = {
+    /** 干预ID */
+    intervention_id: number
+  }
+
+  type predictionApiIntPredictionIdGetParams = {
+    /** 预警ID */
+    prediction_id: number
+  }
+
+  type predictionApiListGetParams = {
+    /** 课程ID */
+    courseId: number
+    /** 班级ID(可选) */
+    classId?: number | null
+    /** 风险等级筛选(high/medium/low/none) */
+    riskLevel?: string | null
+  }
+
+  type predictionApiStudentMyWarningsIntPredictionIdGetParams = {
+    /** 预警ID */
+    prediction_id: number
+  }
+
+  type PredictionDetailModel = {
+    /** Confidence 置信度(%) */
+    confidence: number
+    /** Courseid 课程ID */
+    courseId: number
+    /** Coursename 课程名称 */
+    courseName: string
+    /** Createdat 创建时间 */
+    createdAt: string
+    /** Historicalgrades 历史成绩列表 */
+    historicalGrades: HistoricalGradeModel[]
+    /** Id 预警ID */
+    id: number
+    /** Interventions 干预记录列表 */
+    interventions: InterventionModel[]
+    /** Issent 是否已发送通知 */
+    isSent: boolean
+    /** Predictedscore 预测分数 */
+    predictedScore: number
+    /** Predictiondate 预测日期 */
+    predictionDate: string
+    /** Risklevel 风险等级 */
+    riskLevel: string
+    /** Studentcode 学号 */
+    studentCode: string
+    /** Studentemail 学生邮箱 */
+    studentEmail?: string | null
+    /** Studentid 学生ID */
+    studentId: number
+    /** Studentname 学生姓名 */
+    studentName: string
+  }
+
+  type ScoreDistributionModel = {
+    /** Excellentcount 优秀(90-100)人数 */
+    excellentCount: number
+    /** Excellentrate 优秀率(%) */
+    excellentRate: number
+    /** Failcount 不及格(0-59)人数 */
+    failCount: number
+    /** Failrate 不及格率(%) */
+    failRate: number
+    /** Goodcount 良好(80-89)人数 */
+    goodCount: number
+    /** Goodrate 良好率(%) */
+    goodRate: number
+    /** Mediumcount 中等(70-79)人数 */
+    mediumCount: number
+    /** Mediumrate 中等率(%) */
+    mediumRate: number
+    /** Passcount 及格(60-69)人数 */
+    passCount: number
+    /** Passrate 及格率(%) */
+    passRate: number
+  }
+
+  type SendNotificationModel = {
+    /** Predictionids 预警ID列表 */
+    predictionIds: number[]
+  }
+
+  type SendNotificationResponseModel = {
+    /** Failedcount 失败数 */
+    failedCount: number
+    /** Successcount 成功数 */
+    successCount: number
+    /** Total 总数 */
+    total: number
+  }
+
+  type statisticsApiCourseGetParams = {
+    /** 课程ID */
+    courseId: number
+    /** 班级ID(可选,用于更细致的统计) */
+    classId?: number | null
+    /** 考试类型筛选(可选,支持枚举值或'comprehensive') */
+    examType?: string | null
+  }
+
+  type StatisticsResponseModel = {
+    /** 基础统计 */
+    basicStatistics: BasicStatisticsModel
+    /** Classname 班级名称 */
+    className?: string | null
+    /** Coursename 课程名称 */
+    courseName: string
+    /** Examtypefilter 考试类型筛选 */
+    examTypeFilter?: string | null
+    /** 分数段分布 */
+    scoreDistribution: ScoreDistributionModel
+    /** Trenddata 趋势数据 */
+    trendData: TrendDataPointModel[]
   }
 
   type tagApiIntTagIdDeleteParams = {
@@ -360,6 +722,32 @@ declare namespace API {
     tagId?: number | null
     /** Tagname 标签名称 */
     tagName: string
+  }
+
+  type TrendDataPointModel = {
+    /** Averagescore 平均分 */
+    averageScore: number
+    /** Examdate 考试日期 */
+    examDate: string
+    /** Examname 考试名称 */
+    examName?: string | null
+    /** Examtype 考试类型 */
+    examType: string
+    /** Maxscore 最高分 */
+    maxScore: number
+    /** Minscore 最低分 */
+    minScore: number
+  }
+
+  type UpdateInterventionModel = {
+    /** Actualeffect 实际效果 */
+    actualEffect?: string | null
+    /** Description 干预内容描述 */
+    description?: string | null
+    /** Expectedeffect 预期效果 */
+    expectedEffect?: string | null
+    /** Studentfeedback 学生反馈 */
+    studentFeedback?: string | null
   }
 
   type userApiIntUserIdActivatePostParams = {
@@ -507,7 +895,7 @@ declare namespace API {
     username: string
   }
 
-  type UserRoleEnum = 'admin' | 'teacher' | 'student'
+  type UserRoleEnum = 'ADMIN' | 'TEACHER' | 'STUDENT'
 
   type UserStatsModel = {
     /** Activeusers 活跃用户数 */

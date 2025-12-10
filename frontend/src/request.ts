@@ -18,8 +18,6 @@ const getBaseURL = () => {
   }
 };
 
-console.log('API Base URL:', getBaseURL());
-
 // 创建 Axios 实例
 const myAxios = axios.create({
   baseURL: getBaseURL(),

@@ -274,17 +274,9 @@ const loadCategories = async () => {
     // 确保 categoryList 是数组
     const flatList = Array.isArray(categoryList) ? categoryList : []
     
-    console.log('📋 原始分类数据（平铺）:', flatList)
-    console.log('📋 第一个分类的parentId:', flatList[0]?.parentId)
     
     // 将平铺列表转换为树形结构
     categories.value = buildCategoryTree(flatList)
-    
-    console.log('🌳 转换后的树形数据:', categories.value)
-    console.log('🌳 根节点数量:', categories.value.length)
-    if (categories.value.length > 0 && categories.value[0]?.children) {
-      console.log('🌳 第一个根节点的子节点数量:', categories.value[0]?.children?.length)
-    }
     
     // 加载分类统计
     if (props.showCount) {

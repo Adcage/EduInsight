@@ -17,10 +17,7 @@
           </template>
           {{ defaultAvatar }}
         </a-avatar>
-        
-        <!-- 用户名 -->
-        <span v-if="showDropdown" class="user-name">{{ userDisplayName }}</span>
-        <DownOutlined v-if="showDropdown" class="dropdown-icon" />
+        {{ user?.username }}
       </div>
 
       <template #overlay>
@@ -45,6 +42,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { UserOutlined, DownOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { useAuth } from '@/composables/useAuth'
+import { log } from 'console'
 
 // Props
 interface Props {

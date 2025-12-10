@@ -2,9 +2,11 @@
   <a-layout-header class="global-header">
     <div class="header-content">
       <div class="logo">
-        <router-link to="/">
-          <h1>慧教通</h1>
-        </router-link>
+          
+          <router-link :to="homePath" class="logo-link">
+              <img src="@/assets/logo48-48.ico" alt="网站Logo" class="site-logo" />
+              <h1>慧教通</h1>
+          </router-link>
       </div>
 
       <div class="header-actions">
@@ -16,13 +18,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { getDefaultHomeByRole } from '@/utils/roleRoutes'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import UserAvatar from '@/components/common/UserAvatar.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const selectedKeys = ref<string[]>(['home'])
+
+const homePath = computed(() => {
+  return getDefaultHomeByRole(authStore.user?.role)
+})
 
 watch(
   () => route.path,
@@ -58,13 +67,26 @@ watch(
   align-items: center;
   justify-content: space-between;
 }
+.logo-link{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+}
 
 .logo h1 {
   margin: 0;
   font-size: var(--heading-4-size);
   color: var(--primary-color);
   font-weight: 600;
-  line-height: normal;
+  line-height: 1;
+  font-size: 24px;
 }
 
 .logo a {
