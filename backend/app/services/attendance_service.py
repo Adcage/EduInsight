@@ -1014,13 +1014,17 @@ class AttendanceService:
                 raise ValueError("考勤未设置位置信息")
             
             # 计算距离（使用Haversine公式）
+            # 将Decimal类型转换为float
+            target_lat = float(attendance.location_latitude)
+            target_lon = float(attendance.location_longitude)
+            
             distance = AttendanceService._calculate_distance(
                 latitude, longitude,
-                attendance.location_latitude, attendance.location_longitude
+                target_lat, target_lon
             )
             
             # 验证是否在允许范围内（默认100米）
-            allowed_range = attendance.location_range or 100
+            allowed_range = int(attendance.location_radius) if attendance.location_radius else 100
             if distance > allowed_range:
                 raise ValueError(f"您不在签到范围内（距离: {distance:.0f}米，要求: {allowed_range}米）")
             
@@ -1085,6 +1089,11 @@ class AttendanceService:
         except Exception as e:
             db.session.rollback()
             logger.error(f"Error in location check-in: {str(e)}")
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Attendance ID: {attendance_id}, Student ID: {student_id}")
+            logger.error(f"Location: lat={latitude}, lon={longitude}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise
     
     @staticmethod

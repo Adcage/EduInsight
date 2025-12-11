@@ -83,9 +83,6 @@
       :attendance="selectedAttendance"
       @success="handleCheckInSuccess"
     />
-
-    <!-- WebSocket调试组件 -->
-    <WebSocketDebug />
   </div>
 </template>
 
@@ -96,7 +93,6 @@ import { message } from 'ant-design-vue'
 import { InboxOutlined, CameraOutlined } from '@ant-design/icons-vue'
 import AttendanceNotificationCard from './components/AttendanceNotificationCard.vue'
 import CheckInModal from './components/CheckInModal.vue'
-import WebSocketDebug from '@/components/WebSocketDebug.vue'
 import StudentStatistics from './StudentStatistics.vue'
 import { 
   getStudentAttendances, 
