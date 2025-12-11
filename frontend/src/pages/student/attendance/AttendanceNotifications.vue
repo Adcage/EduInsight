@@ -1,8 +1,21 @@
 <template>
   <div class="attendance-notifications-page">
     <div class="page-header">
-      <h1 class="page-title">签到通知</h1>
-      <p class="page-description">查看所有课程的签到通知，及时完成签到</p>
+      <div class="header-content">
+        <div class="header-text">
+          <h1 class="page-title">签到通知</h1>
+          <p class="page-description">查看所有课程的签到通知，及时完成签到</p>
+        </div>
+        <a-button 
+          type="primary" 
+          size="large"
+          @click="handleGoToFaceUpload"
+          class="face-upload-btn"
+        >
+          <template #icon><CameraOutlined /></template>
+          上传人脸照片
+        </a-button>
+      </div>
     </div>
 
     <!-- 筛选器 -->
@@ -80,7 +93,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { InboxOutlined } from '@ant-design/icons-vue'
+import { InboxOutlined, CameraOutlined } from '@ant-design/icons-vue'
 import AttendanceNotificationCard from './components/AttendanceNotificationCard.vue'
 import CheckInModal from './components/CheckInModal.vue'
 import WebSocketDebug from '@/components/WebSocketDebug.vue'
@@ -183,6 +196,11 @@ const handleCheckInSuccess = () => {
   fetchAttendances()
 }
 
+// 跳转到人脸照片上传页面
+const handleGoToFaceUpload = () => {
+  router.push({ name: 'StudentFaceUpload' })
+}
+
 // WebSocket store
 const wsStore = useWebSocketStore()
 
@@ -249,6 +267,22 @@ onUnmounted(() => {
   margin-bottom: 24px;
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.header-text {
+  flex: 1;
+}
+
 .page-title {
   font-size: 28px;
   font-weight: 600;
@@ -260,6 +294,25 @@ onUnmounted(() => {
   font-size: 14px;
   color: var(--text-secondary-color, #8c8c8c);
   margin: 0;
+}
+
+.face-upload-btn {
+  height: 44px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 
 .filter-section {
