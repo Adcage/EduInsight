@@ -1056,10 +1056,11 @@ class AttendanceService:
                 record.status = CheckInStatus.LATE
             
             # 记录签到信息
+            from decimal import Decimal
             record.check_in_time = now
             record.check_in_method = 'location'
-            record.latitude = latitude
-            record.longitude = longitude
+            record.latitude = Decimal(str(latitude))  # 转换为Decimal
+            record.longitude = Decimal(str(longitude))  # 转换为Decimal
             record.distance = int(distance)  # 记录距离（米）
             
             db.session.commit()

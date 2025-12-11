@@ -79,6 +79,22 @@ class StudentAttendanceService:
                 
                 attendance_dict = attendance.to_dict()
                 
+                # 添加驼峰命名字段（兼容前端）
+                attendance_dict['startTime'] = attendance_dict.get('start_time')
+                attendance_dict['endTime'] = attendance_dict.get('end_time')
+                attendance_dict['attendanceType'] = attendance_dict.get('attendance_type')
+                attendance_dict['qrCode'] = attendance_dict.get('qr_code')
+                attendance_dict['gesturePattern'] = attendance_dict.get('gesture_pattern')
+                attendance_dict['locationName'] = attendance_dict.get('location_name')
+                attendance_dict['locationLatitude'] = attendance_dict.get('location_latitude')
+                attendance_dict['locationLongitude'] = attendance_dict.get('location_longitude')
+                attendance_dict['locationRadius'] = attendance_dict.get('location_radius')
+                attendance_dict['courseId'] = attendance_dict.get('course_id')
+                attendance_dict['classId'] = attendance_dict.get('class_id')
+                attendance_dict['teacherId'] = attendance_dict.get('teacher_id')
+                attendance_dict['createdAt'] = attendance_dict.get('created_at')
+                attendance_dict['updatedAt'] = attendance_dict.get('updated_at')
+                
                 # 添加课程名称
                 if attendance.course_id:
                     course = Course.query.get(attendance.course_id)
@@ -100,8 +116,16 @@ class StudentAttendanceService:
                 ).first()
                 
                 if record:
-                    attendance_dict['my_record'] = record.to_dict()
-                    attendance_dict['myRecord'] = record.to_dict()
+                    record_dict = record.to_dict()
+                    # 为记录也添加驼峰命名字段
+                    record_dict['checkInTime'] = record_dict.get('check_in_time')
+                    record_dict['studentId'] = record_dict.get('student_id')
+                    record_dict['attendanceId'] = record_dict.get('attendance_id')
+                    record_dict['createdAt'] = record_dict.get('created_at')
+                    record_dict['updatedAt'] = record_dict.get('updated_at')
+                    
+                    attendance_dict['my_record'] = record_dict
+                    attendance_dict['myRecord'] = record_dict
                     # 判断是否已签到
                     is_checked_in = record.status in ['present', 'late']
                     attendance_dict['is_checked_in'] = is_checked_in
@@ -159,6 +183,23 @@ class StudentAttendanceService:
             # 转换为字典
             attendance_dict = attendance.to_dict()
             
+            # 添加驼峰命名字段（兼容前端）
+            attendance_dict['startTime'] = attendance_dict.get('start_time')
+            attendance_dict['endTime'] = attendance_dict.get('end_time')
+            attendance_dict['attendanceType'] = attendance_dict.get('attendance_type')
+            attendance_dict['qrCode'] = attendance_dict.get('qr_code')
+            attendance_dict['gesturePattern'] = attendance_dict.get('gesture_pattern')
+            attendance_dict['locationName'] = attendance_dict.get('location_name')
+            attendance_dict['locationLatitude'] = attendance_dict.get('location_latitude')
+            attendance_dict['locationLongitude'] = attendance_dict.get('location_longitude')
+            attendance_dict['locationRadius'] = attendance_dict.get('location_radius')
+            attendance_dict['faceRecognitionThreshold'] = attendance_dict.get('face_recognition_threshold')
+            attendance_dict['courseId'] = attendance_dict.get('course_id')
+            attendance_dict['classId'] = attendance_dict.get('class_id')
+            attendance_dict['teacherId'] = attendance_dict.get('teacher_id')
+            attendance_dict['createdAt'] = attendance_dict.get('created_at')
+            attendance_dict['updatedAt'] = attendance_dict.get('updated_at')
+            
             # 添加课程名称
             if attendance.course_id:
                 course = Course.query.get(attendance.course_id)
@@ -180,8 +221,16 @@ class StudentAttendanceService:
             ).first()
             
             if record:
-                attendance_dict['my_record'] = record.to_dict()
-                attendance_dict['myRecord'] = record.to_dict()
+                record_dict = record.to_dict()
+                # 为记录也添加驼峰命名字段
+                record_dict['checkInTime'] = record_dict.get('check_in_time')
+                record_dict['studentId'] = record_dict.get('student_id')
+                record_dict['attendanceId'] = record_dict.get('attendance_id')
+                record_dict['createdAt'] = record_dict.get('created_at')
+                record_dict['updatedAt'] = record_dict.get('updated_at')
+                
+                attendance_dict['my_record'] = record_dict
+                attendance_dict['myRecord'] = record_dict
                 # 判断是否已签到
                 is_checked_in = record.status in ['present', 'late']
                 attendance_dict['is_checked_in'] = is_checked_in

@@ -264,8 +264,12 @@ class StudentAttendanceAPI:
                 'message': str(e)
             }, 400
         except Exception as e:
+            import traceback
             logger.error(f"Error in location check-in: {str(e)}")
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return {
                 'message': '签到失败',
-                'error': str(e)
+                'error': str(e),
+                'type': type(e).__name__
             }, 500
