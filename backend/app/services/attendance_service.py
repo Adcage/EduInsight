@@ -1207,15 +1207,23 @@ class AttendanceService:
                 record.status = CheckInStatus.LATE
             
             # 记录签到信息
+            from decimal import Decimal
             record.check_in_time = now_naive
             record.check_in_method = 'face'
             
-            # 如果有人脸相似度信息，保存到备注中
+            # 保存人脸相似度信息
             if face_similarity is not None:
-                record.remarks = f"人脸相似度: {face_similarity:.2%}"
+                # 将相似度转换为Decimal类型（百分比形式，如90.00）
+                record.face_similarity = Decimal(str(face_similarity * 100))
+                record.remark = f"人脸相似度: {face_similarity:.1%}"
+            
+            # 保存人脸图片路径（如果有）
+            if face_image:
+                # 这里可以保存图片，但由于临时禁用验证，暂不处理
+                pass
             
             db.session.commit()
-            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via face recognition")
+            logger.info(f"Student {student_id} checked in for attendance {attendance_id} via face recognition (similarity: {face_similarity:.1%} [临时固定])")
             
             # WebSocket通知：学生签到成功
             try:
