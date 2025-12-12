@@ -1,16 +1,16 @@
 <template>
   <div class="search-bar">
     <a-input-search
-      v-model:value="searchKeyword"
-      placeholder="搜索资料标题、描述、关键词..."
-      size="large"
-      allow-clear
-      @search="handleSearch"
-      @change="handleSearchChange"
+        v-model:value="searchKeyword"
+        allow-clear
+        placeholder="搜索资料标题、描述、关键词..."
+        size="large"
+        @change="handleSearchChange"
+        @search="handleSearch"
     >
       <template #enterButton>
         <a-button type="primary">
-          <SearchOutlined />
+          <SearchOutlined/>
           搜索
         </a-button>
       </template>
@@ -19,12 +19,12 @@
     <!-- 搜索建议下拉框 -->
     <div v-if="showSuggestions && suggestions.length > 0" class="search-suggestions">
       <div
-        v-for="suggestion in suggestions"
-        :key="suggestion.id"
-        class="suggestion-item"
-        @click="handleSelectSuggestion(suggestion)"
+          v-for="suggestion in suggestions"
+          :key="suggestion.id"
+          class="suggestion-item"
+          @click="handleSelectSuggestion(suggestion)"
       >
-        <FileOutlined class="suggestion-icon" />
+        <FileOutlined class="suggestion-icon"/>
         <div class="suggestion-content">
           <div class="suggestion-title">{{ suggestion.title }}</div>
           <div class="suggestion-meta">
@@ -41,18 +41,18 @@
     <div v-if="showHistory && searchHistory.length > 0" class="search-history">
       <div class="history-header">
         <span>搜索历史</span>
-        <a-button type="link" size="small" @click="clearHistory">
-          <DeleteOutlined />
+        <a-button size="small" type="link" @click="clearHistory">
+          <DeleteOutlined/>
           清空
         </a-button>
       </div>
       <div class="history-items">
         <a-tag
-          v-for="(item, index) in searchHistory"
-          :key="index"
-          closable
-          @click="handleHistoryClick(item)"
-          @close="removeHistoryItem(index)"
+            v-for="(item, index) in searchHistory"
+            :key="index"
+            closable
+            @click="handleHistoryClick(item)"
+            @close="removeHistoryItem(index)"
         >
           {{ item }}
         </a-tag>
@@ -61,11 +61,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { SearchOutlined, FileOutlined, DeleteOutlined } from '@ant-design/icons-vue'
-import { materialApiGet } from '@/api/materialController'
-import { debounce } from 'lodash-es'
+<script lang="ts" setup>
+import {onMounted, onUnmounted, ref, watch} from 'vue'
+import {DeleteOutlined, FileOutlined, SearchOutlined} from '@ant-design/icons-vue'
+import {materialApiGet} from '@/api/materialController'
+import {debounce} from 'lodash-es'
 
 interface Material {
   id: number
@@ -80,6 +80,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
+
   (e: 'search', keyword: string): void
 }
 
@@ -106,21 +107,21 @@ const loadSearchHistory = () => {
 // 保存搜索历史
 const saveSearchHistory = (keyword: string) => {
   if (!keyword.trim()) return
-  
+
   // 移除重复项
   const index = searchHistory.value.indexOf(keyword)
   if (index > -1) {
     searchHistory.value.splice(index, 1)
   }
-  
+
   // 添加到开头
   searchHistory.value.unshift(keyword)
-  
+
   // 限制数量
   if (searchHistory.value.length > MAX_HISTORY) {
     searchHistory.value = searchHistory.value.slice(0, MAX_HISTORY)
   }
-  
+
   localStorage.setItem(HISTORY_KEY, JSON.stringify(searchHistory.value))
 }
 
@@ -151,14 +152,14 @@ const fetchSuggestions = debounce(async (keyword: string) => {
     showSuggestions.value = false
     return
   }
-  
+
   try {
     const response = await materialApiGet({
       search: keyword,
       page: 1,
       page_size: 5
     })
-    
+
     const data = (response as any).data?.data || (response as any).data
     const materialList = data?.materials || []
     suggestions.value = Array.isArray(materialList) ? materialList : []
@@ -173,7 +174,7 @@ const fetchSuggestions = debounce(async (keyword: string) => {
 // 搜索输入变化
 const handleSearchChange = () => {
   emit('update:modelValue', searchKeyword.value)
-  
+
   if (searchKeyword.value.trim()) {
     fetchSuggestions(searchKeyword.value)
     showHistory.value = false
@@ -238,16 +239,16 @@ const getFileTypeText = (type: string): string => {
 
 const formatFileSize = (bytes: number): string => {
   if (!bytes) return '0 B'
-  
+
   const units = ['B', 'KB', 'MB', 'GB']
   let size = bytes
   let unitIndex = 0
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024
     unitIndex++
   }
-  
+
   return `${size.toFixed(2)} ${units[unitIndex]}`
 }
 

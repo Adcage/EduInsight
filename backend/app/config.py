@@ -19,8 +19,8 @@ class Config:
     }
     
     # CORS配置
-    CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
-    
+    # 如果未设置,则默认允许本地开发地址和生产域名
+    CORS_ORIGINS = '*'
     # Session配置
     PERMANENT_SESSION_LIFETIME = 86400 * 7  # 7天
     SESSION_COOKIE_SECURE = False  # 开发环境设为False，生产环境应设为True
@@ -36,6 +36,9 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'app-dev.db')
+    
+    # 开发环境允许所有来源（支持局域网访问）
+    CORS_ORIGINS = '*'
 
 class TestingConfig(Config):
     """测试环境配置"""
@@ -48,6 +51,11 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, '..', 'app.db')
+    
+    # 生产环境 Session 配置(HTTPS)
+    SESSION_COOKIE_SECURE = True  # HTTPS环境必须设为True
+    SESSION_COOKIE_SAMESITE = 'None'  # 跨域场景必须设为None
+    SESSION_COOKIE_HTTPONLY = True
 
 config = {
     'development': DevelopmentConfig,

@@ -1,12 +1,14 @@
 <template>
   <div class="my-materials">
     <a-page-header
-      title="我的资料"
-      sub-title="管理我上传的教学资料"
+        sub-title="管理我上传的教学资料"
+        title="我的资料"
     >
       <template #extra>
         <a-button type="primary" @click="handleUpload">
-          <template #icon><UploadOutlined /></template>
+          <template #icon>
+            <UploadOutlined/>
+          </template>
           上传资料
         </a-button>
       </template>
@@ -15,66 +17,66 @@
     <div class="content-container">
       <!-- 统计信息 -->
       <a-row :gutter="16" class="stats-row">
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-statistic
-            title="资料总数"
-            :value="total"
-            :value-style="{ color: '#1890ff' }"
+              :value="total"
+              :value-style="{ color: '#1890ff' }"
+              title="资料总数"
           >
             <template #prefix>
-              <FileOutlined />
+              <FileOutlined/>
             </template>
           </a-statistic>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-statistic
-            title="总下载次数"
-            :value="totalDownloads"
-            :value-style="{ color: '#52c41a' }"
+              :value="totalDownloads"
+              :value-style="{ color: '#52c41a' }"
+              title="总下载次数"
           >
             <template #prefix>
-              <DownloadOutlined />
+              <DownloadOutlined/>
             </template>
           </a-statistic>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-statistic
-            title="总浏览次数"
-            :value="totalViews"
-            :value-style="{ color: '#faad14' }"
+              :value="totalViews"
+              :value-style="{ color: '#faad14' }"
+              title="总浏览次数"
           >
             <template #prefix>
-              <EyeOutlined />
+              <EyeOutlined/>
             </template>
           </a-statistic>
         </a-col>
-        <a-col :xs="24" :sm="12" :md="6">
+        <a-col :md="6" :sm="12" :xs="24">
           <a-statistic
-            title="总文件大小"
-            :value="formatTotalSize(totalSize)"
-            :value-style="{ color: '#eb2f96' }"
+              :value="formatTotalSize(totalSize)"
+              :value-style="{ color: '#eb2f96' }"
+              title="总文件大小"
           >
             <template #prefix>
-              <DatabaseOutlined />
+              <DatabaseOutlined/>
             </template>
           </a-statistic>
         </a-col>
       </a-row>
 
       <!-- 搜索和筛选区域 -->
-      <a-card class="filter-card" :bordered="false">
-        <a-space direction="vertical" :size="16" style="width: 100%">
+      <a-card :bordered="false" class="filter-card">
+        <a-space :size="16" direction="vertical" style="width: 100%">
           <!-- 搜索框 -->
           <a-input-search
-            v-model:value="searchKeyword"
-            placeholder="搜索资料标题、描述..."
-            size="large"
-            allow-clear
-            @search="handleSearch"
+              v-model:value="searchKeyword"
+              allow-clear
+              placeholder="搜索资料标题、描述..."
+              size="large"
+              @search="handleSearch"
           >
             <template #enterButton>
               <a-button type="primary">
-                <SearchOutlined />
+                <SearchOutlined/>
                 搜索
               </a-button>
             </template>
@@ -84,17 +86,17 @@
           <a-row :gutter="16">
             <a-col :span="6">
               <a-select
-                v-model:value="filters.categoryId"
-                placeholder="选择分类"
-                allow-clear
-                style="width: 100%"
-                @change="handleFilterChange"
+                  v-model:value="filters.categoryId"
+                  allow-clear
+                  placeholder="选择分类"
+                  style="width: 100%"
+                  @change="handleFilterChange"
               >
                 <a-select-option :value="null">全部分类</a-select-option>
                 <a-select-option
-                  v-for="category in categories"
-                  :key="category.id"
-                  :value="category.id"
+                    v-for="category in categories"
+                    :key="category.id"
+                    :value="category.id"
                 >
                   {{ category.name }}
                 </a-select-option>
@@ -103,11 +105,11 @@
 
             <a-col :span="6">
               <a-select
-                v-model:value="filters.fileType"
-                placeholder="文件类型"
-                allow-clear
-                style="width: 100%"
-                @change="handleFilterChange"
+                  v-model:value="filters.fileType"
+                  allow-clear
+                  placeholder="文件类型"
+                  style="width: 100%"
+                  @change="handleFilterChange"
               >
                 <a-select-option :value="null">全部类型</a-select-option>
                 <a-select-option value="pdf">PDF</a-select-option>
@@ -122,10 +124,10 @@
 
             <a-col :span="6">
               <a-select
-                v-model:value="filters.sortBy"
-                placeholder="排序方式"
-                style="width: 100%"
-                @change="handleFilterChange"
+                  v-model:value="filters.sortBy"
+                  placeholder="排序方式"
+                  style="width: 100%"
+                  @change="handleFilterChange"
               >
                 <a-select-option value="created_at">最新上传</a-select-option>
                 <a-select-option value="download_count">下载最多</a-select-option>
@@ -135,9 +137,9 @@
 
             <a-col :span="6">
               <a-select
-                v-model:value="filters.order"
-                style="width: 100%"
-                @change="handleFilterChange"
+                  v-model:value="filters.order"
+                  style="width: 100%"
+                  @change="handleFilterChange"
               >
                 <a-select-option value="desc">降序</a-select-option>
                 <a-select-option value="asc">升序</a-select-option>
@@ -151,18 +153,18 @@
       <a-card :bordered="false" class="material-list-card">
         <a-spin :spinning="loading">
           <a-table
-            :columns="columns"
-            :data-source="materials"
-            :loading="loading"
-            :pagination="pagination"
-            :scroll="{ x: 1200 }"
-            @change="handleTableChange"
+              :columns="columns"
+              :data-source="materials"
+              :loading="loading"
+              :pagination="pagination"
+              :scroll="{ x: 1200 }"
+              @change="handleTableChange"
           >
             <!-- 文件名列 -->
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'fileName'">
                 <a-space :size="8">
-                  <component :is="getFileIcon(record.fileType)" />
+                  <component :is="getFileIcon(record.fileType)"/>
                   <a-tooltip :title="record.fileName">
                     <span class="file-name">{{ record.fileName }}</span>
                   </a-tooltip>
@@ -186,13 +188,13 @@
                 <a-space :size="16">
                   <a-tooltip title="浏览次数">
                     <span>
-                      <EyeOutlined />
+                      <EyeOutlined/>
                       {{ record.viewCount || 0 }}
                     </span>
                   </a-tooltip>
                   <a-tooltip title="下载次数">
                     <span>
-                      <DownloadOutlined />
+                      <DownloadOutlined/>
                       {{ record.downloadCount || 0 }}
                     </span>
                   </a-tooltip>
@@ -208,24 +210,24 @@
               <template v-else-if="column.key === 'action'">
                 <a-space :size="8">
                   <a-button
-                    type="link"
-                    size="small"
-                    @click="handleView(record)"
+                      size="small"
+                      type="link"
+                      @click="handleView(record)"
                   >
                     查看
                   </a-button>
                   <a-button
-                    type="link"
-                    size="small"
-                    @click="handleEdit(record)"
+                      size="small"
+                      type="link"
+                      @click="handleEdit(record)"
                   >
                     编辑
                   </a-button>
                   <a-button
-                    type="link"
-                    size="small"
-                    danger
-                    @click="showDeleteConfirm(record)"
+                      danger
+                      size="small"
+                      type="link"
+                      @click="showDeleteConfirm(record)"
                   >
                     删除
                   </a-button>
@@ -239,51 +241,51 @@
 
     <!-- 编辑资料对话框 -->
     <a-modal
-      v-model:open="editModalVisible"
-      title="编辑资料"
-      width="600px"
-      :confirm-loading="editLoading"
-      @ok="handleEditSubmit"
-      @cancel="handleEditCancel"
+        v-model:open="editModalVisible"
+        :confirm-loading="editLoading"
+        title="编辑资料"
+        width="600px"
+        @cancel="handleEditCancel"
+        @ok="handleEditSubmit"
     >
       <a-form
-        ref="editFormRef"
-        :model="editForm"
-        :label-col="{ span: 5 }"
-        :wrapper-col="{ span: 19 }"
+          ref="editFormRef"
+          :label-col="{ span: 5 }"
+          :model="editForm"
+          :wrapper-col="{ span: 19 }"
       >
         <a-form-item
-          label="资料标题"
-          name="title"
-          :rules="[{ required: true, message: '请输入资料标题' }]"
+            :rules="[{ required: true, message: '请输入资料标题' }]"
+            label="资料标题"
+            name="title"
         >
           <a-input
-            v-model:value="editForm.title"
-            placeholder="请输入资料标题"
-            :maxlength="100"
+              v-model:value="editForm.title"
+              :maxlength="100"
+              placeholder="请输入资料标题"
           />
         </a-form-item>
 
         <a-form-item label="资料描述" name="description">
           <a-textarea
-            v-model:value="editForm.description"
-            placeholder="请输入资料描述"
-            :rows="4"
-            :maxlength="500"
-            show-count
+              v-model:value="editForm.description"
+              :maxlength="500"
+              :rows="4"
+              placeholder="请输入资料描述"
+              show-count
           />
         </a-form-item>
 
         <a-form-item label="分类" name="categoryId">
           <a-select
-            v-model:value="editForm.categoryId"
-            placeholder="请选择分类"
-            allow-clear
+              v-model:value="editForm.categoryId"
+              allow-clear
+              placeholder="请选择分类"
           >
             <a-select-option
-              v-for="category in categories"
-              :key="category.id"
-              :value="category.id"
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
             >
               {{ category.name }}
             </a-select-option>
@@ -292,16 +294,16 @@
 
         <a-form-item label="标签" name="tags">
           <a-select
-            v-model:value="editForm.tags"
-            mode="tags"
-            placeholder="请输入标签（按回车添加）"
-            :max-tag-count="5"
+              v-model:value="editForm.tags"
+              :max-tag-count="5"
+              mode="tags"
+              placeholder="请输入标签（按回车添加）"
           >
           </a-select>
         </a-form-item>
 
         <a-form-item label="文件信息">
-          <a-space direction="vertical" :size="4">
+          <a-space :size="4" direction="vertical">
             <div>
               <span class="info-label">文件名：</span>
               <span>{{ editForm.fileName }}</span>
@@ -323,28 +325,27 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { message, Modal } from 'ant-design-vue'
+<script lang="ts" setup>
+import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {message, Modal} from 'ant-design-vue'
 import {
-  UploadOutlined,
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
+  DatabaseOutlined,
   DownloadOutlined,
+  EyeOutlined,
+  FileExcelOutlined,
+  FileImageOutlined,
   FileOutlined,
   FilePdfOutlined,
-  FileWordOutlined,
   FilePptOutlined,
-  FileExcelOutlined,
   FileTextOutlined,
-  FileImageOutlined,
+  FileWordOutlined,
   FileZipOutlined,
-  DatabaseOutlined
+  SearchOutlined,
+  UploadOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+<<<<<<< HEAD
 import {
   materialApiGet,
   materialApiIntMaterialIdDownloadGet,
@@ -352,6 +353,10 @@ import {
   materialApiIntMaterialIdPut
 } from '@/api/materialController.ts'
 import { categoryApiGet } from '@/api/categoryController.ts'
+=======
+import {materialApiGet, materialApiIntMaterialIdDelete, materialApiIntMaterialIdPut} from '@/api/materialController.ts'
+import {categoryApiGet} from '@/api/categoryController.ts'
+>>>>>>> 276b54ead05e4bacd83a3a81e97196af280966df
 
 const router = useRouter()
 
@@ -422,7 +427,7 @@ const columns = [
     dataIndex: 'category',
     key: 'category',
     width: 100,
-    customRender: ({ text }: any) => text?.name || '未分类'
+    customRender: ({text}: any) => text?.name || '未分类'
   },
   {
     title: '统计',
@@ -528,12 +533,35 @@ const formatDateTime = (date?: string): string => {
 const loadMaterials = async () => {
   loading.value = true
   try {
+    // 从 localStorage 获取当前用户信息
+    const userInfo = localStorage.getItem('user')  // 注意：登录时存储的键是'user'而不是'userInfo'
+    let currentUserId = null
+    if (userInfo) {
+      try {
+        const user = JSON.parse(userInfo)
+        currentUserId = user.id
+        console.log('当前用户ID:', currentUserId, '用户信息:', user)
+      } catch (e) {
+        console.error('解析用户信息失败:', e)
+      }
+    } else {
+      console.warn('未找到用户信息')
+    }
+
     const params: any = {
       page: pagination.current,
       perPage: pagination.pageSize,
       sort_by: filters.sortBy,
       order: filters.order
     }
+
+    // 添加当前用户ID筛选,只显示当前用户上传的资料
+    if (currentUserId) {
+      params.uploader_id = currentUserId
+      console.log('添加uploader_id筛选:', currentUserId)
+    }
+
+    console.log('请求参数:', params)
 
     if (searchKeyword.value) {
       params.search = searchKeyword.value
@@ -574,7 +602,8 @@ const loadCategories = async () => {
   try {
     const response = await categoryApiGet()
     const data = (response as any).data?.data || (response as any).data
-    categories.value = data || []
+    // 后端返回的数据结构是 {categories: [...]}
+    categories.value = data?.categories || data || []
   } catch (error: any) {
     console.error('加载分类失败:', error)
   }
@@ -634,13 +663,13 @@ const handleEditSubmit = async () => {
 
     // 调用更新API
     await materialApiIntMaterialIdPut(
-      { materialId: editForm.id },
-      {
-        title: editForm.title,
-        description: editForm.description,
-        categoryId: editForm.categoryId,
-        tags: editForm.tags
-      }
+        {materialId: editForm.id},
+        {
+          title: editForm.title,
+          description: editForm.description,
+          categoryId: editForm.categoryId,
+          tags: editForm.tags
+        }
     )
 
     message.success('资料更新成功')

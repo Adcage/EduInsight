@@ -1,15 +1,22 @@
-from flask_openapi3 import APIBlueprint, Tag
+from flask_openapi3 import APIBlueprint, Tag, FileStorage
 from app.schemas.user_schemas import (
     UserUpdateModel, UserResponseModel, UserListResponseModel, 
-    UserPathModel, UserQueryModel, MessageResponseModel, UserStatsModel
+    UserPathModel, UserQueryModel, MessageResponseModel, UserStatsModel,
+    UserCreateModel, BatchDeleteModel, BatchImportResponseModel,
+    FaceImageUploadModel
 )
 from app.services.auth_service import AuthService
+from app.services.user_service import UserService
 from app.models.user import User, UserRole
 from app.utils.auth_decorators import (
     login_required, admin_required, teacher_or_admin_required, 
     log_user_action, get_current_user_info
 )
 from app.extensions import db
+from werkzeug.utils import secure_filename
+import os
+import base64
+from datetime import datetime
 from sqlalchemy import or_, func
 import logging
 
@@ -40,7 +47,7 @@ class UserAPI:
         logger.info(f"[{cls.request_count}] {action}{user_desc}")
     
     @staticmethod
-    @user_api_bp.get('/', 
+    @user_api_bp.get('/list',
                     summary="获取用户列表", 
                     tags=[user_tag],
                     responses={200: UserListResponseModel, 401: MessageResponseModel})
@@ -87,14 +94,18 @@ class UserAPI:
             )
             
             users = [user.to_dict() for user in pagination.items]
-            
-            return {
-                'users': users,
-                'total': pagination.total,
-                'page': query.page,
-                'per_page': query.per_page,
-                'pages': pagination.pages
-            }, 200
+            logger.info(f"用户列表:{users}")
+
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            response = UserListResponseModel(
+                users=users,
+                total=pagination.total,
+                page=query.page,
+                per_page=query.per_page,
+                pages=pagination.pages
+            )
+
+            return response.model_dump(by_alias=True), 200
             
         except Exception as e:
             logger.error(f"List users error: {str(e)}")
@@ -127,14 +138,17 @@ class UserAPI:
             active_users = User.query.filter_by(status=True).count()
             inactive_users = User.query.filter_by(status=False).count()
             
-            return {
-                'total_users': total_users,
-                'admin_count': admin_count,
-                'teacher_count': teacher_count,
-                'student_count': student_count,
-                'active_users': active_users,
-                'inactive_users': inactive_users
-            }, 200
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            response = UserStatsModel(
+                total_users=total_users,
+                admin_count=admin_count,
+                teacher_count=teacher_count,
+                student_count=student_count,
+                active_users=active_users,
+                inactive_users=inactive_users
+            )
+
+            return response.model_dump(by_alias=True), 200
             
         except Exception as e:
             logger.error(f"Get user stats error: {str(e)}")
@@ -165,7 +179,9 @@ class UserAPI:
                     'error_code': 'USER_NOT_FOUND'
                 }, 404
             
-            return user.to_dict(), 200
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            response = UserResponseModel.model_validate(user)
+            return response.model_dump(by_alias=True), 200
             
         except Exception as e:
             logger.error(f"Get user error: {str(e)}")
@@ -178,17 +194,36 @@ class UserAPI:
     @user_api_bp.put('/<int:userId>', 
                     summary="更新用户信息", 
                     tags=[user_tag],
-                    responses={200: UserResponseModel, 404: MessageResponseModel})
-    @admin_required
+                    responses={200: UserResponseModel, 403: MessageResponseModel, 404: MessageResponseModel})
+    @login_required
     @log_user_action("更新用户信息")
     def update_user(path: UserPathModel, body: UserUpdateModel):
         """
         更新用户信息
         
-        只有管理员可以更新其他用户的信息。
+        管理员可以更新任何用户信息。
+        普通用户只能更新自己的信息。
         """
         try:
             UserAPI.log_request("UPDATE_USER", str(path.user_id))
+            
+            # 权限检查
+            current_user = get_current_user_info()
+            if not current_user:
+                return {
+                    'message': '用户未登录',
+                    'error_code': 'UNAUTHORIZED'
+                }, 401
+                
+            current_role = current_user.get('role')
+            current_user_id = current_user.get('user_id')
+            
+            # 如果不是管理员，且不是更新自己的信息，则拒绝
+            if current_role != UserRole.ADMIN.value and current_user_id != path.user_id:
+                return {
+                    'message': '权限不足，无法修改他人信息',
+                    'error_code': 'FORBIDDEN'
+                }, 403
             
             user = User.query.get(path.user_id)
             if not user:
@@ -205,9 +240,11 @@ class UserAPI:
             
             db.session.commit()
             
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            user_response = UserResponseModel.model_validate(user)
             return {
                 'message': '用户信息更新成功',
-                'user': user.to_dict()
+                'user': user_response.model_dump(by_alias=True)
             }, 200
             
         except Exception as e:
@@ -286,16 +323,269 @@ class UserAPI:
                 'error_code': 'ACTIVATE_USER_ERROR'
             }, 500
 
+
     @staticmethod
-    @user_api_bp.get('/health', 
-                    summary="用户API健康检查", 
-                    tags=[user_tag])
-    def health_check():
-        """用户API健康检查"""
-        import time
-        return {
-            'status': 'healthy',
-            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
-            'request_count': UserAPI.request_count,
-            'version': '1.0.0'
-        }, 200
+    @user_api_bp.post('/face-image',
+                     summary="上传人脸照片",
+                     tags=[user_tag],
+                     responses={200: MessageResponseModel, 400: MessageResponseModel})
+    @login_required
+    @log_user_action("上传人脸照片")
+    def upload_face_image(body: FaceImageUploadModel):
+        """
+        上传人脸照片
+
+        学生上传人脸照片用于人脸识别签到。
+        照片以Base64格式上传，后端保存为文件并更新用户表。
+        """
+        try:
+            UserAPI.log_request("UPLOAD_FACE_IMAGE")
+
+            # 获取当前用户信息
+            current_user = get_current_user_info()
+            if not current_user:
+                return {
+                    'message': '用户未登录',
+                    'error_code': 'USER_NOT_LOGGED_IN'
+                }, 401
+
+            user_id = current_user.get('user_id')
+            user = User.query.get(user_id)
+            if not user:
+                return {
+                    'message': '用户不存在',
+                    'error_code': 'USER_NOT_FOUND'
+                }, 404
+
+            # 解析Base64图片数据
+            try:
+                # 移除data:image/xxx;base64,前缀（如果有）
+                face_image_data = body.face_image_base64
+                logger.info(f"接收到的 Base64 数据长度: {len(face_image_data)}")
+                logger.info(f"Base64 数据前50字符: {face_image_data[:50]}")
+                
+                if ',' in face_image_data:
+                    face_image_data = face_image_data.split(',')[1]
+                    logger.info(f"移除前缀后的数据长度: {len(face_image_data)}")
+                
+                # 清理 Base64 数据：移除空格、换行符等
+                face_image_data = face_image_data.strip().replace(' ', '').replace('\n', '').replace('\r', '')
+                logger.info(f"清理后的数据长度: {len(face_image_data)}")
+
+                # 解码Base64
+                image_bytes = base64.b64decode(face_image_data)
+                logger.info(f"解码后的图片大小: {len(image_bytes)} bytes")
+
+                # 验证文件大小（限制5MB）
+                max_size = 5 * 1024 * 1024
+                if len(image_bytes) > max_size:
+                    return {
+                        'message': '图片大小超过限制（最大5MB）',
+                        'error_code': 'FILE_TOO_LARGE'
+                    }, 400
+
+            except Exception as e:
+                logger.error(f"Base64 decode error: {str(e)}")
+                return {
+                    'message': '图片数据格式错误',
+                    'error_code': 'INVALID_IMAGE_DATA'
+                }, 400
+
+            # 创建上传目录
+            upload_dir = os.path.join('uploads', 'face_images')
+            os.makedirs(upload_dir, exist_ok=True)
+
+            # 生成文件名：user_id_timestamp.jpg
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"user_{user_id}_{timestamp}.jpg"
+            file_path = os.path.join(upload_dir, filename)
+
+            # 删除旧的人脸照片（如果存在）
+            if user.face_image and os.path.exists(user.face_image):
+                try:
+                    os.remove(user.face_image)
+                except Exception as e:
+                    logger.warning(f"Failed to delete old face image: {str(e)}")
+
+            # 保存文件
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+
+            # 更新用户表
+            user.face_image = file_path
+            db.session.commit()
+
+            return {
+                'message': '人脸照片上传成功',
+                'face_image_path': file_path
+            }, 200
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Upload face image error: {str(e)}")
+            return {
+                'message': '上传人脸照片失败',
+                'error_code': 'UPLOAD_FACE_IMAGE_ERROR'
+            }, 500
+
+    @staticmethod
+    @user_api_bp.post('/create',
+                     summary="创建用户",
+                     tags=[user_tag],
+                     responses={200: UserResponseModel, 400: MessageResponseModel})
+    @admin_required
+    @log_user_action("创建用户")
+    def create_user(body: UserCreateModel):
+        """
+        创建新用户
+
+        只有管理员可以创建用户。
+        """
+        try:
+            UserAPI.log_request("CREATE_USER", body.email)
+
+            user = UserService.create_user(body)
+
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            user_response = UserResponseModel.model_validate(user)
+            return {
+                'message': '用户创建成功',
+                'user': user_response.model_dump(by_alias=True)
+            }, 200
+
+        except ValueError as e:
+            logger.error(str(e))
+            return {
+                'message': str(e),
+                'error_code': 'CREATE_USER_FAILED'
+            }, 400
+        except Exception as e:
+            logger.error(f"Create user error: {str(e)}")
+            return {
+                'message': '创建用户失败',
+                'error_code': 'CREATE_USER_ERROR'
+            }, 500
+
+    @staticmethod
+    @user_api_bp.post('/batch-import',
+                     summary="批量导入用户",
+                     tags=[user_tag],
+                     responses={200: BatchImportResponseModel, 400: MessageResponseModel})
+    @admin_required
+    @log_user_action("批量导入用户")
+    def batch_import_users():
+        """
+        从Excel文件批量导入用户
+
+        只有管理员可以批量导入用户。
+        Excel文件应包含列: username, user_code, email, real_name, role, phone(可选), class_id(学生必填)
+        """
+        try:
+            from flask import request
+
+            UserAPI.log_request("BATCH_IMPORT_USERS")
+
+            # 检查文件是否存在
+            if 'file' not in request.files:
+                return {
+                    'message': '未找到上传的文件',
+                    'error_code': 'NO_FILE'
+                }, 400
+
+            file = request.files['file']
+            if file.filename == '':
+                return {
+                    'message': '未选择文件',
+                    'error_code': 'NO_FILE_SELECTED'
+                }, 400
+
+            # 验证文件类型
+            if not file.filename.endswith(('.xlsx', '.xls')):
+                return {
+                    'message': '只支持Excel文件(.xlsx, .xls)',
+                    'error_code': 'INVALID_FILE_TYPE'
+                }, 400
+
+            # 保存文件
+            filename = secure_filename(file.filename)
+            upload_folder = 'uploads/temp'
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+
+            try:
+                # 批量导入
+                result = UserService.batch_import_users(file_path)
+
+                # 删除临时文件
+                os.remove(file_path)
+
+                # 使用 Schema 序列化，自动转换为驼峰格式
+                response = BatchImportResponseModel(
+                    success_count=result['success_count'],
+                    failed_count=result['failed_count'],
+                    total_count=result['total_count'],
+                    errors=result['errors'],
+                    message=f"导入完成: 成功{result['success_count']}条, 失败{result['failed_count']}条"
+                )
+
+                return response.model_dump(by_alias=True), 200
+
+            except Exception as e:
+                # 删除临时文件
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                raise e
+
+        except ValueError as e:
+            return {
+                'message': str(e),
+                'error_code': 'IMPORT_FAILED'
+            }, 400
+        except Exception as e:
+            logger.error(f"Batch import users error: {str(e)}")
+            return {
+                'message': '批量导入失败',
+                'error_code': 'BATCH_IMPORT_ERROR'
+            }, 500
+
+    @staticmethod
+    @user_api_bp.delete('/batch-delete',
+                       summary="批量删除用户",
+                       tags=[user_tag],
+                       responses={200: BatchImportResponseModel, 400: MessageResponseModel})
+    @admin_required
+    @log_user_action("批量删除用户")
+    def batch_delete_users(body: BatchDeleteModel):
+        """
+        批量删除用户(软删除)
+
+        只有管理员可以批量删除用户。
+        """
+        try:
+            UserAPI.log_request("BATCH_DELETE_USERS", f"{len(body.user_ids)} users")
+
+            result = UserService.batch_delete_users(body.user_ids)
+
+            # 使用 Schema 序列化，自动转换为驼峰格式
+            response = BatchImportResponseModel(
+                success_count=result['success_count'],
+                failed_count=result['failed_count'],
+                total_count=result['total_count'],
+                errors=result['errors'],
+                message=f"删除完成: 成功{result['success_count']}条, 失败{result['failed_count']}条"
+            )
+
+            return response.model_dump(by_alias=True), 200
+
+        except ValueError as e:
+            return {
+                'message': str(e),
+                'error_code': 'DELETE_FAILED'
+            }, 400
+        except Exception as e:
+            logger.error(f"Batch delete users error: {str(e)}")
+            return {
+                'message': '批量删除失败',
+                'error_code': 'BATCH_DELETE_ERROR'
+            }, 500

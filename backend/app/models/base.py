@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from app.extensions import db
 
 class BaseModel(db.Model):
@@ -6,21 +7,26 @@ class BaseModel(db.Model):
     __abstract__ = True
     
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    # 使用本地时间而不是UTC时间
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
     
     def to_dict(self):
         """
         转换为字典
         
-        自动将 datetime 对象转换为字符串格式
+        自动将 datetime 对象转换为字符串格式（不带时区信息）
+        自动处理枚举类型和 datetime 对象
         """
         result = {}
         for c in self.__table__.columns:
             value = getattr(self, c.name)
-            # 自动转换 datetime 为字符串
+            # 自动转换 datetime 为字符串（ISO格式，不带时区标记）
             if isinstance(value, datetime):
-                result[c.name] = value.strftime('%a, %d %b %Y %H:%M:%S GMT')
+                result[c.name] = value.strftime('%Y-%m-%d %H:%M:%S')
+            # 处理枚举类型 - 转换为枚举的值
+            elif isinstance(value, Enum):
+                result[c.name] = value.value
             else:
                 result[c.name] = value
         return result

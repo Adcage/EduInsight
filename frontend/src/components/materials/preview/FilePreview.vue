@@ -2,31 +2,33 @@
   <div class="file-preview">
     <a-spin :spinning="loading" tip="正在加载...">
       <!-- PDF预览 -->
-      <PdfPreview v-if="fileType === 'pdf'" :url="fileUrl" />
+      <PdfPreview v-if="fileType === 'pdf'" :url="fileUrl"/>
 
       <!-- 图片预览 -->
-      <ImagePreview v-else-if="isImage" :url="fileUrl" :alt="fileName" />
+      <ImagePreview v-else-if="isImage" :alt="fileName" :url="fileUrl"/>
 
       <!-- Word文档预览 -->
-      <DocxPreview v-else-if="isDocx" :url="fileUrl" />
+      <DocxPreview v-else-if="isDocx" :url="fileUrl"/>
 
       <!-- 文本文件预览 -->
-      <TextPreview v-else-if="isText" :url="fileUrl" :language="textLanguage" />
+      <TextPreview v-else-if="isText" :language="textLanguage" :url="fileUrl"/>
 
       <!-- 不支持预览的文件类型 -->
       <div v-else class="no-preview">
         <a-result
-          status="info"
-          title="该文件类型暂不支持在线预览"
-          :sub-title="`文件类型: ${fileType || '未知'}`"
+            :sub-title="`文件类型: ${fileType || '未知'}`"
+            status="info"
+            title="该文件类型暂不支持在线预览"
         >
           <template #icon>
-            <FileOutlined style="color: #1890ff" />
+            <FileOutlined style="color: #1890ff"/>
           </template>
           <template #extra>
             <a-space>
               <a-button type="primary" @click="handleDownload">
-                <template #icon><DownloadOutlined /></template>
+                <template #icon>
+                  <DownloadOutlined/>
+                </template>
                 下载查看
               </a-button>
               <a-button @click="handleBack">
@@ -40,10 +42,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { message } from 'ant-design-vue'
-import { FileOutlined, DownloadOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {computed, onMounted, ref} from 'vue'
+import {DownloadOutlined, FileOutlined} from '@ant-design/icons-vue'
 import PdfPreview from './PdfPreview.vue'
 import ImagePreview from './ImagePreview.vue'
 import DocxPreview from './DocxPreview.vue'
@@ -60,7 +61,6 @@ const emit = defineEmits<{
   download: []
   back: []
 }>()
-
 const loading = ref(false)
 
 // 图片类型
@@ -95,7 +95,7 @@ const isDocx = computed(() => {
 // 文本语言
 const textLanguage = computed(() => {
   if (!props.fileType) return 'auto'
-  
+
   const typeMap: Record<string, string> = {
     'js': 'javascript',
     'ts': 'typescript',
@@ -156,7 +156,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
-  overflow: hidden;
+  overflow: auto;
   min-height: 0;
   min-width: 0;
 }

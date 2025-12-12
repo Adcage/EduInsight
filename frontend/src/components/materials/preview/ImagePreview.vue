@@ -3,19 +3,21 @@
     <div class="image-container">
       <div class="image-wrapper">
         <img
-          :src="url"
-          :alt="alt"
-          class="preview-img"
-          @error="handleError"
-          @click="openFullscreen"
+            :alt="alt"
+            :src="url"
+            class="preview-img"
+            @click="openFullscreen"
+            @error="handleError"
         />
       </div>
     </div>
     <div class="image-toolbar">
       <a-space>
         <span class="image-info">图片已自适应显示，点击可全屏查看</span>
-        <a-button type="link" size="small" @click="openFullscreen">
-          <template #icon><ExpandOutlined /></template>
+        <a-button size="small" type="link" @click="openFullscreen">
+          <template #icon>
+            <ExpandOutlined/>
+          </template>
           全屏
         </a-button>
       </a-space>
@@ -23,25 +25,25 @@
 
     <!-- 全屏预览 -->
     <a-modal
-      v-model:open="fullscreenVisible"
-      :title="alt"
-      width="100%"
-      :footer="null"
-      :destroyOnClose="true"
-      :bodyStyle="{ padding: 0, background: '#000' }"
-      :wrapStyle="{ top: 0 }"
+        v-model:open="fullscreenVisible"
+        :bodyStyle="{ padding: 0, background: '#000' }"
+        :destroyOnClose="true"
+        :footer="null"
+        :title="alt"
+        :wrapStyle="{ top: 0 }"
+        width="100%"
     >
       <div class="fullscreen-container">
-        <img :src="url" :alt="alt" class="fullscreen-img" />
+        <img :alt="alt" :src="url" class="fullscreen-img"/>
       </div>
     </a-modal>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { message } from 'ant-design-vue'
-import { ExpandOutlined } from '@ant-design/icons-vue'
+<script lang="ts" setup>
+import {ref} from 'vue'
+import {message} from 'ant-design-vue'
+import {ExpandOutlined} from '@ant-design/icons-vue'
 
 interface Props {
   url: string
@@ -93,7 +95,7 @@ const handleError = () => {
 
 .preview-img {
   max-width: 100%;
-  max-height: 50vh;  /* 限制最大高度为视口高度的50% */
+  max-height: 50vh; /* 限制最大高度为视口高度的50% */
   width: auto;
   height: auto;
   object-fit: contain;

@@ -1,0 +1,549 @@
+<template>
+  <div class="student-material-detail">
+    <a-page-header :title="material?.title || '资料详情'" @back="handleBack">
+      <template #extra>
+        <a-space>
+          <a-button v-if="canPreview" type="primary" @click="togglePreview">
+            <template #icon>
+              <EyeOutlined/>
+            </template>
+            预览
+          </a-button>
+          <a-button @click="handleDownload">
+            <template #icon>
+              <DownloadOutlined/>
+            </template>
+            下载
+          </a-button>
+        </a-space>
+      </template>
+    </a-page-header>
+
+    <div class="content-container">
+      <!-- 骨架屏加载状态 - Requirements 1.1 -->
+      <div v-if="loading" class="skeleton-container">
+        <a-card :bordered="false" class="info-card">
+          <a-skeleton :paragraph="{ rows: 8 }" active/>
+        </a-card>
+        <a-card :bordered="false" class="info-card" style="margin-top: 16px">
+          <a-skeleton :paragraph="{ rows: 4 }" active/>
+        </a-card>
+      </div>
+
+      <template v-else>
+        <!-- 资料信息卡片 -->
+        <a-card :bordered="false" class="info-card">
+          <a-descriptions :column="2" bordered title="资料信息">
+            <a-descriptions-item label="文件名">
+              {{ material?.fileName }}
+            </a-descriptions-item>
+
+            <a-descriptions-item label="文件大小">
+              {{ formatFileSize(material?.fileSize) }}
+            </a-descriptions-item>
+
+            <a-descriptions-item label="文件类型">
+              <a-tag :color="getFileTypeColor(material?.fileType)">
+                {{ getFileTypeText(material?.fileType) }}
+              </a-tag>
+            </a-descriptions-item>
+
+            <a-descriptions-item label="分类">
+              <span v-if="material?.category?.name">
+                {{ material.category.name }}
+              </span>
+              <span v-else class="text-muted">未分类</span>
+            </a-descriptions-item>
+
+            <a-descriptions-item label="上传者">
+              {{ material?.uploader?.realName || '未知' }}
+            </a-descriptions-item>
+
+            <a-descriptions-item label="上传时间">
+              {{ formatDateTime(material?.createdAt) }}
+            </a-descriptions-item>
+
+            <a-descriptions-item label="下载次数">
+              <a-statistic :value="material?.downloadCount || 0" :value-style="{ fontSize: '14px' }">
+                <template #prefix>
+                  <DownloadOutlined/>
+                </template>
+              </a-statistic>
+            </a-descriptions-item>
+
+            <a-descriptions-item label="浏览次数">
+              <a-statistic :value="material?.viewCount || 0" :value-style="{ fontSize: '14px' }">
+                <template #prefix>
+                  <EyeOutlined/>
+                </template>
+              </a-statistic>
+            </a-descriptions-item>
+
+            <a-descriptions-item :span="2" label="标签">
+              <a-space v-if="material?.tags && material.tags.length > 0">
+                <a-tag v-for="tag in material.tags" :key="tag.id" color="blue">
+                  {{ tag.name }}
+                </a-tag>
+              </a-space>
+              <span v-else class="text-muted">暂无标签</span>
+            </a-descriptions-item>
+
+            <a-descriptions-item :span="2" label="描述">
+              <div class="description-content">
+                {{ material?.description || '暂无描述' }}
+              </div>
+            </a-descriptions-item>
+          </a-descriptions>
+        </a-card>
+
+        <!-- 相关资料卡片 -->
+        <a-card :bordered="false" class="info-card" style="margin-top: 16px">
+          <template #title>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <AppstoreOutlined/>
+              <span>相关资料</span>
+            </div>
+          </template>
+
+          <!-- 相关资料骨架屏 -->
+          <div v-if="relatedLoading" class="related-skeleton">
+            <a-row :gutter="[16, 16]">
+              <a-col v-for="n in 4" :key="n" :lg="6" :md="8" :sm="12" :xs="24">
+                <a-card class="skeleton-card">
+                  <a-skeleton :loading="true" :paragraph="{ rows: 2 }" active/>
+                </a-card>
+              </a-col>
+            </a-row>
+          </div>
+          <a-empty v-else-if="relatedMaterials.length === 0" description="暂无相关资料"/>
+          <a-row v-else :gutter="[16, 16]">
+            <a-col v-for="relatedMaterial in relatedMaterials" :key="relatedMaterial.id" :lg="6" :md="8" :sm="12"
+                   :xs="24">
+              <MaterialCard
+                  :material="relatedMaterial"
+                  @click="handleViewRelated"
+                  @download="handleDownloadRelated"
+                  @preview="handlePreviewRelated"
+              />
+            </a-col>
+          </a-row>
+        </a-card>
+      </template>
+    </div>
+
+    <!-- 预览模态框 -->
+    <a-modal
+        v-model:open="previewModalVisible"
+        :bodyStyle="{ height: '70vh', padding: 0, overflow: 'auto' }"
+        :destroyOnClose="true"
+        :footer="null"
+        :title="`预览 - ${material?.fileName}`"
+        centered
+        width="85%"
+    >
+      <FilePreview
+          v-if="previewUrl"
+          :file-name="material?.fileName"
+          :file-type="material?.fileType"
+          :file-url="previewUrl"
+          @back="previewModalVisible = false"
+          @download="handleDownload"
+      />
+    </a-modal>
+  </div>
+</template>
+
+<script lang="ts" setup>
+/**
+ * 学生端资料详情页面
+ * 功能：展示资料详细信息，提供预览和下载功能，显示相关资料
+ * Requirements: 4.1, 4.2, 4.3
+ */
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message} from 'ant-design-vue'
+import {AppstoreOutlined, DownloadOutlined, EyeOutlined} from '@ant-design/icons-vue'
+import dayjs from 'dayjs'
+import {materialApiGet, materialApiIntMaterialIdDownloadGet, materialApiIntMaterialIdPreviewGet} from '@/api/materialController'
+import {useMaterialStore} from '@/stores/material'
+import FilePreview from '@/components/materials/preview/FilePreview.vue'
+import MaterialCard from '@/components/materials/MaterialCard.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+// Stores
+const materialStore = useMaterialStore()
+
+// 状态
+const previewModalVisible = ref(false)
+const relatedMaterials = ref<any[]>([])
+const relatedLoading = ref(false)
+
+// 预览URL状态
+const previewUrl = ref('')
+const previewLoading = ref(false)
+
+// 资料ID
+const materialId = computed(() => {
+  return Number(route.params.id)
+})
+
+// 从store获取状态
+const material = computed(() => materialStore.currentMaterial)
+const loading = computed(() => materialStore.loading)
+
+// 是否可以预览
+const canPreview = computed(() => {
+  if (!material.value) return false
+  
+  console.log('检查是否可预览:', material.value.fileType)
+  
+  // PDF、图片和Word文档支持预览
+  const supportedTypes = ['pdf', 'image', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+  const fileType = material.value.fileType?.toLowerCase() || ''
+  
+  const canPreviewResult = supportedTypes.includes(fileType)
+  console.log('canPreview结果:', canPreviewResult, '文件类型:', fileType)
+  
+  return canPreviewResult
+})
+
+// 打开预览模态框
+const togglePreview = async () => {
+  if (!material.value) return
+  
+  previewLoading.value = true
+  try {
+    // 通过API获取文件blob数据
+    const response = await materialApiIntMaterialIdPreviewGet({
+      materialId: materialId.value
+    }, {
+      responseType: 'blob'
+    })
+    
+    console.log('预览响应:', response)
+    console.log('响应头:', response.headers)
+    console.log('响应数据类型:', response.data instanceof Blob, response.data)
+    
+    // 从响应中提取blob数据
+    let blob: Blob
+    if (response.data instanceof Blob) {
+      blob = response.data
+    } else {
+      // 获取Content-Type
+      const contentType = response.headers?.['content-type'] || getContentTypeByFileType(material.value.fileType)
+      blob = new Blob([response.data], { type: contentType })
+    }
+    
+    console.log('创建的blob:', blob, 'type:', blob.type, 'size:', blob.size)
+    
+    // 创建本地blob URL
+    // 清理旧的URL
+    if (previewUrl.value) {
+      window.URL.revokeObjectURL(previewUrl.value)
+    }
+    previewUrl.value = window.URL.createObjectURL(blob)
+    
+    console.log('创建的blob URL:', previewUrl.value)
+    
+    // 打开预览模态框
+    previewModalVisible.value = true
+  } catch (error: any) {
+    console.error('获取预览失败:', error)
+    message.error(error.message || '获取预览失败')
+  } finally {
+    previewLoading.value = false
+  }
+}
+
+// 根据文件类型获取Content-Type
+const getContentTypeByFileType = (fileType: string): string => {
+  const typeMap: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'image': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  }
+  return typeMap[fileType.toLowerCase()] || 'application/octet-stream'
+}
+
+// 文件类型颜色映射
+const fileTypeColorMap: Record<string, string> = {
+  pdf: 'red',
+  doc: 'blue',
+  ppt: 'orange',
+  xls: 'green',
+  image: 'purple',
+  video: 'cyan',
+  archive: 'geekblue',
+  text: 'default',
+}
+
+// 文件类型文本映射
+const fileTypeTextMap: Record<string, string> = {
+  pdf: 'PDF',
+  doc: 'Word',
+  ppt: 'PPT',
+  xls: 'Excel',
+  text: '文本',
+  image: '图片',
+  archive: '压缩包',
+  video: '视频',
+  other: '其他',
+}
+
+// 获取文件类型颜色
+const getFileTypeColor = (type?: string): string => {
+  return fileTypeColorMap[type || ''] || 'default'
+}
+
+// 获取文件类型文本
+const getFileTypeText = (type?: string): string => {
+  return fileTypeTextMap[type || ''] || '其他'
+}
+
+// 格式化文件大小
+const formatFileSize = (bytes?: number): string => {
+  if (!bytes) return '0 B'
+
+  const units = ['B', 'KB', 'MB', 'GB']
+  let size = bytes
+  let unitIndex = 0
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024
+    unitIndex++
+  }
+
+  return `${size.toFixed(2)} ${units[unitIndex]}`
+}
+
+// 格式化日期时间
+const formatDateTime = (date?: string): string => {
+  if (!date) return ''
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}
+
+// 加载资料详情
+const loadMaterialDetail = async () => {
+  try {
+    await materialStore.fetchMaterialDetail(materialId.value)
+
+    // 检查是否需要自动打开预览
+    if (route.query.preview === 'true' && canPreview.value) {
+      // 调用togglePreview来获取blob数据并打开预览
+      await togglePreview()
+    }
+
+    // 加载相关资料
+    loadRelatedMaterials()
+  } catch (error: any) {
+    console.error('加载资料详情失败:', error)
+    message.error(error.message || '加载资料详情失败')
+  }
+}
+
+// 加载相关资料（基于相同分类或标签）
+const loadRelatedMaterials = async () => {
+  if (!material.value) return
+
+  relatedLoading.value = true
+  try {
+    const params: any = {
+      page: 1,
+      page_size: 4,
+    }
+
+    // 优先按分类查询
+    if (material.value.categoryId) {
+      params.category_id = material.value.categoryId
+    } else if (material.value.tags && material.value.tags.length > 0) {
+      // 如果没有分类，按标签查询
+      params.tag_ids = material.value.tags.map((t: any) => t.id).join(',')
+    }
+
+    const response = await materialApiGet(params)
+    const data = (response as any).data?.data || (response as any).data
+
+    // 过滤掉当前资料
+    relatedMaterials.value = (data?.materials || []).filter((m: any) => m.id !== materialId.value).slice(0, 4)
+  } catch (error: any) {
+    console.error('加载相关资料失败:', error)
+    relatedMaterials.value = []
+  } finally {
+    relatedLoading.value = false
+  }
+}
+
+// 下载
+const handleDownload = async () => {
+  if (!material.value) return
+
+  const loadingMsg = message.loading('正在下载...', 0)
+  try {
+    const response = await materialApiIntMaterialIdDownloadGet({
+      materialId: materialId.value,
+    }, {
+      responseType: 'blob'
+    })
+
+    // 从axios响应中提取blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+    
+    // 尝试从响应头获取文件名
+    let fileName = material.value.fileName
+    const contentDisposition = response.headers?.['content-disposition']
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1].replace(/['"]/g, '')
+        try {
+          fileName = decodeURIComponent(fileName)
+        } catch (e) {
+          // 如果解码失败,使用原始文件名
+        }
+      }
+    }
+
+    // 创建下载链接
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理
+    setTimeout(() => {
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }, 100)
+
+    loadingMsg()
+    message.success('下载成功')
+  } catch (error: any) {
+    loadingMsg()
+    console.error('下载失败:', error)
+    message.error(error.message || '下载失败')
+  }
+}
+
+// 查看相关资料详情
+const handleViewRelated = (relatedMaterial: any) => {
+  router.push(`/student/materials/${relatedMaterial.id}`)
+}
+
+// 预览相关资料
+const handlePreviewRelated = (relatedMaterial: any) => {
+  router.push(`/student/materials/${relatedMaterial.id}?preview=true`)
+}
+
+// 下载相关资料
+const handleDownloadRelated = async (relatedMaterial: any) => {
+  if (!relatedMaterial) return
+
+  const loadingMsg = message.loading('正在下载...', 0)
+  try {
+    const response = await materialApiIntMaterialIdDownloadGet({
+      materialId: relatedMaterial.id,
+    }, {
+      responseType: 'blob'
+    })
+
+    // 从axios响应中提取blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+    
+    // 尝试从响应头获取文件名
+    let fileName = relatedMaterial.fileName
+    const contentDisposition = response.headers?.['content-disposition']
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1].replace(/['"]/g, '')
+        try {
+          fileName = decodeURIComponent(fileName)
+        } catch (e) {
+          // 如果解码失败,使用原始文件名
+        }
+      }
+    }
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+
+    setTimeout(() => {
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }, 100)
+
+    loadingMsg()
+    message.success('下载成功')
+  } catch (error: any) {
+    loadingMsg()
+    console.error('下载失败:', error)
+    message.error(error.message || '下载失败')
+  }
+}
+
+// 返回
+const handleBack = () => {
+  router.push('/student/materials')
+}
+
+// 初始化
+onMounted(() => {
+  loadMaterialDetail()
+})
+
+// 清理
+onBeforeUnmount(() => {
+  // 清理blob URL
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value)
+  }
+})
+</script>
+
+<style scoped>
+.student-material-detail .content-container {
+  padding: 16px;
+}
+
+.student-material-detail .info-card {
+  margin-bottom: 16px;
+}
+
+.student-material-detail .description-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.student-material-detail .text-muted {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* 骨架屏加载样式 - Requirements 1.1 */
+.skeleton-container {
+  padding: 0;
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: 8px;
+}
+
+.related-skeleton {
+  padding: 8px 0;
+}
+</style>

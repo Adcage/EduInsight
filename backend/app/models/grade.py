@@ -48,7 +48,30 @@ class Grade(BaseModel):
     # 备注
     remark = db.Column(db.String(255), nullable=True)
     
+    # ==================== 关系定义 ====================
+    # 关联到学生
+    student = db.relationship('User', foreign_keys=[student_id], lazy='joined')
+    # 关联到课程 (通过Course模型的backref='course'自动创建)
+    
     # ==================== 实例方法 ====================
+    def to_dict(self):
+        """转换为字典,处理枚举类型"""
+        data = {}
+        for c in self.__table__.columns:
+            value = getattr(self, c.name)
+            # 处理枚举类型
+            if isinstance(value, ExamType):
+                data[c.name] = value.value
+            # 处理日期类型
+            elif hasattr(value, 'isoformat'):
+                data[c.name] = value.isoformat()
+            # 处理Decimal类型
+            elif hasattr(value, '__float__'):
+                data[c.name] = float(value)
+            else:
+                data[c.name] = value
+        return data
+    
     def get_percentage(self):
         """获取百分比"""
         if self.full_score > 0:

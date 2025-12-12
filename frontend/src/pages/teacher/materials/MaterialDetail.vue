@@ -1,29 +1,37 @@
 <template>
   <div class="material-detail">
     <a-page-header
-      :title="material?.title || '资料详情'"
-      @back="handleBack"
+        :title="material?.title || '资料详情'"
+        @back="handleBack"
     >
       <template #extra>
         <a-space>
-          <a-button 
-            v-if="canPreview" 
-            type="primary" 
-            @click="togglePreview"
+          <a-button
+              v-if="canPreview"
+              type="primary"
+              @click="togglePreview"
           >
-            <template #icon><EyeOutlined /></template>
+            <template #icon>
+              <EyeOutlined/>
+            </template>
             预览
           </a-button>
           <a-button @click="handleDownload">
-            <template #icon><DownloadOutlined /></template>
+            <template #icon>
+              <DownloadOutlined/>
+            </template>
             下载
           </a-button>
           <a-button v-if="canEdit" @click="handleEdit">
-            <template #icon><EditOutlined /></template>
+            <template #icon>
+              <EditOutlined/>
+            </template>
             编辑
           </a-button>
           <a-button v-if="canDelete" danger @click="showDeleteConfirm">
-            <template #icon><DeleteOutlined /></template>
+            <template #icon>
+              <DeleteOutlined/>
+            </template>
             删除
           </a-button>
         </a-space>
@@ -34,75 +42,75 @@
       <a-spin :spinning="loading">
         <!-- 资料信息卡片 -->
         <a-card :bordered="false" class="info-card">
-          <a-descriptions title="资料信息" :column="2" bordered>
+          <a-descriptions :column="2" bordered title="资料信息">
             <a-descriptions-item label="文件名">
               {{ material?.fileName }}
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="文件大小">
               {{ formatFileSize(material?.fileSize) }}
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="文件类型">
               <a-tag :color="getFileTypeColor(material?.fileType)">
                 {{ getFileTypeText(material?.fileType) }}
               </a-tag>
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="分类">
               <span v-if="material?.categoryName">
                 {{ material.categoryName }}
                 <a-tag v-if="material?.autoClassified" color="purple" size="small" style="margin-left: 4px">
-                  <RobotOutlined /> 智能分类
+                  <RobotOutlined/> 智能分类
                 </a-tag>
               </span>
               <span v-else class="text-muted">未分类</span>
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="上传者">
               {{ material?.uploaderName || '未知' }}
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="上传时间">
               {{ formatDateTime(material?.createdAt) }}
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="下载次数">
               <a-statistic
-                :value="material?.downloadCount || 0"
-                :value-style="{ fontSize: '14px' }"
+                  :value="material?.downloadCount || 0"
+                  :value-style="{ fontSize: '14px' }"
               >
                 <template #prefix>
-                  <DownloadOutlined />
+                  <DownloadOutlined/>
                 </template>
               </a-statistic>
             </a-descriptions-item>
-            
+
             <a-descriptions-item label="浏览次数">
               <a-statistic
-                :value="material?.viewCount || 0"
-                :value-style="{ fontSize: '14px' }"
+                  :value="material?.viewCount || 0"
+                  :value-style="{ fontSize: '14px' }"
               >
                 <template #prefix>
-                  <EyeOutlined />
+                  <EyeOutlined/>
                 </template>
               </a-statistic>
             </a-descriptions-item>
-            
-            <a-descriptions-item label="标签" :span="2">
+
+            <a-descriptions-item :span="2" label="标签">
               <a-space v-if="material?.tags && material.tags.length > 0">
                 <a-tag
-                  v-for="tag in material.tags"
-                  :key="tag.id"
-                  color="blue"
+                    v-for="tag in material.tags"
+                    :key="tag.id"
+                    color="blue"
                 >
                   {{ tag.name }}
                 </a-tag>
               </a-space>
               <span v-else class="text-muted">暂无标签</span>
             </a-descriptions-item>
-            
-            <a-descriptions-item label="描述" :span="2">
+
+            <a-descriptions-item :span="2" label="描述">
               <div class="description-content">
                 {{ material?.description || '暂无描述' }}
               </div>
@@ -114,37 +122,39 @@
         <a-card :bordered="false" class="info-card" style="margin-top: 16px">
           <template #title>
             <div style="display: flex; align-items: center; gap: 8px">
-              <RobotOutlined />
+              <RobotOutlined/>
               <span>智能分析</span>
             </div>
           </template>
           <template #extra>
-            <a-button 
-              type="link" 
-              size="small" 
-              :loading="keywordsLoading"
-              @click="loadKeywords"
+            <a-button
+                :loading="keywordsLoading"
+                size="small"
+                type="link"
+                @click="loadKeywords"
             >
-              <template #icon><ReloadOutlined /></template>
+              <template #icon>
+                <ReloadOutlined/>
+              </template>
               刷新
             </a-button>
           </template>
-          
+
           <a-row :gutter="16">
             <!-- 关键词 -->
             <a-col :span="24">
               <div class="analysis-section">
                 <div class="section-label">提取的关键词</div>
                 <div v-if="keywordsLoading" class="loading-keywords">
-                  <a-spin size="small" />
+                  <a-spin size="small"/>
                   <span>正在提取关键词...</span>
                 </div>
                 <div v-else-if="keywords.length > 0" class="keywords-display">
-                  <a-tag 
-                    v-for="(kw, index) in keywords" 
-                    :key="index"
-                    :color="getKeywordColor(kw.weight)"
-                    class="keyword-tag"
+                  <a-tag
+                      v-for="(kw, index) in keywords"
+                      :key="index"
+                      :color="getKeywordColor(kw.weight)"
+                      class="keyword-tag"
                   >
                     {{ kw.keyword }}
                     <span class="weight-text">({{ Math.round(kw.weight * 100) }}%)</span>
@@ -163,72 +173,71 @@
 
     <!-- 预览模态框 -->
     <a-modal
-      v-model:open="previewModalVisible"
-      :title="`预览 - ${material?.fileName}`"
-      width="85%"
-      :footer="null"
-      :destroyOnClose="true"
-      centered
-      :bodyStyle="{ height: '70vh', padding: 0, maxHeight: '70vh' }"
-      :wrapStyle="{ maxHeight: '90vh' }"
+        v-model:open="previewModalVisible"
+        :bodyStyle="{ height: '70vh', padding: 0, overflow: 'auto' }"
+        :destroyOnClose="true"
+        :footer="null"
+        :title="`预览 - ${material?.fileName}`"
+        centered
+        width="85%"
     >
       <FilePreview
-        v-if="previewUrl"
-        :file-url="previewUrl"
-        :file-type="material?.fileType"
-        :file-name="material?.fileName"
-        @download="handleDownload"
-        @back="previewModalVisible = false"
+          v-if="previewUrl"
+          :file-name="material?.fileName"
+          :file-type="material?.fileType"
+          :file-url="previewUrl"
+          @back="previewModalVisible = false"
+          @download="handleDownload"
       />
     </a-modal>
 
     <!-- 编辑资料对话框 -->
     <a-modal
-      v-model:open="editModalVisible"
-      title="编辑资料"
-      width="600px"
-      :confirm-loading="editLoading"
-      @ok="handleEditSubmit"
-      @cancel="handleEditCancel"
+        v-model:open="editModalVisible"
+        :confirm-loading="editLoading"
+        title="编辑资料"
+        width="600px"
+        @cancel="handleEditCancel"
+        @ok="handleEditSubmit"
     >
       <a-form
-        ref="editFormRef"
-        :model="editForm"
-        :label-col="{ span: 5 }"
-        :wrapper-col="{ span: 19 }"
+          ref="editFormRef"
+          :label-col="{ span: 5 }"
+          :model="editForm"
+          :wrapper-col="{ span: 19 }"
       >
         <a-form-item
-          label="资料标题"
-          name="title"
-          :rules="[{ required: true, message: '请输入资料标题' }]"
+            :rules="[{ required: true, message: '请输入资料标题' }]"
+            label="资料标题"
+            name="title"
         >
           <a-input
-            v-model:value="editForm.title"
-            placeholder="请输入资料标题"
-            :maxlength="100"
+              v-model:value="editForm.title"
+              :maxlength="100"
+              placeholder="请输入资料标题"
           />
         </a-form-item>
 
         <a-form-item label="资料描述" name="description">
           <a-textarea
-            v-model:value="editForm.description"
-            placeholder="请输入资料描述"
-            :rows="4"
-            :maxlength="500"
-            show-count
+              v-model:value="editForm.description"
+              :maxlength="500"
+              :rows="4"
+              placeholder="请输入资料描述"
+              show-count
           />
         </a-form-item>
 
         <a-form-item label="分类" name="categoryId">
           <a-select
-            v-model:value="editForm.categoryId"
-            placeholder="请选择分类"
-            allow-clear
+              v-model:value="editForm.categoryId"
+              allow-clear
+              placeholder="请选择分类"
           >
             <a-select-option
-              v-for="category in categories"
-              :key="category.id"
-              :value="category.id"
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
             >
               {{ category.name }}
             </a-select-option>
@@ -237,16 +246,16 @@
 
         <a-form-item label="标签" name="tags">
           <a-select
-            v-model:value="editForm.tags"
-            mode="tags"
-            placeholder="请输入标签（按回车添加）"
-            :max-tag-count="5"
+              v-model:value="editForm.tags"
+              :max-tag-count="5"
+              mode="tags"
+              placeholder="请输入标签（按回车添加）"
           >
           </a-select>
         </a-form-item>
 
         <a-form-item label="文件信息">
-          <a-space direction="vertical" :size="4">
+          <a-space :size="4" direction="vertical">
             <div>
               <span class="info-label">文件名：</span>
               <span>{{ material?.fileName }}</span>
@@ -268,26 +277,32 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message, Modal } from 'ant-design-vue'
+<script lang="ts" setup>
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {message, Modal} from 'ant-design-vue'
 import {
+  DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  DeleteOutlined,
   EyeOutlined,
-  FileOutlined,
-  RobotOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  RobotOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+<<<<<<< HEAD
 import {
   materialApiIntMaterialIdDownloadGet
 } from '@/api/materialController.ts'
 import { materialApiIntMaterialIdKeywordsGet } from '@/api/classificationController.ts'
 import { useMaterialStore } from '@/stores/material.ts'
 import { useCategoryStore } from '@/stores/category.ts'
+=======
+import {materialApiIntMaterialIdDownloadGet, materialApiIntMaterialIdPreviewGet} from '@/api/materialController.ts'
+import {materialApiIntMaterialIdKeywordsGet} from '@/api/classificationController.ts'
+import {useMaterialStore} from '@/stores/material.ts'
+import {useCategoryStore} from '@/stores/category.ts'
+>>>>>>> 276b54ead05e4bacd83a3a81e97196af280966df
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
 
 const route = useRoute()
@@ -296,6 +311,15 @@ const router = useRouter()
 // Stores
 const materialStore = useMaterialStore()
 const categoryStore = useCategoryStore()
+
+// Debug: Log material data when it changes
+watch(() => materialStore.currentMaterial, (newVal) => {
+  if (newVal) {
+    console.log('Material Details Loaded:', newVal)
+    console.log('Category Name:', newVal.categoryName)
+    console.log('Tags:', newVal.tags)
+  }
+}, { immediate: true })
 
 // 状态
 const previewModalVisible = ref(false)
@@ -309,6 +333,10 @@ const editForm = ref({
   tags: [] as string[]
 })
 const currentUserId = ref<number | null>(null)
+
+// 预览URL状态
+const previewUrl = ref('')
+const previewLoading = ref(false)
 
 // 关键词状态
 const keywords = ref<API.KeywordResponseModel[]>([])
@@ -324,24 +352,83 @@ const material = computed(() => materialStore.currentMaterial)
 const loading = computed(() => materialStore.loading)
 const categories = computed(() => categoryStore.flatCategories)
 
-// 预览URL
-const previewUrl = computed(() => {
-  if (!material.value) return ''
-  // 构建预览URL - 使用预览接口（不会触发下载）
-  const baseUrl = 'http://localhost:5030'
-  return `${baseUrl}/api/v1/materials/${material.value.id}/preview`
-})
-
 // 是否可以预览
 const canPreview = computed(() => {
   if (!material.value) return false
-  // PDF和图片支持预览
-  return material.value.fileType === 'pdf' || material.value.fileType === 'image'
+  
+  console.log('检查是否可预览:', material.value.fileType)
+  
+  // PDF、图片和Word文档支持预览
+  const supportedTypes = ['pdf', 'image', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+  const fileType = material.value.fileType?.toLowerCase() || ''
+  
+  const canPreviewResult = supportedTypes.includes(fileType)
+  console.log('canPreview结果:', canPreviewResult, '文件类型:', fileType)
+  
+  return canPreviewResult
 })
 
 // 打开预览模态框
-const togglePreview = () => {
-  previewModalVisible.value = true
+const togglePreview = async () => {
+  if (!material.value) return
+  
+  previewLoading.value = true
+  try {
+    // 通过API获取文件blob数据
+    const response = await materialApiIntMaterialIdPreviewGet({
+      materialId: materialId.value
+    }, {
+      responseType: 'blob'
+    })
+    
+    console.log('预览响应:', response)
+    console.log('响应头:', response.headers)
+    console.log('响应数据类型:', response.data instanceof Blob, response.data)
+    
+    // 从响应中提取blob数据
+    let blob: Blob
+    if (response.data instanceof Blob) {
+      blob = response.data
+    } else {
+      // 获取Content-Type
+      const contentType = response.headers?.['content-type'] || getContentTypeByFileType(material.value.fileType)
+      blob = new Blob([response.data], { type: contentType })
+    }
+    
+    console.log('创建的blob:', blob, 'type:', blob.type, 'size:', blob.size)
+    
+    // 创建本地blob URL
+    // 清理旧的URL
+    if (previewUrl.value) {
+      window.URL.revokeObjectURL(previewUrl.value)
+    }
+    previewUrl.value = window.URL.createObjectURL(blob)
+    
+    console.log('创建的blob URL:', previewUrl.value)
+    
+    // 打开预览模态框
+    previewModalVisible.value = true
+  } catch (error: any) {
+    console.error('获取预览失败:', error)
+    message.error(error.message || '获取预览失败')
+  } finally {
+    previewLoading.value = false
+  }
+}
+
+// 根据文件类型获取Content-Type
+const getContentTypeByFileType = (fileType: string): string => {
+  const typeMap: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'image': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  }
+  return typeMap[fileType.toLowerCase()] || 'application/octet-stream'
 }
 
 // 权限判断
@@ -395,16 +482,16 @@ const getFileTypeText = (type?: string): string => {
 // 格式化文件大小
 const formatFileSize = (bytes?: number): string => {
   if (!bytes) return '0 B'
-  
+
   const units = ['B', 'KB', 'MB', 'GB']
   let size = bytes
   let unitIndex = 0
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024
     unitIndex++
   }
-  
+
   return `${size.toFixed(2)} ${units[unitIndex]}`
 }
 
@@ -418,12 +505,13 @@ const formatDateTime = (date?: string): string => {
 const loadMaterialDetail = async () => {
   try {
     await materialStore.fetchMaterialDetail(materialId.value)
-    
+
     // 检查是否需要自动打开预览
-    if (route.query.preview === 'true') {
-      previewModalVisible.value = true
+    if (route.query.preview === 'true' && canPreview.value) {
+      // 调用togglePreview来获取blob数据并打开预览
+      await togglePreview()
     }
-    
+
     // 自动加载关键词
     loadKeywords()
   } catch (error: any) {
@@ -435,16 +523,18 @@ const loadMaterialDetail = async () => {
 // 加载关键词
 const loadKeywords = async () => {
   if (!materialId.value) return
-  
+
   keywordsLoading.value = true
   try {
-    const response = await materialApiIntMaterialIdKeywordsGet({ 
+    const response = await materialApiIntMaterialIdKeywordsGet({
       materialId: materialId.value,
       topN: 10
     })
-    
-    if (response.code === 200 && response.data) {
-      keywords.value = response.data
+
+    console.log('响应数据:', response)
+
+    if (response.data.code === 200 && response.data.data) {
+      keywords.value = response.data.data
     } else {
       keywords.value = []
     }
@@ -466,7 +556,7 @@ const getKeywordColor = (weight: number): string => {
 // 下载
 const handleDownload = async () => {
   if (!material.value) return
-  
+
   const loadingMsg = message.loading('正在下载...', 0)
   try {
     const response = await materialApiIntMaterialIdDownloadGet({
@@ -474,23 +564,42 @@ const handleDownload = async () => {
     }, {
       responseType: 'blob'
     })
+
+    // 从axios响应中提取blob数据
+    // response.data 才是实际的blob数据
+    const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
     
+    // 尝试从响应头获取文件名
+    let fileName = material.value.fileName
+    const contentDisposition = response.headers?.['content-disposition']
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1].replace(/['"]/g, '')
+        // 处理URL编码的文件名
+        try {
+          fileName = decodeURIComponent(fileName)
+        } catch (e) {
+          // 如果解码失败,使用原始文件名
+        }
+      }
+    }
+
     // 创建下载链接
-    const blob = new Blob([response])
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', material.value.fileName)
+    link.setAttribute('download', fileName)
     link.style.display = 'none'
     document.body.appendChild(link)
     link.click()
-    
+
     // 清理
     setTimeout(() => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     }, 100)
-    
+
     loadingMsg()
     message.success('下载成功')
   } catch (error: any) {
@@ -503,15 +612,15 @@ const handleDownload = async () => {
 // 编辑
 const handleEdit = () => {
   if (!material.value) return
-  
+
   // 填充编辑表单
   editForm.value = {
     title: material.value.title,
     description: material.value.description || '',
-    categoryId: material.value.category?.id || null,
-    tags: material.value.tags?.map((tag: any) => tag.name) || []
+    categoryId: material.value.categoryId || null,
+    tags: material.value.tags?.map((tag) => tag.name) || []
   }
-  
+
   editModalVisible.value = true
 }
 
@@ -520,9 +629,9 @@ const handleEditSubmit = async () => {
   try {
     // 验证表单
     await editFormRef.value?.validate()
-    
+
     editLoading.value = true
-    
+
     // 调用store更新方法
     await materialStore.updateMaterial(materialId.value, {
       title: editForm.value.title,
@@ -530,7 +639,7 @@ const handleEditSubmit = async () => {
       categoryId: editForm.value.categoryId,
       tags: editForm.value.tags
     })
-    
+
     message.success('资料更新成功')
     editModalVisible.value = false
   } catch (error: any) {
@@ -589,7 +698,7 @@ const showDeleteConfirm = () => {
 const handleDelete = async () => {
   try {
     await materialStore.deleteMaterial(materialId.value)
-    
+
     message.success('删除成功')
     router.push('/teacher/materials')
   } catch (error: any) {
@@ -607,6 +716,14 @@ onMounted(() => {
   loadCurrentUser()
   loadMaterialDetail()
   loadCategories()
+})
+
+// 清理
+onBeforeUnmount(() => {
+  // 清理blob URL
+  if (previewUrl.value) {
+    window.URL.revokeObjectURL(previewUrl.value)
+  }
 })
 </script>
 

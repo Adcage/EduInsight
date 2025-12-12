@@ -1,25 +1,25 @@
 <template>
   <a-layout class="basic-layout">
     <!-- 全局头部 -->
-    <GlobalHeader />
+    <GlobalHeader/>
 
     <!-- 主内容区 -->
     <a-layout-content class="layout-content">
       <div class="content-wrapper">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
+          <transition mode="out-in" name="fade">
+            <component :is="Component"/>
           </transition>
         </router-view>
       </div>
     </a-layout-content>
 
     <!-- 全局底部 -->
-    <GlobalFooter />
+    <GlobalFooter/>
   </a-layout>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
 </script>
@@ -35,7 +35,6 @@ import GlobalFooter from '@/layouts/GlobalFooter.vue'
   flex: 1;
   background-color: var(--background-color);
   padding: var(--spacing-lg);
-  margin-top: 64px;
 }
 
 .content-wrapper {
@@ -47,9 +46,8 @@ import GlobalFooter from '@/layouts/GlobalFooter.vue'
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  transition: opacity 0.3s ease,
+  transform 0.3s ease;
 }
 
 .fade-enter-from {

@@ -1,100 +1,114 @@
 <template>
   <div class="advanced-filter">
     <a-card :bordered="false" class="filter-card">
-      <a-form layout="inline" :model="filters" class="filter-form">
-        <a-row :gutter="[12, 12]" style="width: 100%" align="middle">
+      <a-form :model="filters" class="filter-form" layout="inline">
+        <a-row :gutter="[12, 12]" align="middle" style="width: 100%">
           <!-- 分类筛选 -->
-          <a-col :xs="24" :sm="12" :md="6">
+          <a-col :md="6" :sm="12" :xs="24">
             <a-form-item label="分类">
               <a-tree-select
-                :value="filters.categoryId"
-                :tree-data="categories"
-                :field-names="{ label: 'name', value: 'id', children: 'children' }"
-                placeholder="选择分类"
-                allow-clear
-                tree-default-expand-all
-                style="min-width: 140px"
-                @change="(value: any) => handleFilterChange(updateFilter('categoryId', value))"
+                  :field-names="{ label: 'name', value: 'id', children: 'children' }"
+                  :tree-data="categories"
+                  :value="filters.categoryId"
+                  allow-clear
+                  placeholder="选择分类"
+                  style="min-width: 140px"
+                  tree-default-expand-all
+                  @change="(value: any) => handleFilterChange(updateFilter('categoryId', value))"
               />
             </a-form-item>
           </a-col>
 
           <!-- 文件类型筛选 -->
-          <a-col :xs="24" :sm="12" :md="6">
+          <a-col :md="6" :sm="12" :xs="24">
             <a-form-item label="文件类型">
               <a-select
-                :value="filters.fileType"
-                placeholder="全部类型"
-                allow-clear
-                style="min-width: 140px"
-                @change="(value: any) => handleFilterChange(updateFilter('fileType', value))"
+                  :value="filters.fileType"
+                  allow-clear
+                  placeholder="全部类型"
+                  style="min-width: 140px"
+                  @change="(value: any) => handleFilterChange(updateFilter('fileType', value))"
               >
                 <a-select-option :value="null">全部类型</a-select-option>
                 <a-select-option value="pdf">
-                  <FilePdfOutlined /> PDF
+                  <FilePdfOutlined/>
+                  PDF
                 </a-select-option>
                 <a-select-option value="doc">
-                  <FileWordOutlined /> Word
+                  <FileWordOutlined/>
+                  Word
                 </a-select-option>
                 <a-select-option value="ppt">
-                  <FilePptOutlined /> PPT
+                  <FilePptOutlined/>
+                  PPT
                 </a-select-option>
                 <a-select-option value="xls">
-                  <FileExcelOutlined /> Excel
+                  <FileExcelOutlined/>
+                  Excel
                 </a-select-option>
                 <a-select-option value="image">
-                  <FileImageOutlined /> 图片
+                  <FileImageOutlined/>
+                  图片
                 </a-select-option>
                 <a-select-option value="video">
-                  <PlayCircleOutlined /> 视频
+                  <PlayCircleOutlined/>
+                  视频
                 </a-select-option>
                 <a-select-option value="archive">
-                  <FileZipOutlined /> 压缩包
+                  <FileZipOutlined/>
+                  压缩包
                 </a-select-option>
                 <a-select-option value="text">
-                  <FileTextOutlined /> 文本
+                  <FileTextOutlined/>
+                  文本
                 </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
 
           <!-- 排序方式 -->
-          <a-col :xs="24" :sm="12" :md="6">
+          <a-col :md="6" :sm="12" :xs="24">
             <a-form-item label="排序">
               <a-select
-                :value="filters.sortBy"
-                style="min-width: 130px"
-                @change="(value: any) => handleFilterChange(updateFilter('sortBy', value))"
+                  :value="filters.sortBy"
+                  style="min-width: 130px"
+                  @change="(value: any) => handleFilterChange(updateFilter('sortBy', value))"
               >
                 <a-select-option value="created_at">
-                  <ClockCircleOutlined /> 最新上传
+                  <ClockCircleOutlined/>
+                  最新上传
                 </a-select-option>
                 <a-select-option value="download_count">
-                  <DownloadOutlined /> 下载最多
+                  <DownloadOutlined/>
+                  下载最多
                 </a-select-option>
                 <a-select-option value="view_count">
-                  <EyeOutlined /> 浏览最多
+                  <EyeOutlined/>
+                  浏览最多
                 </a-select-option>
                 <a-select-option value="file_size">
-                  <FileOutlined /> 文件大小
+                  <FileOutlined/>
+                  文件大小
                 </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
 
           <!-- 排序方向 -->
-          <a-col :xs="24" :sm="12" :md="6">
+          <a-col :md="6" :sm="12" :xs="24">
             <a-form-item label="顺序">
               <a-select
-                :value="filters.order"
-                style="min-width: 110px"
-                @change="(value: any) => handleFilterChange(updateFilter('order', value))"
+                  :value="filters.order"
+                  style="min-width: 110px"
+                  @change="(value: any) => handleFilterChange(updateFilter('order', value))"
               >
                 <a-select-option value="desc">
-                  <ArrowDownOutlined /> 降序
+                  <ArrowDownOutlined/>
+                  降序
                 </a-select-option>
                 <a-select-option value="asc">
-                  <ArrowUpOutlined /> 升序
+                  <ArrowUpOutlined/>
+                  升序
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -102,20 +116,20 @@
 
 
           <!-- 操作按钮 -->
-          <a-col :xs="24" :sm="12" :md="12">
+          <a-col :md="12" :sm="12" :xs="24">
             <a-form-item style="margin-bottom: 0">
               <a-space :size="12">
-                <a-button type="primary" @click="handleApply" size="middle">
-                  <FilterOutlined />
+                <a-button size="middle" type="primary" @click="handleApply">
+                  <FilterOutlined/>
                   筛选
                 </a-button>
-                <a-button @click="handleReset" size="middle">
-                  <ReloadOutlined />
+                <a-button size="middle" @click="handleReset">
+                  <ReloadOutlined/>
                   重置
                 </a-button>
-                <a-button type="link" @click="toggleAdvanced" size="middle">
+                <a-button size="middle" type="link" @click="toggleAdvanced">
                   {{ showAdvanced ? '收起' : '更多筛选' }}
-                  <component :is="showAdvanced ? UpOutlined : DownOutlined" />
+                  <component :is="showAdvanced ? UpOutlined : DownOutlined"/>
                 </a-button>
               </a-space>
             </a-form-item>
@@ -126,24 +140,24 @@
           <template v-if="showAdvanced">
             <!-- 占位符，强制换行 -->
             <a-col :span="24" style="height: 0; padding: 0"></a-col>
-            
+
             <!-- 课程筛选 -->
-            <a-col :xs="24" :sm="12" :md="6">
+            <a-col :md="6" :sm="12" :xs="24">
               <a-form-item label="课程">
                 <a-select
-                  :value="filters.courseId"
-                  placeholder="选择课程"
-                  allow-clear
-                  show-search
-                  :filter-option="filterCourseOption"
-                  style="min-width: 140px"
-                  @change="(value: any) => handleFilterChange(updateFilter('courseId', value))"
+                    :filter-option="filterCourseOption"
+                    :value="filters.courseId"
+                    allow-clear
+                    placeholder="选择课程"
+                    show-search
+                    style="min-width: 140px"
+                    @change="(value: any) => handleFilterChange(updateFilter('courseId', value))"
                 >
                   <a-select-option :value="null">全部课程</a-select-option>
                   <a-select-option
-                    v-for="course in courses"
-                    :key="course.id"
-                    :value="course.id"
+                      v-for="course in courses"
+                      :key="course.id"
+                      :value="course.id"
                   >
                     {{ course.name }}
                   </a-select-option>
@@ -152,22 +166,22 @@
             </a-col>
 
             <!-- 上传者筛选 -->
-            <a-col :xs="24" :sm="12" :md="6">
+            <a-col :md="6" :sm="12" :xs="24">
               <a-form-item label="上传者">
                 <a-select
-                  :value="filters.uploaderId"
-                  placeholder="选择上传者"
-                  allow-clear
-                  show-search
-                  :filter-option="filterUserOption"
-                  style="min-width: 140px"
-                  @change="(value: any) => handleFilterChange(updateFilter('uploaderId', value))"
+                    :filter-option="filterUserOption"
+                    :value="filters.uploaderId"
+                    allow-clear
+                    placeholder="选择上传者"
+                    show-search
+                    style="min-width: 140px"
+                    @change="(value: any) => handleFilterChange(updateFilter('uploaderId', value))"
                 >
                   <a-select-option :value="null">全部上传者</a-select-option>
                   <a-select-option
-                    v-for="user in users"
-                    :key="user.id"
-                    :value="user.id"
+                      v-for="user in users"
+                      :key="user.id"
+                      :value="user.id"
                   >
                     {{ user.realName || user.username }}
                   </a-select-option>
@@ -176,14 +190,14 @@
             </a-col>
 
             <!-- 文件大小范围 -->
-            <a-col :xs="24" :sm="12" :md="6">
+            <a-col :md="6" :sm="12" :xs="24">
               <a-form-item label="文件大小">
                 <a-select
-                  :value="filters.fileSizeRange"
-                  placeholder="选择大小范围"
-                  allow-clear
-                  style="min-width: 140px"
-                  @change="(value: any) => handleFilterChange(updateFilter('fileSizeRange', value))"
+                    :value="filters.fileSizeRange"
+                    allow-clear
+                    placeholder="选择大小范围"
+                    style="min-width: 140px"
+                    @change="(value: any) => handleFilterChange(updateFilter('fileSizeRange', value))"
                 >
                   <a-select-option :value="null">不限</a-select-option>
                   <a-select-option value="0-1">小于 1MB</a-select-option>
@@ -196,12 +210,12 @@
             </a-col>
 
             <!-- 上传时间范围 -->
-            <a-col :xs="24" :sm="12" :md="6">
+            <a-col :md="6" :sm="12" :xs="24">
               <a-form-item label="上传时间">
                 <a-range-picker
-                  :value="filters.dateRange"
-                  style="max-width: 170px"
-                  @change="(value: any) => handleFilterChange(updateFilter('dateRange', value))"
+                    :value="filters.dateRange"
+                    style="max-width: 170px"
+                    @change="(value: any) => handleFilterChange(updateFilter('dateRange', value))"
                 />
               </a-form-item>
             </a-col>
@@ -213,14 +227,14 @@
       <div v-if="activeFilters.length > 0" class="active-filters">
         <span class="filter-label">当前筛选：</span>
         <a-tag
-          v-for="filter in activeFilters"
-          :key="filter.key"
-          closable
-          @close="removeFilter(filter.key)"
+            v-for="filter in activeFilters"
+            :key="filter.key"
+            closable
+            @close="removeFilter(filter.key)"
         >
           {{ filter.label }}: {{ filter.value }}
         </a-tag>
-        <a-button type="link" size="small" @click="clearAllFilters">
+        <a-button size="small" type="link" @click="clearAllFilters">
           清空全部
         </a-button>
       </div>
@@ -228,31 +242,31 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+<script lang="ts" setup>
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 import {
-  FilterOutlined,
-  ReloadOutlined,
-  UpOutlined,
-  DownOutlined,
-  FilePdfOutlined,
-  FileWordOutlined,
-  FilePptOutlined,
-  FileExcelOutlined,
-  FileImageOutlined,
-  FileZipOutlined,
-  FileTextOutlined,
-  PlayCircleOutlined,
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   ClockCircleOutlined,
   DownloadOutlined,
+  DownOutlined,
   EyeOutlined,
+  FileExcelOutlined,
+  FileImageOutlined,
   FileOutlined,
-  ArrowDownOutlined,
-  ArrowUpOutlined
+  FilePdfOutlined,
+  FilePptOutlined,
+  FileTextOutlined,
+  FileWordOutlined,
+  FileZipOutlined,
+  FilterOutlined,
+  PlayCircleOutlined,
+  ReloadOutlined,
+  UpOutlined
 } from '@ant-design/icons-vue'
-import { categoryApiGet } from '@/api/categoryController'
-import type { Dayjs } from 'dayjs'
+import {categoryApiGet} from '@/api/categoryController'
+import type {Dayjs} from 'dayjs'
 
 interface FilterValues {
   categoryId: number | null
@@ -271,6 +285,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: Partial<FilterValues>): void
+
   (e: 'change', value: Partial<FilterValues>): void
 }
 
@@ -299,7 +314,7 @@ const filters = computed(() => props.modelValue || {
 
 // 更新筛选条件的辅助函数，返回新的筛选条件
 const updateFilter = (key: string, value: any): Partial<FilterValues> => {
-  const newFilters = { ...filters.value, [key]: value }
+  const newFilters = {...filters.value, [key]: value}
   console.log(`更新筛选 ${key}:`, value, '新筛选条件:', newFilters)
   emit('update:modelValue', newFilters)
   return newFilters
@@ -329,7 +344,7 @@ const sortByMap: Record<string, string> = {
 const activeFilters = computed(() => {
   const result: Array<{ key: string; label: string; value: string }> = []
   const currentFilters = filters.value
-  
+
   if (currentFilters.categoryId) {
     const category = findCategory(categories.value, currentFilters.categoryId)
     if (category) {
@@ -340,7 +355,7 @@ const activeFilters = computed(() => {
       })
     }
   }
-  
+
   if (currentFilters.fileType) {
     result.push({
       key: 'fileType',
@@ -348,7 +363,7 @@ const activeFilters = computed(() => {
       value: fileTypeMap[currentFilters.fileType] || currentFilters.fileType
     })
   }
-  
+
   if (currentFilters.courseId) {
     const course = courses.value.find(c => c.id === currentFilters.courseId)
     if (course) {
@@ -359,7 +374,7 @@ const activeFilters = computed(() => {
       })
     }
   }
-  
+
   if (currentFilters.uploaderId) {
     const user = users.value.find(u => u.id === currentFilters.uploaderId)
     if (user) {
@@ -370,7 +385,7 @@ const activeFilters = computed(() => {
       })
     }
   }
-  
+
   if (currentFilters.fileSizeRange) {
     result.push({
       key: 'fileSizeRange',
@@ -378,7 +393,7 @@ const activeFilters = computed(() => {
       value: currentFilters.fileSizeRange
     })
   }
-  
+
   if (currentFilters.dateRange) {
     result.push({
       key: 'dateRange',
@@ -386,14 +401,14 @@ const activeFilters = computed(() => {
       value: `${currentFilters.dateRange[0].format('YYYY-MM-DD')} ~ ${currentFilters.dateRange[1].format('YYYY-MM-DD')}`
     })
   }
-  
+
   return result
 })
 
 // 递归查找分类
 const findCategory = (items: any[], id: number): any => {
   if (!Array.isArray(items)) return null
-  
+
   for (const item of items) {
     if (item.id === id) return item
     if (item.children && Array.isArray(item.children)) {
@@ -435,7 +450,7 @@ const handleFilterChange = (newFilters?: Partial<FilterValues>) => {
   console.log('AdvancedFilter 筛选变化:', currentFilters)
   // 只发送 change 事件，update:modelValue 已经在 updateFilter 中发送过了
   emit('change', currentFilters)
-  
+
   // 同步到 URL
   syncFiltersToUrl()
 }
@@ -460,17 +475,17 @@ const handleReset = () => {
     fileSizeRange: null,
     dateRange: null
   }
-  
+
   emit('update:modelValue', resetFilters)
   emit('change', resetFilters)
-  
+
   // 清除 URL 参数
-  router.push({ query: {} })
+  router.push({query: {}})
 }
 
 // 移除单个筛选条件
 const removeFilter = (key: string) => {
-  const currentFilters = { ...filters.value }
+  const currentFilters = {...filters.value}
   ;(currentFilters as any)[key] = null
   emit('update:modelValue', currentFilters)
   emit('change', currentFilters)
@@ -490,7 +505,7 @@ const toggleAdvanced = () => {
 const syncFiltersToUrl = () => {
   const currentFilters = filters.value
   const query: Record<string, any> = {}
-  
+
   if (currentFilters.categoryId) query.categoryId = currentFilters.categoryId
   if (currentFilters.fileType) query.fileType = currentFilters.fileType
   if (currentFilters.sortBy !== 'created_at') query.sortBy = currentFilters.sortBy
@@ -502,15 +517,15 @@ const syncFiltersToUrl = () => {
     query.startDate = currentFilters.dateRange[0].format('YYYY-MM-DD')
     query.endDate = currentFilters.dateRange[1].format('YYYY-MM-DD')
   }
-  
-  router.push({ query })
+
+  router.push({query})
 }
 
 // 从 URL 加载筛选条件
 const loadFiltersFromUrl = () => {
   const query = route.query
   const urlFilters: Partial<FilterValues> = {}
-  
+
   if (query.categoryId) urlFilters.categoryId = Number(query.categoryId)
   if (query.fileType) urlFilters.fileType = query.fileType as string
   if (query.sortBy) urlFilters.sortBy = query.sortBy as string
@@ -518,15 +533,15 @@ const loadFiltersFromUrl = () => {
   if (query.courseId) urlFilters.courseId = Number(query.courseId)
   if (query.uploaderId) urlFilters.uploaderId = Number(query.uploaderId)
   if (query.fileSizeRange) urlFilters.fileSizeRange = query.fileSizeRange as string
-  
+
   // 如果有高级筛选条件，自动展开
   if (query.courseId || query.uploaderId || query.fileSizeRange || query.startDate) {
     showAdvanced.value = true
   }
-  
+
   // 通知父组件更新
   if (Object.keys(urlFilters).length > 0) {
-    emit('update:modelValue', { ...filters.value, ...urlFilters })
+    emit('update:modelValue', {...filters.value, ...urlFilters})
   }
 }
 

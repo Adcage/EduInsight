@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 编写模型类和Schema类时使用的规范
+description: 编写后端模型类和Schema类时需要遵守的规范
 ---
 
 # 模型类与Schema定义规范
@@ -1207,4 +1207,3 @@ class MaterialQueryModel(CamelCaseModel):
 - [ ] 请求和响应Schema分离
 - [ ] 列表响应包含分页信息
 - [ ] 添加完整的文档字符串
-

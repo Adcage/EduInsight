@@ -2,49 +2,47 @@
   <a-layout-header class="global-header">
     <div class="header-content">
       <div class="logo">
-        <router-link to="/">
-          <h1>Learning Study</h1>
+
+        <router-link :to="homePath" class="logo-link">
+          <img alt="网站Logo" class="site-logo" src="@/assets/logo48-48.ico"/>
+          <h1>慧教通</h1>
         </router-link>
       </div>
 
-      <a-menu
-        v-model:selectedKeys="selectedKeys"
-        mode="horizontal"
-        class="header-menu"
-      >
-        <a-menu-item key="home">
-          <router-link to="/">首页</router-link>
-        </a-menu-item>
-        <a-menu-item key="about">
-          <router-link to="/about">关于</router-link>
-        </a-menu-item>
-      </a-menu>
-
       <div class="header-actions">
-        <ThemeToggle />
+        <ThemeToggle/>
+        <UserAvatar/>
       </div>
     </div>
   </a-layout-header>
 </template>
 
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+<script lang="ts" setup>
+import {computed, ref, watch} from 'vue'
+import {useRoute} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {getDefaultHomeByRole} from '@/utils/roleRoutes'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import UserAvatar from '@/components/common/UserAvatar.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const selectedKeys = ref<string[]>(['home'])
 
+const homePath = computed(() => {
+  return getDefaultHomeByRole(authStore.user?.role)
+})
+
 watch(
-  () => route.path,
-  (newPath) => {
-    if (newPath === '/') {
-      selectedKeys.value = ['home']
-    } else if (newPath.startsWith('/about')) {
-      selectedKeys.value = ['about']
-    }
-  },
-  { immediate: true }
+    () => route.path,
+    (newPath) => {
+      if (newPath === '/') {
+        selectedKeys.value = ['home']
+      } else if (newPath.startsWith('/about')) {
+        selectedKeys.value = ['about']
+      }
+    },
+    {immediate: true},
 )
 </script>
 
@@ -59,15 +57,28 @@ watch(
   border-bottom: 1px solid var(--header-border);
   padding: 0 var(--spacing-xl);
   height: 64px;
-  line-height: 64px;
 }
 
 .header-content {
   max-width: 100%;
+  height: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
 }
 
 .logo h1 {
@@ -75,6 +86,8 @@ watch(
   font-size: var(--heading-4-size);
   color: var(--primary-color);
   font-weight: 600;
+  line-height: 1;
+  font-size: 24px;
 }
 
 .logo a {
@@ -87,6 +100,22 @@ watch(
   margin: 0 var(--spacing-xl);
   border-bottom: none;
   background: transparent;
+  line-height: 64px;
+  height: 64px;
+}
+
+.header-menu :deep(.ant-menu-item) {
+  line-height: 64px;
+  height: 64px;
+  border-bottom: 2px solid transparent;
+}
+
+.header-menu :deep(.ant-menu-item-selected) {
+  border-bottom-color: var(--primary-color);
+}
+
+.header-menu :deep(.ant-menu-item::after) {
+  display: none;
 }
 
 .header-actions {

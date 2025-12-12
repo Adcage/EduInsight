@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: 编写后端API接口的时候
+description: 编写后端接口的时候必须遵守的规则
 ---
 
 # Flask-OpenAPI 装饰器类方式开发规范
