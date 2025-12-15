@@ -320,7 +320,7 @@
         <!-- 历史成绩趋势 -->
         <div style="margin-top: 20px">
           <h3>📈 历史成绩趋势</h3>
-          <div ref="chartRef" style="width: 100%; height: 300px"></div>
+          <div ref="chartRef" style="width: 100%; height: 450px"></div>
         </div>
 
         <!-- 干预记录 -->

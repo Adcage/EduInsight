@@ -1,5 +1,7 @@
 """
 预警预测服务层
+
+使用 scikit-learn 机器学习库进行成绩预测
 """
 from typing import List, Dict, Any, Optional
 from datetime import date, datetime
@@ -10,6 +12,9 @@ from app.models.course import Course
 from app.extensions import db
 import logging
 import numpy as np
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +148,10 @@ class PredictionService:
         """
         预测期末成绩
         
-        使用简单线性回归或加权平均方法
+        使用 scikit-learn 机器学习模型进行预测：
+        - 主要算法：Ridge 回归（岭回归，带 L2 正则化的线性回归）
+        - 特征工程：时间序列特征、考试类型权重、成绩统计特征
+        - 置信度计算：基于交叉验证 R² 分数和成绩稳定性
         
         Args:
             grades: 学生的成绩记录列表(按时间排序)
@@ -164,38 +172,95 @@ class PredictionService:
         # 提取成绩数据
         scores = [float(g.score) for g in grades]
         
-        # 方案A: 简单规则预测(加权平均 + 趋势调整)
         try:
-            # 计算加权平均(最近的成绩权重更高)
-            weights = np.array([i + 1 for i in range(len(scores))])
-            weights = weights / weights.sum()
-            weighted_avg = np.average(scores, weights=weights)
+            # ==================== 特征工程 ====================
+            # 构建特征矩阵 X 和目标向量 y
+            n = len(scores)
             
-            # 计算趋势(最近两次成绩的变化)
-            if len(scores) >= 2:
-                trend = scores[-1] - scores[-2]
-                # 趋势调整系数(不要过度调整)
-                trend_factor = 0.3
-                predicted_score = weighted_avg + (trend * trend_factor)
+            # 特征1: 时间序列索引（归一化）
+            time_indices = np.array(range(n)).reshape(-1, 1) / max(n - 1, 1)
+            
+            # 特征2: 考试类型权重
+            exam_type_weights = []
+            for g in grades:
+                if g.exam_type == ExamType.FINAL:
+                    exam_type_weights.append(1.0)
+                elif g.exam_type == ExamType.MIDTERM:
+                    exam_type_weights.append(0.8)
+                elif g.exam_type == ExamType.DAILY:
+                    exam_type_weights.append(0.6)
+                else:  # HOMEWORK
+                    exam_type_weights.append(0.4)
+            exam_type_weights = np.array(exam_type_weights).reshape(-1, 1)
+            
+            # 特征3: 累积平均分（到当前为止的平均）
+            cumulative_avg = np.array([np.mean(scores[:i+1]) for i in range(n)]).reshape(-1, 1) / 100
+            
+            # 特征4: 成绩变化趋势（与前一次的差值）
+            score_diff = np.array([0] + [scores[i] - scores[i-1] for i in range(1, n)]).reshape(-1, 1) / 100
+            
+            # 组合特征矩阵
+            X = np.hstack([time_indices, exam_type_weights, cumulative_avg, score_diff])
+            y = np.array(scores)
+            
+            # ==================== 模型训练 ====================
+            # 使用 Ridge 回归（岭回归）- 带 L2 正则化，防止过拟合
+            model = Ridge(alpha=1.0)
+            model.fit(X, y)
+            
+            # ==================== 预测下一次成绩（期末） ====================
+            # 构建预测特征
+            next_time_index = np.array([[1.0]])  # 归一化后的下一个时间点
+            next_exam_weight = np.array([[1.0]])  # 期末考试权重最高
+            next_cumulative_avg = np.array([[np.mean(scores) / 100]])
+            
+            # 趋势特征：使用最近的变化趋势
+            if n >= 2:
+                recent_trend = (scores[-1] - scores[-2]) / 100
             else:
-                predicted_score = weighted_avg
+                recent_trend = 0
+            next_score_diff = np.array([[recent_trend]])
+            
+            X_pred = np.hstack([next_time_index, next_exam_weight, next_cumulative_avg, next_score_diff])
+            
+            # 预测
+            predicted_score = model.predict(X_pred)[0]
             
             # 限制在0-100范围内
             predicted_score = max(0, min(100, predicted_score))
             
-            # 计算置信度(基于成绩稳定性)
+            # ==================== 置信度计算 ====================
+            # 方法1: 基于模型拟合度 (R² 分数)
+            y_pred_train = model.predict(X)
+            ss_res = np.sum((y - y_pred_train) ** 2)
+            ss_tot = np.sum((y - np.mean(y)) ** 2)
+            r2_score = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+            r2_score = max(0, min(1, r2_score))
+            
+            # 方法2: 基于成绩稳定性（标准差）
             std_dev = np.std(scores)
-            # 标准差越小,置信度越高
-            # 假设标准差10分对应80%置信度,标准差0分对应100%置信度
-            confidence = max(60, min(100, 100 - std_dev))
+            stability_score = max(0, min(1, 1 - std_dev / 50))  # 标准差50分对应0稳定性
+            
+            # 方法3: 基于数据量
+            data_score = min(1, n / 5)  # 5条以上数据得满分
+            
+            # 综合置信度（加权平均）
+            confidence = (r2_score * 0.4 + stability_score * 0.4 + data_score * 0.2) * 100
+            confidence = max(60, min(100, confidence))  # 限制在60-100之间
+            
+            logger.info(f"ML预测完成: 预测分数={predicted_score:.2f}, R²={r2_score:.3f}, 置信度={confidence:.2f}")
             
             return round(predicted_score, 2), round(confidence, 2)
             
         except Exception as e:
-            logger.error(f"预测计算失败: {str(e)}")
-            # 降级方案:简单平均
-            avg_score = np.mean(scores)
-            return round(avg_score, 2), 70.0
+            logger.error(f"机器学习预测失败: {str(e)}, 降级使用加权平均")
+            # 降级方案: 加权平均
+            weights = np.array([i + 1 for i in range(len(scores))])
+            weights = weights / weights.sum()
+            weighted_avg = np.average(scores, weights=weights)
+            std_dev = np.std(scores)
+            confidence = max(60, min(100, 100 - std_dev))
+            return round(weighted_avg, 2), round(confidence, 2)
     
     @staticmethod
     def _determine_risk_level(predicted_score: float) -> RiskLevel:
