@@ -290,10 +290,19 @@ import {
   RobotOutlined
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
+<<<<<<< HEAD
+import {
+  materialApiIntMaterialIdDownloadGet
+} from '@/api/materialController.ts'
+import { materialApiIntMaterialIdKeywordsGet } from '@/api/classificationController.ts'
+import { useMaterialStore } from '@/stores/material.ts'
+import { useCategoryStore } from '@/stores/category.ts'
+=======
 import {materialApiIntMaterialIdDownloadGet, materialApiIntMaterialIdPreviewGet} from '@/api/materialController.ts'
 import {materialApiIntMaterialIdKeywordsGet} from '@/api/classificationController.ts'
 import {useMaterialStore} from '@/stores/material.ts'
 import {useCategoryStore} from '@/stores/category.ts'
+>>>>>>> 276b54ead05e4bacd83a3a81e97196af280966df
 import FilePreview from '@/components/materials/preview/FilePreview.vue'
 
 const route = useRoute()

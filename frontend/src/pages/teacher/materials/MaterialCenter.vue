@@ -110,7 +110,14 @@ import CategoryTree from '@/components/materials/CategoryTree.vue'
 import TagCloud from '@/components/materials/TagCloud.vue'
 import AdvancedFilter from '@/components/materials/AdvancedFilter.vue'
 import MaterialCard from '@/components/materials/MaterialCard.vue'
+<<<<<<< HEAD
+import {
+  materialApiGet,
+  materialApiIntMaterialIdDownloadGet
+} from '@/api/materialController.ts'
+=======
 import {materialApiGet, materialApiIntMaterialIdDownloadGet} from '@/api/materialController.ts'
+>>>>>>> 276b54ead05e4bacd83a3a81e97196af280966df
 
 const router = useRouter()
 

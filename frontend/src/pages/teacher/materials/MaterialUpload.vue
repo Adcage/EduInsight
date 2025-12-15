@@ -165,6 +165,21 @@
   </div>
 </template>
 
+<<<<<<< HEAD
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import type { FormInstance, UploadProps } from 'ant-design-vue'
+import {
+  InboxOutlined,
+  UploadOutlined,
+  CheckOutlined
+} from '@ant-design/icons-vue'
+import { materialApiUploadPost } from '@/api/materialController.ts'
+import { categoryApiGet } from '@/api/categoryController.ts'
+import { tagApiGet } from '@/api/tagController.ts'
+=======
 <script lang="ts" setup>
 import {onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
@@ -174,6 +189,7 @@ import {CheckOutlined, InboxOutlined, UploadOutlined} from '@ant-design/icons-vu
 import {materialApiUploadPost} from '@/api/materialController.ts'
 import {categoryApiGet} from '@/api/categoryController.ts'
 import {tagApiGet} from '@/api/tagController.ts'
+>>>>>>> 276b54ead05e4bacd83a3a81e97196af280966df
 import ClassificationPanel from '@/components/materials/ClassificationPanel.vue'
 import TagSuggestions from '@/components/materials/TagSuggestions.vue'
 
