@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.pytest_cache/
+.hypothesis/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env.local
+
+# Tests
+tests/
+
+# Documentation
+docs/
+*.md
+
+# IDE
+.idea/
+.vscode/
+
+# Uploads (will be mounted as volume)
+uploads/*
+
+# Git
+.git
+.gitignore
