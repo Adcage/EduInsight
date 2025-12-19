@@ -1,6 +1,5 @@
 # EduInsight 慧教通
 
-<div align="center">
 [![Vue 3](https://img.shields.io/badge/Vue-3.5.22-4FC08D?style=flat&logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0.0-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.0-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -8,7 +7,6 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Ant Design](https://img.shields.io/badge/Ant%20Design-4.2.6-0170FE?style=flat&logo=ant-design&logoColor=white)](https://antdv.com/)
 
-</div>
 
 基于 **Vue 3 + Flask + AI** 的现代化教学管理平台，提供资料管理、考勤管理、成绩管理、课堂互动等功能，并集成智能资料归类和学情预警预测。
 
