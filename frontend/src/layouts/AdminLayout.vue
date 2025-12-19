@@ -1,15 +1,11 @@
 <template>
   <a-layout class="admin-layout">
     <!-- 全局头部 -->
-    <GlobalHeader/>
+    <GlobalHeader />
 
     <a-layout class="main-layout">
       <!-- 左侧菜单栏 -->
-      <LayoutSider
-          :menu-items="menuItems"
-          title="管理员"
-          @collapse-change="handleCollapseChange"
-      />
+      <LayoutSider :menu-items="menuItems" title="管理员" @collapse-change="handleCollapseChange" />
 
       <!-- 主内容区域 -->
       <a-layout :class="{ 'collapsed-layout': collapsed }" class="content-layout">
@@ -17,7 +13,7 @@
           <div class="content-wrapper">
             <router-view v-slot="{ Component }">
               <transition mode="out-in" name="fade">
-                <component :is="Component"/>
+                <component :is="Component" />
               </transition>
             </router-view>
           </div>
@@ -26,16 +22,16 @@
     </a-layout>
 
     <!-- 全局底部 -->
-    <GlobalFooter/>
+    <GlobalFooter />
   </a-layout>
 </template>
 
 <script lang="ts" setup>
-import {ref} from 'vue'
-import {BookOutlined, DashboardOutlined, SettingOutlined, TeamOutlined, UserOutlined,} from '@ant-design/icons-vue'
+import { ref } from 'vue'
+import { BookOutlined, DashboardOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons-vue'
 import GlobalHeader from '@/layouts/GlobalHeader.vue'
 import GlobalFooter from '@/layouts/GlobalFooter.vue'
-import type {MenuItem} from '@/components/layout/LayoutSider.vue'
+import type { MenuItem } from '@/components/layout/LayoutSider.vue'
 import LayoutSider from '@/components/layout/LayoutSider.vue'
 
 // 响应式数据
@@ -54,24 +50,6 @@ const menuItems: MenuItem[] = [
     label: '用户管理',
     icon: UserOutlined,
     path: '/admin/users',
-  },
-  {
-    key: 'courses',
-    label: '课程管理',
-    icon: BookOutlined,
-    path: '/admin/courses',
-  },
-  {
-    key: 'classes',
-    label: '班级管理',
-    icon: TeamOutlined,
-    path: '/admin/classes',
-  },
-  {
-    key: 'settings',
-    label: '系统设置',
-    icon: SettingOutlined,
-    path: '/admin/settings',
   },
 ]
 
@@ -126,8 +104,9 @@ const handleCollapseChange = (isCollapsed: boolean) => {
 /* 页面切换动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease,
-  transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .fade-enter-from {
