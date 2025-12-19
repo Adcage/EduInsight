@@ -52,10 +52,10 @@ const collapsed = ref(false)
 // 学生菜单配置（参考需求文档 4.2）
 const menuItems: MenuItem[] = [
   {
-    key: 'dashboard',
+    key: 'profile',
     label: '学生首页',
     icon: DashboardOutlined,
-    path: '/student/dashboard',
+    path: '/student/profile',
   },
   {
     key: 'materials',
